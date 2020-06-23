@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include "gameStructs.h"
 
 bool running = 1;
 
@@ -53,6 +54,20 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		0
 	);
 
+	GameMemory* gameMemory = (GameMemory*)VirtualAlloc(0, sizeof(gameMemory), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+
+	//load dll test
+	{
+		HMODULE dllHand = LoadLibrary("gameSetup.dll");
+		if(dllHand)
+		{
+			OutputDebugString("Windows: found dll");
+			FreeLibrary(dllHand);
+		}
+
+	}
+
+
 	while (running)
 	{
 		MSG msg = {};
@@ -62,8 +77,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			DispatchMessage(&msg);
 		
 		}
-
-
 
 	}
 

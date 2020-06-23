@@ -1,8 +1,23 @@
-#include <iostream>
+#include <Windows.h>
+#include "gameStructs.h"
 
-int main()
+BOOL WINAPI DllMain(
+	HINSTANCE hinstDLL,
+	DWORD     fdwReason,
+	LPVOID    lpvReserved
+)
 {
 
+	if(fdwReason == DLL_PROCESS_ATTACH)
+	{
+		OutputDebugString("dll attached");
+	}
 
-	return 0;
+}
+
+__declspec(dllexport) void gameLogic(GameMemory *memory)
+{
+
+	//do game logic
+
 }
