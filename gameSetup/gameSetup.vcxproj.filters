@@ -26,5 +26,8 @@
     <ClInclude Include="gameStructs.h">
       <Filter>Source Files\shader</Filter>
     </ClInclude>
+    <ClInclude Include="utility.h">
+      <Filter>Source Files\shader</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

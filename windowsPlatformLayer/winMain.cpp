@@ -1,7 +1,11 @@
 #include <Windows.h>
 #include "gameStructs.h"
+#include "utility.h"
+#include <string>
 
-bool running = 1;
+static bool running = 1;
+static BITMAPINFO bitmapInfo = {};
+static GameWindowBuffer gameWindowBuffer = {};
 
 LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -14,8 +18,26 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		running = 0;
 		//PostQuitMessage(0);
 		break;
+	case WM_PAINT:
+	{
+		PAINTSTRUCT Paint;
+		HDC DeviceContext = BeginPaint(wind, &Paint);
+		
+		HDC hdc = GetDC(wind);
+		
+		StretchDIBits(hdc,
+			0, 0, gameWindowBuffer.w, gameWindowBuffer.h,
+			0, 0, gameWindowBuffer.w, gameWindowBuffer.h,
+			gameWindowBuffer.memory,
+			&bitmapInfo,
+			DIB_RGB_COLORS,
+			SRCCOPY
+		);
 
-
+		ReleaseDC(wind, hdc);
+		
+		EndPaint(wind, &Paint);
+	} break;
 	default:
 		rez = DefWindowProc(wind, msg, wp, lp);
 		break;
@@ -54,17 +76,40 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		0
 	);
 
-	GameMemory* gameMemory = (GameMemory*)VirtualAlloc(0, sizeof(gameMemory), MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	GameMemory* gameMemory = (GameMemory*)VirtualAlloc(0, sizeof(gameMemory),
+		MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	GameInput gameInput = {};
+	RECT rect;
+	GetClientRect(wind, &rect);
+	gameWindowBuffer.h = rect.bottom;
+	gameWindowBuffer.w = rect.right;
+	gameWindowBuffer.memory = 
+		(char*)VirtualAlloc(0, 4 * gameWindowBuffer.w * gameWindowBuffer.h,
+			MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+	
+	gameLogic_t* gameLogic_ptr;
 
-	//load dll test
+	bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFO);
+	bitmapInfo.bmiHeader.biWidth = gameWindowBuffer.w;
+	bitmapInfo.bmiHeader.biHeight = -gameWindowBuffer.h;
+	bitmapInfo.bmiHeader.biPlanes = 1;
+	bitmapInfo.bmiHeader.biBitCount = 32;
+	bitmapInfo.bmiHeader.biCompression = BI_RGB;
+
+
 	{
-		HMODULE dllHand = LoadLibrary("gameSetup.dll");
-		if(dllHand)
-		{
-			OutputDebugString("Windows: found dll");
-			FreeLibrary(dllHand);
-		}
 
+
+		HMODULE dllHand = LoadLibrary("gameSetup.dll");
+		
+		int a = GetLastError();
+
+		assert(dllHand);
+
+		gameLogic_ptr = (gameLogic_t*)GetProcAddress(dllHand, "gameLogic");
+
+		assert(gameLogic_ptr);
+			
 	}
 
 
@@ -78,6 +123,24 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		
 		}
 
+		//execute game logic
+		gameLogic_ptr(&gameInput, gameMemory, &gameWindowBuffer);
+
+		//draw screen
+		{
+			HDC hdc = GetDC(wind);
+
+			StretchDIBits(hdc,
+				0, 0, gameWindowBuffer.w, gameWindowBuffer.h,
+				0, 0, gameWindowBuffer.w, gameWindowBuffer.h,
+				gameWindowBuffer.memory,
+				&bitmapInfo,
+				DIB_RGB_COLORS,
+				SRCCOPY
+			);
+
+			ReleaseDC(wind, hdc);
+		}
 	}
 
 	CloseWindow(wind);
