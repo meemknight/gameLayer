@@ -2,10 +2,12 @@
 #include "gameStructs.h"
 #include "utility.h"
 #include <string>
+#include <iostream>
 
 static bool running = 1;
 static BITMAPINFO bitmapInfo = {};
 static GameWindowBuffer gameWindowBuffer = {};
+static char dllName[260];
 
 LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -47,10 +49,68 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 	return rez;
 }
 
-
-
-int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
+static FILETIME win32GetLastWriteFile(const char *name)
 {
+	FILETIME time = {};
+
+	WIN32_FILE_ATTRIBUTE_DATA Data;
+	if (GetFileAttributesEx(name, GetFileExInfoStandard, &Data))
+	{
+		time = Data.ftLastWriteTime;
+	}else
+	{
+	//	assert(0);
+	}
+
+	return(time);
+
+}
+
+static HMODULE dllHand;
+
+static void win32LoadDll(gameLogic_t **gameLogicPtr)
+{
+
+	assert(CopyFile(dllName, "gameSetupCopy.dll", FALSE));
+
+	dllHand = LoadLibrary("gameSetupCopy.dll");
+
+	assert(dllHand);
+
+	*gameLogicPtr = (gameLogic_t*)GetProcAddress(dllHand, "gameLogic");
+
+	assert(*gameLogicPtr);
+
+	OutputDebugString("RELOADED DLL");
+}
+
+static void win32UnloadDll()
+{
+	
+	FreeLibrary(dllHand);
+
+}
+
+//int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
+int main()
+{
+	HINSTANCE h = GetModuleHandle(0);
+
+	GetModuleFileName(GetModuleHandle(0), dllName, 260);
+
+	//OutputDebugString(c);
+	int s = strlen(dllName);
+	for (int i = s - 1; i > 0; i--)
+	{
+		if (dllName[i] == '\\')
+		{
+			dllName[i] = 0;
+			break;
+		}
+	}
+
+	strcat_s(dllName, 260, "\\gameSetup.dll");
+
 	WNDCLASS wc = {};
 	
 	wc.hCursor = LoadCursor(0, IDC_ARROW);
@@ -96,22 +156,9 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	bitmapInfo.bmiHeader.biBitCount = 32;
 	bitmapInfo.bmiHeader.biCompression = BI_RGB;
 
+	FILETIME lastFileTime = win32GetLastWriteFile(dllName);
 
-	{
-
-
-		HMODULE dllHand = LoadLibrary("gameSetup.dll");
-		
-		int a = GetLastError();
-
-		assert(dllHand);
-
-		gameLogic_ptr = (gameLogic_t*)GetProcAddress(dllHand, "gameLogic");
-
-		assert(gameLogic_ptr);
-			
-	}
-
+	win32LoadDll(&gameLogic_ptr);
 
 	while (running)
 	{
@@ -141,6 +188,33 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 			ReleaseDC(wind, hdc);
 		}
+
+		//check if game code changed
+		//todo change into a string macro
+		//make utility char with path name
+		FILETIME fileTime2 = {};
+		
+		
+		fileTime2 = win32GetLastWriteFile(dllName);
+		
+
+		if(CompareFileTime(&lastFileTime, &fileTime2) != 0)
+		{
+			lastFileTime = fileTime2;
+			win32UnloadDll();
+			HANDLE file;
+			while ((file = CreateFile(dllName, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL,
+				OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE)
+			{
+
+			}
+
+			CloseHandle(file);
+
+			win32LoadDll(&gameLogic_ptr);
+
+		}
+
 	}
 
 	CloseWindow(wind);
