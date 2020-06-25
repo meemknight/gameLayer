@@ -91,10 +91,14 @@ static void win32UnloadDll()
 
 }
 
-//int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
-int main()
+int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
+//int main()
 {
-	HINSTANCE h = GetModuleHandle(0);
+	CreateMutexA(0, FALSE, "Local\\$myprogram$"); // try to create a named mutex
+	if (GetLastError() == ERROR_ALREADY_EXISTS) // did the mutex already exist?
+		return -1; // quit; mutex is released automatically
+
+	//HINSTANCE h = GetModuleHandle(0);
 
 	GetModuleFileName(GetModuleHandle(0), dllName, 260);
 
