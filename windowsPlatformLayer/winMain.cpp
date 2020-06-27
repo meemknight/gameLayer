@@ -3,6 +3,7 @@
 #include "utility.h"
 #include <string>
 #include <iostream>
+#include <stdio.h>
 
 static bool running = 1;
 static BITMAPINFO bitmapInfo = {};
@@ -13,6 +14,20 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 {
 	LRESULT rez = 0;
 
+	//if((msg >= WM_MOUSEFIRST && msg <= WM_MOUSELAST)
+	//	||(msg >= WM_KEYFIRST && msg <= WM_KEYLAST)
+	//	)
+	//{
+	//	HWND w = GetTopWindow(0);	
+	//	HWND secondW = GetNextWindow(w, GW_HWNDNEXT);
+	//
+	//	char n[260];
+	//
+	//	GetWindowModuleFileName(secondW, n, 260);
+	//	
+	//	std::cout << n << "\n";
+	//	SendMessage(secondW, msg, wp, lp);
+	//}
 
 	switch (msg)
 	{
@@ -91,10 +106,21 @@ static void win32UnloadDll()
 
 }
 
-//int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
-int main()
+int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 {
-	HINSTANCE h = GetModuleHandle(0);
+
+	//global mutex that lets only one instance of this app run
+	CreateMutex(NULL, TRUE, "gameLayerMutex");
+	if (GetLastError() == ERROR_ALREADY_EXISTS)
+	{
+		return 0;
+	}
+	
+	AllocConsole();
+	freopen("conin$", "r", stdin);
+	freopen("conout$", "w", stdout);
+	freopen("conout$", "w", stderr);
+	std::cout.sync_with_stdio();
 
 	GetModuleFileName(GetModuleHandle(0), dllName, 260);
 
@@ -117,12 +143,13 @@ int main()
 	wc.hInstance = h;
 	wc.lpfnWndProc = windProc;
 	wc.lpszClassName = "MainWindowClass";
-	wc.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+	wc.style = CS_HREDRAW | CS_VREDRAW;
 
 	RegisterClass(&wc);
 
-	HWND wind = CreateWindow
+	HWND wind = CreateWindowEx
 	(
+		WS_EX_TOPMOST | WS_EX_LAYERED,
 		wc.lpszClassName,
 		"Geam",
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
@@ -135,6 +162,9 @@ int main()
 		h,
 		0
 	);
+
+	SetLayeredWindowAttributes(wind, RGB(0, 0, 0), 105, LWA_ALPHA);
+
 
 	GameMemory* gameMemory = (GameMemory*)VirtualAlloc(0, sizeof(gameMemory),
 		MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
@@ -162,6 +192,7 @@ int main()
 
 	while (running)
 	{
+
 		MSG msg = {};
 		while(PeekMessage(&msg, wind, 0, 0, PM_REMOVE) > 0)
 		{
