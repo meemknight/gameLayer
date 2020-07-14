@@ -6,9 +6,11 @@
 #include <stdio.h>
 
 static bool running = 1;
+static bool active = 0;
 static BITMAPINFO bitmapInfo = {};
 static GameWindowBuffer gameWindowBuffer = {};
 static char dllName[260];
+static GameInput gameInput = {};
 
 LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -29,6 +31,8 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 	//	SendMessage(secondW, msg, wp, lp);
 	//}
 
+	bool isDown = 0;
+
 	switch (msg)
 	{
 	case WM_CLOSE:
@@ -42,6 +46,14 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		
 		HDC hdc = GetDC(wind);
 		
+		RECT r;
+		GetClientRect(wind, &r);
+
+		int w = r.left;
+		int h = r.bottom;
+		//todo repair
+		PatBlt(hdc, 0, 0, w, h, BLACKNESS);
+
 		StretchDIBits(hdc,
 			0, 0, gameWindowBuffer.w, gameWindowBuffer.h,
 			0, 0, gameWindowBuffer.w, gameWindowBuffer.h,
@@ -56,16 +68,45 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		EndPaint(wind, &Paint);
 	} break;
 	case WM_ACTIVATEAPP:
-
-		if(wp)
+	{
+		if (wp)
 		{
 			SetLayeredWindowAttributes(wind, RGB(0, 0, 0), 255, LWA_ALPHA);
-		}else
+			active = true;
+		}
+		else
 		{
 			SetLayeredWindowAttributes(wind, RGB(0, 0, 0), 105, LWA_ALPHA);
+			active = false;
 		}
 
-		break;
+	}	break;
+
+	case WM_SYSKEYDOWN:
+	case WM_KEYDOWN:
+		isDown = 1;
+	case WM_SYSKEYUP:
+	case WM_KEYUP: 
+	{
+
+
+		if(wp == 'W')
+		{
+			gameInput.up = isDown;
+		}else if(wp == 'S')
+		{
+			gameInput.down = isDown;
+		}
+		else if (wp == 'A')
+		{
+			gameInput.left = isDown;
+		}
+		else if (wp == 'D')
+		{
+			gameInput.right = isDown;
+		}
+
+	}break;
 	default:
 		rez = DefWindowProc(wind, msg, wp, lp);
 		break;
@@ -185,10 +226,15 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		0
 	);
 
-
-	GameMemory* gameMemory = (GameMemory*)VirtualAlloc(0, sizeof(gameMemory),
+	//todo add a guard
+	//todo add a base pointer
+	//todo add compile macro settings
+	GameMemory *gameMemory = (GameMemory*)VirtualAlloc(0, sizeof(GameMemory),
 		MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-	GameInput gameInput = {};
+
+	VolatileMemory* volatileMemory = (VolatileMemory*)VirtualAlloc(0, sizeof(VolatileMemory),
+		MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+
 	RECT rect;
 	GetClientRect(wind, &rect);
 	gameWindowBuffer.h = rect.bottom;
@@ -221,8 +267,11 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		
 		}
 
+
+		volatileMemory->reset();
+
 		//execute game logic
-		gameLogic_ptr(&gameInput, gameMemory, &gameWindowBuffer);
+		gameLogic_ptr(&gameInput, gameMemory, volatileMemory, &gameWindowBuffer);
 
 		//draw screen
 		SendMessage(wind, WM_PAINT, 0, 0);
