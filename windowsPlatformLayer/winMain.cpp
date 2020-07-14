@@ -55,6 +55,17 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		
 		EndPaint(wind, &Paint);
 	} break;
+	case WM_ACTIVATEAPP:
+
+		if(wp)
+		{
+			SetLayeredWindowAttributes(wind, RGB(0, 0, 0), 255, LWA_ALPHA);
+		}else
+		{
+			SetLayeredWindowAttributes(wind, RGB(0, 0, 0), 105, LWA_ALPHA);
+		}
+
+		break;
 	default:
 		rez = DefWindowProc(wind, msg, wp, lp);
 		break;
@@ -109,18 +120,26 @@ static void win32UnloadDll()
 int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 {
 
-	//global mutex that lets only one instance of this app run
+#pragma region global mutex that lets only one instance of this app run
 	CreateMutex(NULL, TRUE, "gameLayerMutex");
 	if (GetLastError() == ERROR_ALREADY_EXISTS)
 	{
 		return 0;
 	}
-	
+#pragma endregion
+
+
+	//console
+#if 0 	
 	AllocConsole();
 	freopen("conin$", "r", stdin);
 	freopen("conout$", "w", stdout);
 	freopen("conout$", "w", stderr);
 	std::cout.sync_with_stdio();
+#endif
+
+#pragma region dllName
+
 
 	GetModuleFileName(GetModuleHandle(0), dllName, 260);
 
@@ -136,6 +155,9 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	}
 
 	strcat_s(dllName, 260, "\\gameSetup.dll");
+
+#pragma endregion
+
 
 	WNDCLASS wc = {};
 	
@@ -162,8 +184,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		h,
 		0
 	);
-
-	SetLayeredWindowAttributes(wind, RGB(0, 0, 0), 105, LWA_ALPHA);
 
 
 	GameMemory* gameMemory = (GameMemory*)VirtualAlloc(0, sizeof(gameMemory),
@@ -205,20 +225,8 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		gameLogic_ptr(&gameInput, gameMemory, &gameWindowBuffer);
 
 		//draw screen
-		{
-			HDC hdc = GetDC(wind);
+		SendMessage(wind, WM_PAINT, 0, 0);
 
-			StretchDIBits(hdc,
-				0, 0, gameWindowBuffer.w, gameWindowBuffer.h,
-				0, 0, gameWindowBuffer.w, gameWindowBuffer.h,
-				gameWindowBuffer.memory,
-				&bitmapInfo,
-				DIB_RGB_COLORS,
-				SRCCOPY
-			);
-
-			ReleaseDC(wind, hdc);
-		}
 
 		//check if game code changed
 		//todo change into a string macro
@@ -237,7 +245,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			while ((file = CreateFile(dllName, GENERIC_READ | GENERIC_WRITE, FILE_SHARE_READ, NULL,
 				OPEN_EXISTING, 0, NULL)) == INVALID_HANDLE_VALUE)
 			{
-
+				//check if dll can be opened
 			}
 
 			CloseHandle(file);

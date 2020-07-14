@@ -21,9 +21,9 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	for(int y=0; y<windowBuffer->h; y++)
 		for (int x = 0; x < windowBuffer->w; x++)
 		{
-			windowBuffer->memory[4 * (x + y * windowBuffer->w) + 0] = 20 * ((y + x)%29);	//blue
+			windowBuffer->memory[4 * (x + y * windowBuffer->w) + 0] = 0 * ((y + x)%9);	//blue
 			windowBuffer->memory[4 * (x + y * windowBuffer->w) + 1] = 20 * ((x + y*x ) % 17);	//green
-			windowBuffer->memory[4 * (x + y * windowBuffer->w) + 2] = 0 * ((x*x*x+y)%20);	//red
+			windowBuffer->memory[4 * (x + y * windowBuffer->w) + 2] = 20 * ((x*x*x+y)%20);	//red
 			windowBuffer->memory[4 * (x + y * windowBuffer->w) + 3] = 0;
 				
 		}
