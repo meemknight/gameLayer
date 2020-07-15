@@ -11,6 +11,7 @@ static BITMAPINFO bitmapInfo = {};
 static GameWindowBuffer gameWindowBuffer = {};
 static char dllName[260];
 static GameInput gameInput = {};
+static LARGE_INTEGER performanceFrequency;
 
 LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -45,14 +46,6 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		HDC DeviceContext = BeginPaint(wind, &Paint);
 		
 		HDC hdc = GetDC(wind);
-		
-		RECT r;
-		GetClientRect(wind, &r);
-
-		int w = r.left;
-		int h = r.bottom;
-		//todo repair
-		PatBlt(hdc, 0, 0, w, h, BLACKNESS);
 
 		StretchDIBits(hdc,
 			0, 0, gameWindowBuffer.w, gameWindowBuffer.h,
@@ -104,6 +97,12 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		else if (wp == 'D')
 		{
 			gameInput.right = isDown;
+		}else if (wp == VK_F4)
+		{
+			if(lp & (1 << 29))
+			{
+				running = 0;
+			}
 		}
 
 	}break;
@@ -256,8 +255,54 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 	win32LoadDll(&gameLogic_ptr);
 
+#pragma region time
+
+	QueryPerformanceFrequency(&performanceFrequency);
+	LARGE_INTEGER time1;
+	LARGE_INTEGER time2;
+	LARGE_INTEGER time3;
+	LARGE_INTEGER time4;
+
+	QueryPerformanceCounter(&time1);
+	QueryPerformanceCounter(&time3);
+
+#pragma endregion
+
+
+
 	while (running)
 	{
+		QueryPerformanceCounter(&time4);
+		LARGE_INTEGER deltaTimeInteger;
+		deltaTimeInteger.QuadPart = time4.QuadPart - time3.QuadPart;
+		
+		float deltaTime = (float)deltaTimeInteger.QuadPart / (float)performanceFrequency.QuadPart;
+		QueryPerformanceCounter(&time3);
+
+		if (timeBeginPeriod(1) == TIMERR_NOERROR)
+		{
+			QueryPerformanceCounter(&time2);
+			LARGE_INTEGER deltaTimeInteger;
+			deltaTimeInteger.QuadPart = time2.QuadPart - time1.QuadPart;
+			double dDeltaTime2 = (double)deltaTimeInteger.QuadPart / (double)performanceFrequency.QuadPart;
+
+			int sleep = (1000.0 / 60.0) - (dDeltaTime2 * 1000.0);
+			if (sleep > 0) { Sleep(sleep); }
+			timeEndPeriod(1);
+		}
+		else
+		{
+			int sleep = 0;
+			do
+			{
+				QueryPerformanceCounter(&time2);
+				int deltaTime2 = time2.QuadPart - time1.QuadPart;
+				double dDeltaTime2 = (double)deltaTime2 / (double)performanceFrequency.QuadPart;
+
+				sleep = (1000.0 / 60.0) - (dDeltaTime2 * 1000.0);
+			} while (sleep > 0);
+		}
+
 
 		MSG msg = {};
 		while(PeekMessage(&msg, wind, 0, 0, PM_REMOVE) > 0)
@@ -271,9 +316,18 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		volatileMemory->reset();
 
 		//execute game logic
-		gameLogic_ptr(&gameInput, gameMemory, volatileMemory, &gameWindowBuffer);
+		gameLogic_ptr(&gameInput, gameMemory, volatileMemory, deltaTime, &gameWindowBuffer);
 
 		//draw screen
+		RECT r;
+		GetClientRect(wind, &r);
+
+		int w = r.left;
+		int h = r.bottom;
+		//todo repair
+		HDC hdc = GetDC(wind);
+		PatBlt(hdc, 0, 0, w, h, BLACKNESS);
+		ReleaseDC(wind, hdc);
 		SendMessage(wind, WM_PAINT, 0, 0);
 
 

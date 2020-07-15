@@ -17,7 +17,7 @@ BOOL WINAPI DllMain(
 }
 
 extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* memory, 
-	VolatileMemory *volatileMemory, GameWindowBuffer* windowBuffer)
+	VolatileMemory *volatileMemory, float deltaTime, GameWindowBuffer* windowBuffer)
 {
 	//do game logic
 
@@ -66,21 +66,23 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 	//move player
 
+	float spped = 400 * deltaTime;
+		
 		if(input->up)
 		{
-			memory->posY -= 1;
+			memory->posY -= spped;
 		}
 		if (input->down)
 		{
-			memory->posY += 1;
+			memory->posY += spped;
 		}
 		if (input->left)
 		{
-			memory->posX -= 1;
+			memory->posX -= spped;
 		}
 		if (input->right)
 		{
-			memory->posX += 1;
+			memory->posX += spped;
 		}
 
 }
