@@ -47,6 +47,8 @@ struct VolatileMemory
 
 struct GameInput
 {
+	float deltaTime;
+
 	char up;
 	char down;
 	char left;
@@ -62,7 +64,7 @@ struct GameWindowBuffer
 
 };
 
-#define GAMELOGIC(x) void x(GameInput *input, GameMemory* memory, VolatileMemory *volatileMemory, float deltaTime,\
+#define GAMELOGIC(x) void x(GameInput *input, GameMemory* memory, VolatileMemory *volatileMemory,\
  GameWindowBuffer *windowBuffer)
 typedef GAMELOGIC(gameLogic_t);
 extern "C" __declspec(dllexport) GAMELOGIC(gameLogic);

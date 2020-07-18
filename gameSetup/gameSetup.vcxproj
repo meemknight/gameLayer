@@ -141,6 +141,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>NotSet</SubSystem>

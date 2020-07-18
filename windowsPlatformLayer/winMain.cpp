@@ -4,11 +4,13 @@
 #include <string>
 #include <iostream>
 #include <stdio.h>
+#include "windowsFunctions.h"
 
 static bool running = 1;
 static bool active = 0;
 static BITMAPINFO bitmapInfo = {};
 static GameWindowBuffer gameWindowBuffer = {};
+static GameMemory* gameMemory = nullptr;
 static char dllName[260];
 static GameInput gameInput = {};
 static LARGE_INTEGER performanceFrequency;
@@ -81,7 +83,7 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 	case WM_SYSKEYUP:
 	case WM_KEYUP: 
 	{
-
+		bool altWasDown = lp & (1 << 29);
 
 		if(wp == 'W')
 		{
@@ -99,10 +101,19 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 			gameInput.right = isDown;
 		}else if (wp == VK_F4)
 		{
-			if(lp & (1 << 29))
+			if(altWasDown)
 			{
 				running = 0;
 			}
+		}else if(wp == 'R' && altWasDown)
+		{
+			//start recording
+			saveGameState(0, gameMemory);
+		}
+		else if (wp == 'P' && altWasDown)
+		{
+			//play recording
+			loadGameState(0, gameMemory);
 		}
 
 	}break;
@@ -115,47 +126,6 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 	return rez;
 }
 
-static FILETIME win32GetLastWriteFile(const char *name)
-{
-	FILETIME time = {};
-
-	WIN32_FILE_ATTRIBUTE_DATA Data;
-	if (GetFileAttributesEx(name, GetFileExInfoStandard, &Data))
-	{
-		time = Data.ftLastWriteTime;
-	}else
-	{
-	//	assert(0);
-	}
-
-	return(time);
-
-}
-
-static HMODULE dllHand;
-
-static void win32LoadDll(gameLogic_t **gameLogicPtr)
-{
-
-	assert(CopyFile(dllName, "gameSetupCopy.dll", FALSE));
-
-	dllHand = LoadLibrary("gameSetupCopy.dll");
-
-	assert(dllHand);
-
-	*gameLogicPtr = (gameLogic_t*)GetProcAddress(dllHand, "gameLogic");
-
-	assert(*gameLogicPtr);
-
-	OutputDebugString("RELOADED DLL");
-}
-
-static void win32UnloadDll()
-{
-	
-	FreeLibrary(dllHand);
-
-}
 
 int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 {
@@ -177,6 +147,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	freopen("conout$", "w", stderr);
 	std::cout.sync_with_stdio();
 #endif
+
 
 #pragma region dllName
 
@@ -228,7 +199,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	//todo add a guard
 	//todo add a base pointer
 	//todo add compile macro settings
-	GameMemory *gameMemory = (GameMemory*)VirtualAlloc(0, sizeof(GameMemory),
+	gameMemory = (GameMemory*)VirtualAlloc(0, sizeof(GameMemory),
 		MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
 	VolatileMemory* volatileMemory = (VolatileMemory*)VirtualAlloc(0, sizeof(VolatileMemory),
@@ -253,7 +224,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 	FILETIME lastFileTime = win32GetLastWriteFile(dllName);
 
-	win32LoadDll(&gameLogic_ptr);
+	win32LoadDll(&gameLogic_ptr, dllName);
 
 #pragma region time
 
@@ -315,8 +286,10 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 		volatileMemory->reset();
 
+		gameInput.deltaTime = deltaTime;
+
 		//execute game logic
-		gameLogic_ptr(&gameInput, gameMemory, volatileMemory, deltaTime, &gameWindowBuffer);
+		gameLogic_ptr(&gameInput, gameMemory, volatileMemory, &gameWindowBuffer);
 
 		//draw screen
 		RECT r;
@@ -353,7 +326,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 			CloseHandle(file);
 
-			win32LoadDll(&gameLogic_ptr);
+			win32LoadDll(&gameLogic_ptr, dllName);
 
 		}
 

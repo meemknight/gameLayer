@@ -143,6 +143,7 @@
       <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>$(SolutionDir)gameSetup;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FloatingPointModel>Fast</FloatingPointModel>
     </ClCompile>
     <Link>
       <SubSystem>NotSet</SubSystem>
@@ -154,7 +155,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="utility.cpp" />
+    <ClCompile Include="windowsFunctions.cpp" />
     <ClCompile Include="winMain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="windowsFunctions.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

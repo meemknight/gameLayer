@@ -17,10 +17,10 @@ BOOL WINAPI DllMain(
 }
 
 extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* memory, 
-	VolatileMemory *volatileMemory, float deltaTime, GameWindowBuffer* windowBuffer)
+	VolatileMemory *volatileMemory, GameWindowBuffer* windowBuffer)
 {
 	//do game logic
-
+	float deltaTime = input->deltaTime;
 
 	if(memory->isInitialized==0)
 	{
