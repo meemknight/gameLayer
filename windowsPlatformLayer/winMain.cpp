@@ -5,6 +5,7 @@
 #include <iostream>
 #include <stdio.h>
 #include "windowsFunctions.h"
+#include "buildConfig.h"
 
 static bool running = 1;
 static bool active = 0;
@@ -143,6 +144,7 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		
 		}
 		if(wp == 'S' && altWasDown)
+
 		{
 			if(recordingState == RECORDING)
 			{
@@ -280,7 +282,19 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	//todo add a guard
 	//todo add a base pointer
 	//todo add compile macro settings
-	gameMemory = (GameMemory*)VirtualAlloc(0, sizeof(GameMemory),
+
+	size_t gameMemoryBaseAdress = 0;
+	size_t gameMemorySize = MB(10);
+
+	assert(sizeof(GameMemory) <= gameMemorySize)
+
+#if INTERNAL_BUILD
+	gameMemoryBaseAdress = TB(2);
+#endif
+
+
+
+	gameMemory = (GameMemory*)VirtualAlloc((LPVOID)gameMemoryBaseAdress, gameMemorySize,
 		MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
 	VolatileMemory* volatileMemory = (VolatileMemory*)VirtualAlloc(0, sizeof(VolatileMemory),

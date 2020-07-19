@@ -4,16 +4,18 @@
 
 struct GameMemory
 {
-	char memory[1000];
+	
 	float posX;
 	float posY;
 	char isInitialized = 0;
 
+
+	char memory[1000];
 };
 
 struct VolatileMemory
 {
-	static const size_t maxSize = 1000;
+	static const size_t maxSize = 4000;
 
 	char memory[maxSize];
 	char* stackTop = 0;

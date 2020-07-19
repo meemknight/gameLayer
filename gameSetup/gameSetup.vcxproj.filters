@@ -32,5 +32,8 @@
     <ClInclude Include="utility.h">
       <Filter>Source Files\shader</Filter>
     </ClInclude>
+    <ClInclude Include="..\windowsPlatformLayer\buildConfig.h">
+      <Filter>Source Files\shader</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
