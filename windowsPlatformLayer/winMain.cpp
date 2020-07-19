@@ -15,6 +15,18 @@ static char dllName[260];
 static GameInput gameInput = {};
 static LARGE_INTEGER performanceFrequency;
 
+#define NOT_RECORDING 0
+#define RECORDING 1
+#define PLAYING 2
+
+static int recordingState = NOT_RECORDING;
+static int recordingSlot = 0;
+static HANDLE recordingFileHand = 0;
+static HANDLE fileMapping = 0;
+void* fileMappingPointer = nullptr;
+size_t fileMappingSize = 0;
+size_t fileMappingCursor = 0;
+
 LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 {
 	LRESULT rez = 0;
@@ -88,32 +100,101 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		if(wp == 'W')
 		{
 			gameInput.up = isDown;
-		}else if(wp == 'S')
+		}
+		if(wp == 'S')
 		{
 			gameInput.down = isDown;
 		}
-		else if (wp == 'A')
+		
+		if (wp == 'A')
 		{
 			gameInput.left = isDown;
 		}
-		else if (wp == 'D')
+		if (wp == 'D')
 		{
 			gameInput.right = isDown;
-		}else if (wp == VK_F4)
+		}
+		if (wp == VK_F4)
 		{
 			if(altWasDown)
 			{
 				running = 0;
 			}
-		}else if(wp == 'R' && altWasDown)
-		{
-			//start recording
-			saveGameState(0, gameMemory);
 		}
-		else if (wp == 'P' && altWasDown)
+		if(wp == 'R' && altWasDown && (recordingState == NOT_RECORDING))
+		{ 	
+			int slot = 0;
+
+			//start recording
+			recordingState = RECORDING;
+			recordingSlot = slot;
+
+			saveGameState(slot, gameMemory);
+
+			char c[20] = {};
+			strcpy(c, "input0");
+			c[strlen(c) - 1] += slot;
+			strcat(c, ".save");
+
+			//todo check errors
+
+			recordingFileHand = CreateFile(c, GENERIC_READ | GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+
+		
+		}
+		if(wp == 'S' && altWasDown)
+		{
+			if(recordingState == RECORDING)
+			{
+				CloseHandle(recordingFileHand);
+
+			}else if(recordingState == PLAYING)
+			{
+				UnmapViewOfFile(fileMappingPointer);
+				CloseHandle(fileMapping);
+				CloseHandle(recordingFileHand);
+			}
+
+			recordingState = NOT_RECORDING;
+			
+			recordingFileHand = 0;
+
+		}
+		
+		if (wp == 'P' && altWasDown && (recordingState == NOT_RECORDING))
 		{
 			//play recording
-			loadGameState(0, gameMemory);
+			recordingState = PLAYING;
+
+			int slot = 0;
+
+			loadGameState(slot, gameMemory);
+
+			recordingSlot = slot;
+
+			char c[20] = {};
+			strcpy(c, "input0");
+			c[strlen(c) - 1] += slot;
+			strcat(c, ".save");
+
+			//todo check errors
+
+			recordingFileHand = CreateFile(c, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_ALWAYS, 0, 0);
+			fileMapping = CreateFileMapping(recordingFileHand, 0, PAGE_READWRITE, 0, 0, 0);
+			
+			fileMappingPointer = MapViewOfFile(fileMapping, FILE_MAP_ALL_ACCESS, 0, 0, 0);
+			
+			DWORD high = 0;
+			DWORD low = 0;
+
+			low = GetFileSize(recordingFileHand, &high);
+
+			LARGE_INTEGER la = {};
+			la.LowPart = low;
+			la.HighPart = high;
+
+			fileMappingSize = la.QuadPart;
+			fileMappingCursor = 0;
 		}
 
 	}break;
@@ -140,7 +221,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 
 	//console
-#if 0 	
+#if 1 	
 	AllocConsole();
 	freopen("conin$", "r", stdin);
 	freopen("conout$", "w", stdout);
@@ -240,7 +321,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 #pragma endregion
 
 
-
 	while (running)
 	{
 		QueryPerformanceCounter(&time4);
@@ -283,10 +363,30 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		
 		}
 
-
 		volatileMemory->reset();
 
 		gameInput.deltaTime = deltaTime;
+
+		if(recordingState == PLAYING)
+		{
+			memcpy(&gameInput, (char*)fileMappingPointer + fileMappingCursor, sizeof(GameInput));
+		
+			fileMappingCursor += sizeof(GameInput);
+			if (fileMappingCursor >= fileMappingSize)
+			{
+				fileMappingCursor = 0;
+				loadGameState(recordingSlot, gameMemory);
+
+			}
+
+		}
+
+		if(recordingState == RECORDING)
+		{
+			DWORD nrOfBytes = 0;
+			WriteFile(recordingFileHand, &gameInput, sizeof(GameInput), &nrOfBytes, 0);
+		}
+
 
 		//execute game logic
 		gameLogic_ptr(&gameInput, gameMemory, volatileMemory, &gameWindowBuffer);
