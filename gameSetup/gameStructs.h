@@ -54,44 +54,7 @@ struct Button
 	char held = 0;
 	char released = 0;
 
-	void process(bool newState)
-	{
-		if (newState)
-		{
-			if (!held)
-			{
-				held = true;
-				pressed = true;
-				released = false;
 
-			}
-			else
-			{
-				held = true;
-				pressed = false;
-				released = false;
-			}
-
-		}
-		else
-		{
-			if (held)
-			{
-				held = false;
-				released = true;
-				pressed = false;
-
-			}
-			else
-			{
-				held = false;
-				released = false;
-				pressed = false;
-
-			}
-
-		}
-	}
 };
 
 

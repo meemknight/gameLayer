@@ -3,6 +3,17 @@
 #include "gameStructs.h"
 #include <Xinput.h>
 
+#if ENABLE_ASSERT
+
+#define win32Assert(x) if(!(x)){std::cout<< __LINE__ << " " << GetLastError(); DebugBreak();}
+
+#else 
+
+#define win32Assert(x) 
+
+#endif
+
+
 void win32LoadDll(gameLogic_t** gameLogicPtr, const char* dllName);
 void win32UnloadDll();
 

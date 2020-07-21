@@ -6,8 +6,6 @@
 
 #define assert(x) if(!(x)){*(char*)0 = 0;}
 
-#define win32Assert(x) if(!(x)){std::cout<< __LINE__ << " " << GetLastError(); DebugBreak();}
-
 #else
 
 #define assert(x)

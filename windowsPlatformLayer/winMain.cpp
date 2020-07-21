@@ -20,6 +20,70 @@ static LARGE_INTEGER performanceFrequency;
 static Win32ReplayBufferData replayBufferData;
 static Win32XinputData xinputData;
 
+
+
+void processAsynkButton(Button &b, bool newState)
+{
+	if (newState)
+	{
+		if (!b.held)
+		{
+			b.held = true;
+			b.pressed = true;
+			b.released = false;
+
+		}
+		else
+		{
+			b.held = true;
+			b.pressed = false;
+			b.released = false;
+		}
+
+	}
+	else
+	{
+		if (b.held)
+		{
+			b.held = false;
+			b.released = true;
+			b.pressed = false;
+
+		}
+		else
+		{
+			b.held = false;
+			b.released = false;
+			b.pressed = false;
+
+		}
+
+	}
+}
+void processEventButton(Button &b, bool newState)
+{
+	
+	if (newState) 
+	{
+		b.held = true;
+		b.pressed = true;
+		b.released = false;
+	}
+	else 
+	{
+		b.held = false;
+		b.pressed = true;
+		b.released = true;
+	}
+
+
+}
+void asynkButtonClear(Button &b)
+{
+	b.released = 0;
+	b.pressed = 0;
+}
+
 LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 {
 	LRESULT rez = 0;
@@ -101,25 +165,23 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		bool altWasDown = lp & (1 << 29);
 
 		//todo go back here
-#if 0
 		if(wp == 'W')
 		{
-			gameInput.up.process(isDown);
+			processEventButton(gameInput.up, isDown);
 		}
 		if(wp == 'S')
 		{
-			gameInput.down.process(isDown);
+			processEventButton(gameInput.down, isDown);
 		}
 		
 		if (wp == 'A')
 		{
-			gameInput.left.process(isDown);
+			processEventButton(gameInput.left, isDown);
 		}
 		if (wp == 'D')
 		{
-			gameInput.right.process(isDown);
+		 	processEventButton(gameInput.right, isDown);
 		}
-#endif	
 
 #if INTERNAL_BUILD
 		if(wp == 'R' && altWasDown && (replayBufferData.recordingState == NOT_RECORDING))
@@ -396,6 +458,10 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma region process messages
 
+		 asynkButtonClear(gameInput.up);
+		 asynkButtonClear(gameInput.down);
+		 asynkButtonClear(gameInput.left);
+		 asynkButtonClear(gameInput.right);
 
 		MSG msg = {};
 		while(PeekMessage(&msg, wind, 0, 0, PM_REMOVE) > 0)
@@ -422,11 +488,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			}
 		
 		}
-
-		gameInput.up.process(up);
-		gameInput.down.process(down);
-		gameInput.left.process(left);
-		gameInput.right.process(right);
 
 #pragma endregion
 
@@ -470,6 +531,10 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 				loadGameState(replayBufferData.recordingSlot, gameMemory);
 
 			}
+
+#if NOT_RECORD_DELTATIME
+			gameInput.deltaTime = deltaTime;
+#endif	
 
 		}
 
