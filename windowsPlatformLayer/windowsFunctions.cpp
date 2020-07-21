@@ -5,10 +5,13 @@ static HMODULE dllHand;
 
 void win32LoadDll(gameLogic_t** gameLogicPtr, const char *dllName)
 {
-
+#if INTERNAL_BUILD
 	assert(CopyFile(dllName, "gameSetupCopy.dll", FALSE));
 
 	dllHand = LoadLibrary("gameSetupCopy.dll");
+#else
+	dllHand = LoadLibrary(dllName);
+#endif
 
 	assert(dllHand);
 
@@ -149,4 +152,43 @@ bool loadGameState(int id, GameMemory* gameMemory)
 
 	bool b = readEntireFile(fileName, gameMemory, sizeof(GameMemory));
 	return b;
+}
+
+bool win32LoadXinput(Win32XinputData &xinputData)
+{
+	xinputData.xinputLib = LoadLibrary("xinput1_4.dll");
+	if (xinputData.xinputLib == NULL)
+	{
+		xinputData.xinputLib = LoadLibrary("xinput1_3.dll");
+	}
+
+	if (xinputData.xinputLib == NULL)
+	{
+		xinputData.xinputLoaded = 0;
+	}
+	else
+	{
+		xinputData.DynamicXinputGetState = (XInputGetState_t*)
+			GetProcAddress(xinputData.xinputLib, "XInputGetState");
+		xinputData.DynamicXinputSetState = (XInputSetState_t*)
+			GetProcAddress(xinputData.xinputLib, "XInputSetState");
+		xinputData.DynamicXInputGetKeystroke = (XInputGetKeystroke_t*)
+			GetProcAddress(xinputData.xinputLib, "XInputGetKeystroke");
+
+		if (xinputData.DynamicXInputGetKeystroke &&
+			xinputData.DynamicXinputGetState &&
+			xinputData.DynamicXinputSetState
+			)
+		{
+			xinputData.xinputLoaded = 1;
+
+		}
+		else
+		{
+			xinputData.xinputLoaded = 0;
+		}
+
+	}
+
+	return xinputData.xinputLoaded;
 }

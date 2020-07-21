@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "windowsFunctions.h"
 #include "buildConfig.h"
+#include <Xinput.h>
 
 static bool running = 1;
 static bool active = 0;
@@ -16,17 +17,8 @@ static char dllName[260];
 static GameInput gameInput = {};
 static LARGE_INTEGER performanceFrequency;
 
-#define NOT_RECORDING 0
-#define RECORDING 1
-#define PLAYING 2
-
-static int recordingState = NOT_RECORDING;
-static int recordingSlot = 0;
-static HANDLE recordingFileHand = 0;
-static HANDLE fileMapping = 0;
-void* fileMappingPointer = nullptr;
-size_t fileMappingSize = 0;
-size_t fileMappingCursor = 0;
+static Win32ReplayBufferData replayBufferData;
+static Win32XinputData xinputData;
 
 LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -79,17 +71,27 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 	{
 		if (wp)
 		{
+#if INTERNAL_BUILD
 			SetLayeredWindowAttributes(wind, RGB(0, 0, 0), 255, LWA_ALPHA);
+#endif 
+
 			active = true;
 		}
 		else
 		{
+#if INTERNAL_BUILD
 			SetLayeredWindowAttributes(wind, RGB(0, 0, 0), 105, LWA_ALPHA);
+#endif
+
 			active = false;
 		}
 
 	}	break;
+	case WM_MENUCHAR:
 
+		rez = MNC_CLOSE<<16;
+
+		break;
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
 		isDown = 1;
@@ -98,106 +100,113 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 	{
 		bool altWasDown = lp & (1 << 29);
 
+		//todo go back here
+#if 0
 		if(wp == 'W')
 		{
-			gameInput.up = isDown;
+			gameInput.up.process(isDown);
 		}
 		if(wp == 'S')
 		{
-			gameInput.down = isDown;
+			gameInput.down.process(isDown);
 		}
 		
 		if (wp == 'A')
 		{
-			gameInput.left = isDown;
+			gameInput.left.process(isDown);
 		}
 		if (wp == 'D')
 		{
-			gameInput.right = isDown;
+			gameInput.right.process(isDown);
 		}
-		if (wp == VK_F4)
-		{
-			if(altWasDown)
-			{
-				running = 0;
-			}
-		}
-		if(wp == 'R' && altWasDown && (recordingState == NOT_RECORDING))
+#endif	
+
+#if INTERNAL_BUILD
+		if(wp == 'R' && altWasDown && (replayBufferData.recordingState == NOT_RECORDING))
 		{ 	
 			int slot = 0;
 
 			//start recording
-			recordingState = RECORDING;
-			recordingSlot = slot;
+			replayBufferData.recordingState = RECORDING;
+			replayBufferData.recordingSlot = slot;
 
-			saveGameState(slot, gameMemory);
+			assert(saveGameState(slot, gameMemory));
 
 			char c[20] = {};
 			strcpy(c, "input0");
 			c[strlen(c) - 1] += slot;
 			strcat(c, ".save");
 
-			//todo check errors
 
-			recordingFileHand = CreateFile(c, GENERIC_READ | GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
-
+			replayBufferData.recordingFileHand = CreateFile(c, GENERIC_READ | GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
+			
+			assert(replayBufferData.recordingFileHand != 0
+				&& replayBufferData.recordingFileHand != INVALID_HANDLE_VALUE
+			);
 		
 		}
 		if(wp == 'S' && altWasDown)
 
 		{
-			if(recordingState == RECORDING)
+			if(replayBufferData.recordingState == RECORDING)
 			{
-				CloseHandle(recordingFileHand);
+				CloseHandle(replayBufferData.recordingFileHand);
 
-			}else if(recordingState == PLAYING)
+			}else if(replayBufferData.recordingState == PLAYING)
 			{
-				UnmapViewOfFile(fileMappingPointer);
-				CloseHandle(fileMapping);
-				CloseHandle(recordingFileHand);
+				UnmapViewOfFile(replayBufferData.fileMappingPointer);
+				CloseHandle(replayBufferData.fileMapping);
+				CloseHandle(replayBufferData.recordingFileHand);
+
+				gameInput = {};
 			}
 
-			recordingState = NOT_RECORDING;
+			replayBufferData.recordingState = NOT_RECORDING;
 			
-			recordingFileHand = 0;
+			replayBufferData.recordingFileHand = 0;
 
+			
 		}
 		
-		if (wp == 'P' && altWasDown && (recordingState == NOT_RECORDING))
+		if (wp == 'P' && altWasDown && (replayBufferData.recordingState == NOT_RECORDING))
 		{
 			//play recording
-			recordingState = PLAYING;
+			replayBufferData.recordingState = PLAYING;
 
 			int slot = 0;
 
 			loadGameState(slot, gameMemory);
 
-			recordingSlot = slot;
+			replayBufferData.recordingSlot = slot;
 
 			char c[20] = {};
 			strcpy(c, "input0");
 			c[strlen(c) - 1] += slot;
 			strcat(c, ".save");
 
-			//todo check errors
 
-			recordingFileHand = CreateFile(c, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_ALWAYS, 0, 0);
-			fileMapping = CreateFileMapping(recordingFileHand, 0, PAGE_READWRITE, 0, 0, 0);
+			replayBufferData.recordingFileHand = CreateFile(c, GENERIC_READ | GENERIC_WRITE, 0, 0, OPEN_ALWAYS, 0, 0);
+			replayBufferData.fileMapping = CreateFileMapping(replayBufferData.recordingFileHand, 0, PAGE_READWRITE, 0, 0, 0);
+
+			replayBufferData.fileMappingPointer = MapViewOfFile(replayBufferData.fileMapping, FILE_MAP_ALL_ACCESS, 0, 0, 0);
 			
-			fileMappingPointer = MapViewOfFile(fileMapping, FILE_MAP_ALL_ACCESS, 0, 0, 0);
-			
+			assert(replayBufferData.fileMappingPointer != 0);
+
 			DWORD high = 0;
 			DWORD low = 0;
 
-			low = GetFileSize(recordingFileHand, &high);
+			low = GetFileSize(replayBufferData.recordingFileHand, &high);
 
 			LARGE_INTEGER la = {};
 			la.LowPart = low;
 			la.HighPart = high;
 
-			fileMappingSize = la.QuadPart;
-			fileMappingCursor = 0;
+			replayBufferData.fileMappingSize = la.QuadPart;
+			replayBufferData.fileMappingCursor = 0;
 		}
+#endif
+
+		rez = DefWindowProc(wind, msg, wp, lp);
 
 	}break;
 	default:
@@ -213,17 +222,17 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 {
 
-#pragma region global mutex that lets only one instance of this app run
+#if ALLOW_ONLY_ONE_INSTANCE 
+//global mutex that lets only one instance of this app run
 	CreateMutex(NULL, TRUE, "gameLayerMutex");
 	if (GetLastError() == ERROR_ALREADY_EXISTS)
 	{
 		return 0;
 	}
-#pragma endregion
-
+#endif
 
 	//console
-#if 1 	
+#if ENABLE_CONSOLE
 	AllocConsole();
 	freopen("conin$", "r", stdin);
 	freopen("conout$", "w", stdout);
@@ -252,6 +261,15 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
+#pragma region load xinput
+
+	win32LoadXinput(xinputData);
+
+#pragma endregion
+
+
+
+#pragma region create window
 
 	WNDCLASS wc = {};
 	
@@ -265,7 +283,12 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 	HWND wind = CreateWindowEx
 	(
-		WS_EX_TOPMOST | WS_EX_LAYERED,
+#if INTERNAL_BUILD
+		WS_EX_LAYERED |
+		WS_EX_TOPMOST |
+#endif
+		0
+		,
 		wc.lpszClassName,
 		"Geam",
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
@@ -278,21 +301,19 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		h,
 		0
 	);
+#pragma endregion
+
 
 	//todo add a guard
-	//todo add a base pointer
-	//todo add compile macro settings
 
 	size_t gameMemoryBaseAdress = 0;
 	size_t gameMemorySize = MB(10);
 
-	assert(sizeof(GameMemory) <= gameMemorySize)
+	assert(sizeof(GameMemory) <= gameMemorySize);
 
 #if INTERNAL_BUILD
 	gameMemoryBaseAdress = TB(2);
 #endif
-
-
 
 	gameMemory = (GameMemory*)VirtualAlloc((LPVOID)gameMemoryBaseAdress, gameMemorySize,
 		MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
@@ -337,6 +358,9 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 	while (running)
 	{
+
+#pragma region time
+
 		QueryPerformanceCounter(&time4);
 		LARGE_INTEGER deltaTimeInteger;
 		deltaTimeInteger.QuadPart = time4.QuadPart - time3.QuadPart;
@@ -367,6 +391,10 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 				sleep = (1000.0 / 60.0) - (dDeltaTime2 * 1000.0);
 			} while (sleep > 0);
 		}
+#pragma endregion
+
+
+#pragma region process messages
 
 
 		MSG msg = {};
@@ -374,33 +402,83 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		{
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
+	
+		}
+
+		bool up = GetAsyncKeyState('W');
+		bool down = GetAsyncKeyState('S');
+		bool left = GetAsyncKeyState('A');
+		bool right = GetAsyncKeyState('D');
+
+		for(int i=0; i<XUSER_MAX_COUNT; i++)	
+		{
+			if(xinputData.controllerConnected[i])
+			{
+				up |= xinputData.controllers[i].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP;
+				down |= xinputData.controllers[i].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
+				left |= xinputData.controllers[i].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
+				right |= xinputData.controllers[i].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
+
+			}
 		
 		}
+
+		gameInput.up.process(up);
+		gameInput.down.process(down);
+		gameInput.left.process(left);
+		gameInput.right.process(right);
+
+#pragma endregion
+
+#pragma region process xinput
+
+		if (xinputData.xinputLoaded)
+		{
+			for (int i = 0; i < XUSER_MAX_COUNT; i++)
+			{
+				if(xinputData.DynamicXinputGetState(i, &xinputData.controllers[i])
+					== ERROR_SUCCESS)
+				{
+					xinputData.controllerConnected[i] = true;
+				}else
+				{
+					xinputData.controllerConnected[i] = false;
+				}
+			}
+			
+		}
+
+
+
+#pragma endregion
+
+
 
 		volatileMemory->reset();
 
 		gameInput.deltaTime = deltaTime;
 
-		if(recordingState == PLAYING)
+#if INTERNAL_BUILD
+		if(replayBufferData.recordingState == PLAYING)
 		{
-			memcpy(&gameInput, (char*)fileMappingPointer + fileMappingCursor, sizeof(GameInput));
+			memcpy(&gameInput, (char*)replayBufferData.fileMappingPointer + replayBufferData.fileMappingCursor, sizeof(GameInput));
 		
-			fileMappingCursor += sizeof(GameInput);
-			if (fileMappingCursor >= fileMappingSize)
+			replayBufferData.fileMappingCursor += sizeof(GameInput);
+			if (replayBufferData.fileMappingCursor >= replayBufferData.fileMappingSize)
 			{
-				fileMappingCursor = 0;
-				loadGameState(recordingSlot, gameMemory);
+				replayBufferData.fileMappingCursor = 0;
+				loadGameState(replayBufferData.recordingSlot, gameMemory);
 
 			}
 
 		}
 
-		if(recordingState == RECORDING)
+		if(replayBufferData.recordingState == RECORDING)
 		{
 			DWORD nrOfBytes = 0;
-			WriteFile(recordingFileHand, &gameInput, sizeof(GameInput), &nrOfBytes, 0);
+			WriteFile(replayBufferData.recordingFileHand, &gameInput, sizeof(GameInput), &nrOfBytes, 0);
 		}
-
+#endif
 
 		//execute game logic
 		gameLogic_ptr(&gameInput, gameMemory, volatileMemory, &gameWindowBuffer);
@@ -419,14 +497,11 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 
 		//check if game code changed
-		//todo change into a string macro
-		//make utility char with path name
 		FILETIME fileTime2 = {};
 		
-		
 		fileTime2 = win32GetLastWriteFile(dllName);
-		
 
+#if INTERNAL_BUILD
 		if(CompareFileTime(&lastFileTime, &fileTime2) != 0)
 		{
 			lastFileTime = fileTime2;
@@ -443,6 +518,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			win32LoadDll(&gameLogic_ptr, dllName);
 
 		}
+#endif
 
 	}
 

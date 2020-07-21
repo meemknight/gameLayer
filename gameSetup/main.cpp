@@ -68,19 +68,19 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 	float spped = 400 * deltaTime;
 		
-		if(input->up)
+		if(input->up.held)
 		{
 			memory->posY -= spped;
 		}
-		if (input->down)
+		if (input->down.held)
 		{
 			memory->posY += spped;
 		}
-		if (input->left)
+		if (input->left.held)
 		{
 			memory->posX -= spped;
 		}
-		if (input->right)
+		if (input->right.held)
 		{
 			memory->posX += spped;
 		}
