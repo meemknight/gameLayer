@@ -108,8 +108,13 @@ bool appendToFille(const char *name, void* buffer, size_t size)
 }
 #endif
 
-bool readEntireFile(const char *name, void* buffer, size_t size)
+bool readEntireFile(const char *name, void* buffer, size_t size, size_t *sizeRead)
 {
+	if(sizeRead)
+	{
+		*sizeRead = 0;
+	}
+
 	HANDLE file = CreateFile(name, GENERIC_READ, NULL, NULL,
 		OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
@@ -118,16 +123,22 @@ bool readEntireFile(const char *name, void* buffer, size_t size)
 		return 0;
 	}
 
-	DWORD sizeRead = 0;
+	DWORD sizeRead1 = 0;
 
 	int rez = 1;
 
-	if(!ReadFile(file, buffer, size, &sizeRead, NULL))
+	if(!ReadFile(file, buffer, size, &sizeRead1, NULL))
 	{
 		rez = 0;
 	}
 
+	if (sizeRead)
+	{
+		*sizeRead = sizeRead1;
+	}
+
 	CloseHandle(file);
+
 
 	return rez;
 }

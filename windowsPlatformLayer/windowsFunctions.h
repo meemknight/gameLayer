@@ -20,7 +20,7 @@ void win32UnloadDll();
 FILETIME win32GetLastWriteFile(const char* name);
 
 bool writeEntireFile(const char* name, void* buffer, size_t size);
-bool readEntireFile(const char* name, void* buffer, size_t size);
+bool readEntireFile(const char* name, void* buffer, size_t size, size_t *sizeRead = 0);
 bool clearFileContent(const char* name);
 //bool appendToFille(const char* name, void* buffer, size_t size);
 

@@ -35,8 +35,18 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 	c[10] = 10;
 	c1[10] = 10;
+	
 
-	volatileMemory->memory[10500] = 1;
+	//execute instructions
+
+	//swap buffers
+	//
+	//	buffer 1
+	//
+	//  buffer 2
+	//
+
+	// desenezi pe ecran
 
 	for(int y=0; y<windowBuffer->h; y++)
 		for (int x = 0; x < windowBuffer->w; x++)
@@ -49,8 +59,8 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		}
 
 	//draw player
-	for(int y=0; y<20; y++)
-		for(int x=0; x<20; x++)
+	for(int y=0; y<5; y++)
+		for(int x=0; x<5; x++)
 		{
 			int newX = memory->posX + x;
 			int newY = memory->posY + y;
@@ -68,7 +78,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 	//move player
 
-	float spped = 1400 * deltaTime;
+	float spped = 140 * deltaTime;
 		
 		if(input->up.held)
 		{

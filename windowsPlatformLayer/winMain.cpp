@@ -20,7 +20,9 @@ static LARGE_INTEGER performanceFrequency;
 static Win32ReplayBufferData replayBufferData;
 static Win32XinputData xinputData;
 
-
+const int sizeX = 192;
+const int sizeY = 40;
+const int magnifier = 7;
 
 void processAsynkButton(Button &b, bool newState)
 {
@@ -118,8 +120,11 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		
 		HDC hdc = GetDC(wind);
 
+		RECT rect;
+		GetClientRect(wind, &rect);
+
 		StretchDIBits(hdc,
-			0, 0, gameWindowBuffer.w, gameWindowBuffer.h,
+			0, 0, rect.right, rect.bottom,
 			0, 0, gameWindowBuffer.w, gameWindowBuffer.h,
 			gameWindowBuffer.memory,
 			&bitmapInfo,
@@ -342,7 +347,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 	RegisterClass(&wc);
 
-	int multiplier = 6;
 
 	HWND wind = CreateWindowEx
 	(
@@ -357,8 +361,8 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
-		192 * multiplier,
-		40 * multiplier,
+		sizeX * magnifier,
+		sizeY * magnifier + 38,
 		0,
 		0,
 		h,
@@ -393,8 +397,8 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 	RECT rect;
 	GetClientRect(wind, &rect);
-	gameWindowBuffer.h = rect.bottom;
-	gameWindowBuffer.w = rect.right;
+	gameWindowBuffer.h = sizeY;
+	gameWindowBuffer.w = sizeX;
 	gameWindowBuffer.memory = 
 		(char*)VirtualAlloc(0, 4 * gameWindowBuffer.w * gameWindowBuffer.h,
 			MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
