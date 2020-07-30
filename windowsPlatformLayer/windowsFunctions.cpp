@@ -192,3 +192,29 @@ bool win32LoadXinput(Win32XinputData &xinputData)
 
 	return xinputData.xinputLoaded;
 }
+
+void* allocateWithGuard(size_t size, void* basePointer)
+{
+	SYSTEM_INFO info = {};
+
+	GetSystemInfo(&info);
+
+	size_t pageSize = info.dwAllocationGranularity;
+
+	size_t pages = size / pageSize;
+
+	if(size%pageSize != 0)
+	{
+		pages++;
+	}
+
+	void *pointer = VirtualAlloc(basePointer, (pages + 1) * pageSize,
+		MEM_RESERVE, PAGE_READWRITE);
+
+	VirtualAlloc(pointer, pages * pageSize, MEM_COMMIT, PAGE_READWRITE);
+
+
+	VirtualAlloc((char*)pointer + (pages * pageSize), pageSize, MEM_COMMIT, PAGE_NOACCESS);
+
+	return pointer;
+}

@@ -36,6 +36,8 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	c[10] = 10;
 	c1[10] = 10;
 
+	volatileMemory->memory[10500] = 1;
+
 	for(int y=0; y<windowBuffer->h; y++)
 		for (int x = 0; x < windowBuffer->w; x++)
 		{
@@ -66,7 +68,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 	//move player
 
-	float spped = 400 * deltaTime;
+	float spped = 1400 * deltaTime;
 		
 		if(input->up.held)
 		{

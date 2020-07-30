@@ -27,6 +27,8 @@ bool clearFileContent(const char* name);
 bool saveGameState(int id, GameMemory* gameMemory);
 bool loadGameState(int id, GameMemory* gameMemory);
 
+void* allocateWithGuard(size_t size, void *basePointer);
+
 #define NOT_RECORDING 0
 #define RECORDING 1
 #define PLAYING 2

@@ -164,7 +164,6 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 	{
 		bool altWasDown = lp & (1 << 29);
 
-		//todo go back here
 		if(wp == 'W')
 		{
 			processEventButton(gameInput.up, isDown);
@@ -343,6 +342,8 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 	RegisterClass(&wc);
 
+	int multiplier = 6;
+
 	HWND wind = CreateWindowEx
 	(
 #if INTERNAL_BUILD
@@ -356,8 +357,8 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
-		620,
-		420,
+		192 * multiplier,
+		40 * multiplier,
 		0,
 		0,
 		h,
@@ -377,11 +378,18 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	gameMemoryBaseAdress = TB(2);
 #endif
 
-	gameMemory = (GameMemory*)VirtualAlloc((LPVOID)gameMemoryBaseAdress, gameMemorySize,
-		MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
-	VolatileMemory* volatileMemory = (VolatileMemory*)VirtualAlloc(0, sizeof(VolatileMemory),
-		MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+
+	//gameMemory = (GameMemory*)VirtualAlloc((LPVOID)gameMemoryBaseAdress, gameMemorySize,
+	//	MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+
+	gameMemory = (GameMemory*)allocateWithGuard(gameMemorySize, (void*)gameMemoryBaseAdress);
+
+	VolatileMemory* volatileMemory;
+	//volatileMemory = (VolatileMemory*)VirtualAlloc(0, sizeof(VolatileMemory),
+	//	MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+
+	volatileMemory = (VolatileMemory*)allocateWithGuard(sizeof(VolatileMemory), 0);
 
 	RECT rect;
 	GetClientRect(wind, &rect);
@@ -480,6 +488,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		{
 			if(xinputData.controllerConnected[i])
 			{
+
 				up |= xinputData.controllers[i].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP;
 				down |= xinputData.controllers[i].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
 				left |= xinputData.controllers[i].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
@@ -513,8 +522,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
-
-
 		volatileMemory->reset();
 
 		gameInput.deltaTime = deltaTime;
@@ -544,6 +551,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			WriteFile(replayBufferData.recordingFileHand, &gameInput, sizeof(GameInput), &nrOfBytes, 0);
 		}
 #endif
+
 
 		//execute game logic
 		gameLogic_ptr(&gameInput, gameMemory, volatileMemory, &gameWindowBuffer);
