@@ -21,7 +21,7 @@ struct GameMemory
 			char r6;
 
 		};
-
+		char r[6];
 	};
 
 	char memory[1000];
@@ -29,7 +29,7 @@ struct GameMemory
 
 struct VolatileMemory
 {
-	static const size_t maxSize = 4000;
+	static const size_t maxSize = 8000;
 
 	char memory[maxSize];
 	char* stackTop = 0;
@@ -80,6 +80,10 @@ struct GameInput
 	Button down;
 	Button left;
 	Button right;
+	Button x;
+	Button y;
+	Button esc;
+	Button enter;
 
 };
 

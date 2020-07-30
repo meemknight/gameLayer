@@ -19,15 +19,21 @@ BOOL WINAPI DllMain(
 extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* memory, 
 	VolatileMemory *volatileMemory, GameWindowBuffer* windowBuffer)
 {
-	//do game logic
-	float deltaTime = input->deltaTime;
+	
 
 	if(memory->isInitialized==0)
 	{
+		//poti aici incarca romul
+		//tot aici initializezi variabile etc
+
 		memory->posX = 0;
 		memory->posY = 0;
 		memory->isInitialized = true;
 	}
+
+
+	//do game logic
+	float deltaTime = input->deltaTime;
 
 
 	char* c = (char*)volatileMemory->allocate(100);

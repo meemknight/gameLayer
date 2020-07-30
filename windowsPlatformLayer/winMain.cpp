@@ -88,6 +88,7 @@ void asynkButtonClear(Button &b)
 
 LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 {
+
 	LRESULT rez = 0;
 
 	//if((msg >= WM_MOUSEFIRST && msg <= WM_MOUSELAST)
@@ -186,6 +187,23 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		{
 		 	processEventButton(gameInput.right, isDown);
 		}
+		if (wp == 'X')
+		{
+			processEventButton(gameInput.x, isDown);
+		}
+		if (wp == 'Y')
+		{
+			processEventButton(gameInput.y, isDown);
+		}
+		if (wp == VK_ESCAPE)
+		{
+			processEventButton(gameInput.esc, isDown);
+		}
+		if (wp == VK_RETURN)
+		{
+			processEventButton(gameInput.enter, isDown);
+		}
+
 
 #if INTERNAL_BUILD
 		if(wp == 'R' && altWasDown && (replayBufferData.recordingState == NOT_RECORDING))
@@ -374,7 +392,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	//todo add a guard
 
 	size_t gameMemoryBaseAdress = 0;
-	size_t gameMemorySize = MB(10);
+	size_t gameMemorySize = MB(25);
 
 	assert(sizeof(GameMemory) <= gameMemorySize);
 
@@ -474,6 +492,10 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		 asynkButtonClear(gameInput.down);
 		 asynkButtonClear(gameInput.left);
 		 asynkButtonClear(gameInput.right);
+		 asynkButtonClear(gameInput.x);
+		 asynkButtonClear(gameInput.y);
+		 asynkButtonClear(gameInput.esc);
+		 asynkButtonClear(gameInput.enter);
 
 		MSG msg = {};
 		while(PeekMessage(&msg, wind, 0, 0, PM_REMOVE) > 0)
