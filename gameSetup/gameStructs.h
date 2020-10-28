@@ -16,7 +16,6 @@ struct GameMemory
 };
 
 
-
 struct Button
 {
 	char pressed = 0;
@@ -45,9 +44,74 @@ struct Button
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 		VK_SPACE, VK_RETURN, VK_ESCAPE, VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT
 	};
+
+	void merge(const Button &b)
+	{
+		this->pressed |= b.pressed;
+		this->released |= b.released;
+		this->held |= b.held;
+	}
 };
 
-//todo change to suit every input
+
+struct ControllerButtons
+{
+
+	Button X;
+	Button Y;
+	Button A;
+	Button B;
+
+	Button Up;
+	Button Down;
+	Button Left;
+	Button Riight;
+
+	Button LB;
+	Button RB;
+
+	Button LPress;
+	Button RPress;
+
+	Button Back;
+	Button Menu;
+
+	float LT;
+	float RT;
+
+	struct
+	{
+		float x, y;
+	}LThumb, RThumb;
+
+	void merge(const ControllerButtons &b)
+	{
+		X.merge(b.X);
+		Y.merge(b.Y);
+		A.merge(b.A);
+		B.merge(b.B);
+		Up.merge(b.Up);
+		Down.merge(b.Down);
+		Left.merge(b.Left);
+		Riight.merge(b.Riight);
+		LB.merge(b.LB);
+		RB.merge(b.RB);
+		LPress.merge(b.LPress);
+		RPress.merge(b.RPress);
+		Back.merge(b.Back);
+		Menu.merge(b.Menu);
+
+		if (!LT) { LT = b.LT; }
+		if (!RT) { RT = b.RT; }
+
+		if (!LThumb.x) { LThumb.x = b.LThumb.x; }
+		if (!LThumb.y) { LThumb.y = b.LThumb.y; }
+	
+		if (!RThumb.x) { RThumb.x = b.RThumb.x; }
+		if (!RThumb.y) { RThumb.y = b.RThumb.y; }
+
+	}
+};
 
 struct GameInput
 {
@@ -58,7 +122,11 @@ struct GameInput
 	Button leftMouse;
 	Button rightMouse;
 
+	ControllerButtons controllers[4] = {};
+	ControllerButtons anyController = {};
+
 };
+
 
 struct HeapMemory
 {
