@@ -158,10 +158,22 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 
 	}	break;
 	case WM_MENUCHAR:
-
+		//to remove an annoying sound
 		rez = MNC_CLOSE<<16;
-
 		break;
+	case WM_LBUTTONDOWN:
+		processEventButton(gameInput.leftMouse, 1);
+		break;
+	case WM_RBUTTONDOWN:
+		processEventButton(gameInput.rightMouse, 1);
+		break;
+	case WM_LBUTTONUP:
+		processEventButton(gameInput.leftMouse, 0);
+		break;
+	case WM_RBUTTONUP:
+		processEventButton(gameInput.rightMouse, 0);
+		break;
+
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
 		isDown = 1;
@@ -170,28 +182,15 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 	{
 		bool altWasDown = lp & (1 << 29);
 
-		if(wp == 'W')
+		for (int i = 0; i < Button::BUTTONS_COUNT; i++) 
 		{
-			processEventButton(gameInput.up, isDown);
-		}
-		if(wp == 'S')
-		{
-			processEventButton(gameInput.down, isDown);
+			if(wp == Button::buttonValues[i])
+			{
+				processEventButton(gameInput.keyBoard[i], isDown);
+			}
 		}
 		
-		if (wp == 'A')
-		{
-			processEventButton(gameInput.left, isDown);
-		}
-		if (wp == 'D')
-		{
-		 	processEventButton(gameInput.right, isDown);
-		}
-		if (wp == VK_SPACE)
-		{
-			processEventButton(gameInput.space, isDown);
-		}
-
+		
 #if INTERNAL_BUILD
 		if(wp == 'R' && altWasDown && (replayBufferData.recordingState == NOT_RECORDING))
 		{ 	
@@ -480,11 +479,38 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma region process messages
 
-		 asynkButtonClear(gameInput.up);
-		 asynkButtonClear(gameInput.down);
-		 asynkButtonClear(gameInput.left);
-		 asynkButtonClear(gameInput.right);
-		 asynkButtonClear(gameInput.space);
+		if (GetAsyncKeyState(VK_LBUTTON) == 0)
+		{
+			gameInput.leftMouse = {};
+		}
+		if (GetAsyncKeyState(VK_RBUTTON) == 0)
+		{
+			gameInput.rightMouse = {};
+		}
+
+		if(!active)
+		{
+			for (int i = 0; i < Button::BUTTONS_COUNT; i++)
+			{
+				gameInput.keyBoard[i] = {};
+			}
+
+			gameInput.leftMouse = {};
+			gameInput.rightMouse = {};
+
+		}else
+		{
+
+			for (int i = 0; i < Button::BUTTONS_COUNT; i++)
+			{
+				asynkButtonClear(gameInput.keyBoard[i]);
+			}
+
+			asynkButtonClear(gameInput.leftMouse);
+			asynkButtonClear(gameInput.rightMouse);
+		
+		}
+
 
 		MSG msg = {};
 		while(PeekMessage(&msg, wind, 0, 0, PM_REMOVE) > 0)

@@ -106,6 +106,12 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 				
 		}
 
+	char color = 255;
+	if(input->leftMouse.held)
+	{
+		color = 20;
+	}
+
 	//draw player
 	for(int y=0; y<20; y++)
 		for(int x=0; x<20; x++)
@@ -120,7 +126,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 			if (newY >= windowBuffer->h) { continue; }
 
 			windowBuffer->memory[4 * (newX + newY * windowBuffer->w) + 0] = 0;//blue
-			windowBuffer->memory[4 * (newX + newY * windowBuffer->w) + 1] = 255; //green
+			windowBuffer->memory[4 * (newX + newY * windowBuffer->w) + 1] = color; //green
 			windowBuffer->memory[4 * (newX + newY * windowBuffer->w) + 2] = 255; //red
 		}
 
@@ -128,36 +134,23 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 	float spped = 340 * deltaTime;
 		
-		if(input->up.held)
+		if(input->keyBoard[Button::W].held)
 		{
 			mem->posY -= spped;
 		}
-		if (input->down.held)
+		if (input->keyBoard[Button::S].held)
 		{
 			mem->posY += spped;
 		}
-		if (input->left.held)
+		if (input->keyBoard[Button::A].held)
 		{
 			mem->posX -= spped;
 		}
-		if (input->right.held)
+		if (input->keyBoard[Button::D].held)
 		{
 			mem->posX += spped;
 		}
 
 
-
-	if(input->left.released)
-	{
-		mem->test += ".";
-	}
-
-	if (input->right.released)
-	{
-		if(mem->test.size())
-			mem->test.pop_back();
-	}
-	
-	std::cout << mem->test + "\n";
 
 }

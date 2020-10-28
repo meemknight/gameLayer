@@ -22,18 +22,41 @@ struct Button
 	char pressed = 0;
 	char held = 0;
 	char released = 0;
+
+	enum
+	{
+		A = 0,
+		B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
+		NR0, NR1, NR2, NR3, NR4, NR5, NR6, NR7, NR8, NR9,
+		Space,
+		Enter,
+		Escape,
+		Up,
+		Down,
+		Left,
+		Right,
+		BUTTONS_COUNT, //
+	};
+
+	static constexpr int buttonValues[BUTTONS_COUNT] =
+	{
+		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 
+		'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+		VK_SPACE, VK_RETURN, VK_ESCAPE, VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT
+	};
 };
 
 //todo change to suit every input
+
 struct GameInput
 {
 	float deltaTime;
 
-	Button up;
-	Button down;
-	Button left;
-	Button right;
-	Button space;
+	Button keyBoard[Button::BUTTONS_COUNT];
+
+	Button leftMouse;
+	Button rightMouse;
 
 };
 
