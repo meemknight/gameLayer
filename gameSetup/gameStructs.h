@@ -15,6 +15,28 @@ struct GameMemory
 
 };
 
+
+
+struct Button
+{
+	char pressed = 0;
+	char held = 0;
+	char released = 0;
+};
+
+//todo change to suit every input
+struct GameInput
+{
+	float deltaTime;
+
+	Button up;
+	Button down;
+	Button left;
+	Button right;
+	Button space;
+
+};
+
 struct HeapMemory
 {
 
@@ -25,11 +47,12 @@ struct HeapMemory
 
 struct VolatileMemory
 {
-	static const size_t maxSize = 4000;
+	static const size_t maxSize = KB(5);
 
 	char memory[maxSize];
 	char* stackTop = 0;
 
+	///allocates and the memory is not initialized to 0
 	void *allocate(size_t size)
 	{
 		if(stackTop == 0)
@@ -45,6 +68,7 @@ struct VolatileMemory
 		return beginBlock;
 	}
 
+	///allocates and clears the memory to 0
 	void *allocateAndClear(size_t size)
 	{
 		auto ptr = allocate(size);
@@ -57,26 +81,10 @@ struct VolatileMemory
 	}
 };
 
-
-struct Button
+struct WindowSettings
 {
-	char pressed = 0;
-	char held = 0;
-	char released = 0;
-
-
-};
-
-
-struct GameInput
-{
-	float deltaTime;
-
-	Button up;
-	Button down;
-	Button left;
-	Button right;
-	Button space;
+	int w;
+	int h;
 
 };
 
@@ -90,11 +98,12 @@ struct GameWindowBuffer
 
 #define GAMELOGIC(x) void x(GameInput *input, GameMemory* memory, \
 HeapMemory *heapMemory, VolatileMemory *volatileMemory,\
- GameWindowBuffer *windowBuffer)
+ GameWindowBuffer *windowBuffer, WindowSettings* windowSettings)
 typedef GAMELOGIC(gameLogic_t);
 extern "C" __declspec(dllexport) GAMELOGIC(gameLogic);
 
-#define ONCREATE(x) void x(GameMemory* memory, HeapMemory *heapMemory)
+#define ONCREATE(x) void x(GameMemory* memory, HeapMemory *heapMemory, \
+WindowSettings *windowSettings)
 typedef ONCREATE(onCreate_t);
 extern "C" __declspec(dllexport) ONCREATE(onCreate);
 

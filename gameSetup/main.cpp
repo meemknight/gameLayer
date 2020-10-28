@@ -53,16 +53,21 @@ void operator delete[](void* ptr)
 
 
 //here you initialize the game memory for the first time
-extern "C" __declspec(dllexport) void onCreate(GameMemory* memory, HeapMemory * heapMemory)
+extern "C" __declspec(dllexport) void onCreate(GameMemory* memory, HeapMemory * heapMemory,
+	WindowSettings *windowSettings)
 {
 	allocator = &heapMemory->allocator;
 	*memory = GameMemory();
+
+	//set the size of the window
+	windowSettings->w = 450;
+	windowSettings->h = 450;
 
 
 }
 
 extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* mem, HeapMemory * heapMemory,
-	VolatileMemory *volatileMemory, GameWindowBuffer* windowBuffer)
+	VolatileMemory *volatileMemory, GameWindowBuffer* windowBuffer, WindowSettings * windowSettings)
 {
 
 #pragma region per frame setup
@@ -81,6 +86,12 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	char* c1 = (char*)volatileMemory->allocate(100);
 	c[10] = 10;
 	c1[10] = 10;
+
+
+	//you can change the window settings
+	//!they will take place next frame
+	//windowSettings->w = 450;
+	//windowSettings->h = 450;
 
 
 	//this is how you draw to the screen for now
@@ -146,6 +157,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		if(mem->test.size())
 			mem->test.pop_back();
 	}
-		std::cout << mem->test + "\n";
+	
+	std::cout << mem->test + "\n";
 
 }

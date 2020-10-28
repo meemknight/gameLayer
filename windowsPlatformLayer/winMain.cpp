@@ -17,11 +17,10 @@ static HeapMemory* heapMemory = nullptr;
 static char dllName[260];
 static GameInput gameInput = {};
 static LARGE_INTEGER performanceFrequency;
+static WindowSettings windowSettings = {};
 
 static Win32ReplayBufferData replayBufferData;
 static Win32XinputData xinputData;
-
-
 
 void processAsynkButton(Button &b, bool newState)
 {
@@ -112,6 +111,12 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		running = 0;
 		//PostQuitMessage(0);
 		break;
+	case WM_SIZE:
+	{
+
+		resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
+		
+	}break;
 	case WM_PAINT:
 	{
 		PAINTSTRUCT Paint;
@@ -309,7 +314,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma region dllName
 
-
 	GetModuleFileName(GetModuleHandle(0), dllName, 260);
 
 	//OutputDebugString(c);
@@ -333,12 +337,58 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
+#pragma region alocateMemory
+
+
+	//todo add a guard
+
+	size_t gameMemoryBaseAdress = 0;
+	size_t gameMemorySize = sizeof(GameMemory);
+	size_t heapMemorySize = sizeof(HeapMemory);
+
+#if INTERNAL_BUILD
+	gameMemoryBaseAdress = TB(1);
+#endif
+
+
+	//gameMemory = (GameMemory*)VirtualAlloc((LPVOID)gameMemoryBaseAdress, gameMemorySize,
+	//	MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+
+	char* memBlock = (char*)allocateWithoutGuard(gameMemorySize + heapMemorySize + 8, (void*)gameMemoryBaseAdress);
+
+	gameMemory = (GameMemory*)memBlock;
+	heapMemory = (HeapMemory*)(&memBlock[sizeof(GameMemory)]); //todo align 8
+
+	heapMemory->allocator.init(heapMemory->memory, sizeof(heapMemory->memory));
+
+	VolatileMemory* volatileMemory;
+	//volatileMemory = (VolatileMemory*)VirtualAlloc(0, sizeof(VolatileMemory),
+	//	MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+
+	volatileMemory = (VolatileMemory*)allocateWithGuard(sizeof(VolatileMemory), 0);
+
+#pragma endregion
+
+#pragma region loadDll
+	
+	gameLogic_t* gameLogic_ptr;
+	onCreate_t* onCreate_ptr;
+
+
+	FILETIME lastFileTime = win32GetLastWriteFile(dllName);
+
+	win32LoadDll(&gameLogic_ptr, &onCreate_ptr, dllName);
+
+#pragma endregion
+
+
+	onCreate_ptr(gameMemory, heapMemory, &windowSettings);
 
 
 #pragma region create window
 
 	WNDCLASS wc = {};
-	
+
 	wc.hCursor = LoadCursor(0, IDC_ARROW);
 	wc.hInstance = h;
 	wc.lpfnWndProc = windProc;
@@ -362,65 +412,20 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
-		400 * multiplier,
-		400 * multiplier,
+		windowSettings.w,
+		windowSettings.h,
 		0,
 		0,
 		h,
 		0
 	);
+
+	setWindowSize(wind, windowSettings.h, windowSettings.w);
+	resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
+
 #pragma endregion
 
 
-	//todo add a guard
-
-	size_t gameMemoryBaseAdress = 0;
-	size_t gameMemorySize = sizeof(GameMemory);
-	size_t heapMemorySize = sizeof(HeapMemory);
-
-#if INTERNAL_BUILD
-	gameMemoryBaseAdress = TB(1);
-#endif
-
-
-
-	//gameMemory = (GameMemory*)VirtualAlloc((LPVOID)gameMemoryBaseAdress, gameMemorySize,
-	//	MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-
-	char* memBlock = (char*)allocateWithoutGuard(gameMemorySize + heapMemorySize + 8, (void*)gameMemoryBaseAdress);
-
-	gameMemory = (GameMemory*)memBlock;
-	heapMemory = (HeapMemory*)(&memBlock[sizeof(GameMemory)]); //todo align 8
-
-	heapMemory->allocator.init(heapMemory->memory, sizeof(heapMemory->memory));
-
-	VolatileMemory* volatileMemory;
-	//volatileMemory = (VolatileMemory*)VirtualAlloc(0, sizeof(VolatileMemory),
-	//	MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-
-	volatileMemory = (VolatileMemory*)allocateWithGuard(sizeof(VolatileMemory), 0);
-
-	RECT rect;
-	GetClientRect(wind, &rect);
-	gameWindowBuffer.h = rect.bottom;
-	gameWindowBuffer.w = rect.right;
-	gameWindowBuffer.memory = 
-		(char*)VirtualAlloc(0, 4 * gameWindowBuffer.w * gameWindowBuffer.h,
-			MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-	
-	gameLogic_t* gameLogic_ptr;
-	onCreate_t* onCreate_ptr;
-
-	bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFO);
-	bitmapInfo.bmiHeader.biWidth = gameWindowBuffer.w;
-	bitmapInfo.bmiHeader.biHeight = -gameWindowBuffer.h;
-	bitmapInfo.bmiHeader.biPlanes = 1;
-	bitmapInfo.bmiHeader.biBitCount = 32;
-	bitmapInfo.bmiHeader.biCompression = BI_RGB;
-
-	FILETIME lastFileTime = win32GetLastWriteFile(dllName);
-
-	win32LoadDll(&gameLogic_ptr, &onCreate_ptr, dllName);
 
 #pragma region time
 
@@ -434,9 +439,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	QueryPerformanceCounter(&time3);
 
 #pragma endregion
-
-
-	onCreate_ptr(gameMemory, heapMemory);
 
 	while (running)
 	{
@@ -535,11 +537,34 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
+#pragma region checkForChanges
+
+		if(((windowSettings.h != gameWindowBuffer.h)
+			|| (windowSettings.h != gameWindowBuffer.h)
+			) && windowSettings.h != 0 
+			&& windowSettings.w != 0)
+		{
+			setWindowSize(wind, windowSettings.h, windowSettings.w);
+			resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
+		}
+		else 
+		{
+			windowSettings.h = gameWindowBuffer.h;
+			windowSettings.w = gameWindowBuffer.w;
+		}
+
+	
+#pragma endregion
+
+
+
+
 		volatileMemory->reset();
 
 		gameInput.deltaTime = deltaTime;
 
-#if INTERNAL_BUILD
+		//playback recording
+#if INTERNAL_BUILD 
 		if(replayBufferData.recordingState == PLAYING)
 		{
 			memcpy(&gameInput, (char*)replayBufferData.fileMappingPointer + replayBufferData.fileMappingCursor, sizeof(GameInput));
@@ -567,9 +592,10 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 
 		//execute game logic
-		gameLogic_ptr(&gameInput, gameMemory, heapMemory ,volatileMemory, &gameWindowBuffer);
+		gameLogic_ptr(&gameInput, gameMemory, heapMemory ,volatileMemory, &gameWindowBuffer,
+			&windowSettings);
 
-		//draw screen
+#pragma region draw screen
 		RECT r;
 		GetClientRect(wind, &r);
 
@@ -580,14 +606,13 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		PatBlt(hdc, 0, 0, w, h, BLACKNESS);
 		ReleaseDC(wind, hdc);
 		SendMessage(wind, WM_PAINT, 0, 0);
+#pragma endregion
 
-
-		//check if game code changed
+	//check if game code changed	
+#if INTERNAL_BUILD 
 		FILETIME fileTime2 = {};
-		
 		fileTime2 = win32GetLastWriteFile(dllName);
 
-#if INTERNAL_BUILD
 		if(CompareFileTime(&lastFileTime, &fileTime2) != 0)
 		{
 			lastFileTime = fileTime2;

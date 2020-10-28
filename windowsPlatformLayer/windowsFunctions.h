@@ -30,6 +30,11 @@ bool loadGameState(int id, GameMemory* gameMemory, HeapMemory *heapMemory);
 void* allocateWithoutGuard(size_t size, void* basePointer);
 void* allocateWithGuard(size_t size, void *basePointer);
 
+void setWindowSize(HWND wind, int w, int h);
+void resetWindowBuffer(GameWindowBuffer * gameWindowBuffer, \
+	BITMAPINFO * bitmapInfo, HWND wind, WindowSettings * windowSettings);
+
+
 #define NOT_RECORDING 0
 #define RECORDING 1
 #define PLAYING 2
