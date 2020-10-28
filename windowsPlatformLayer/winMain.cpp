@@ -13,6 +13,7 @@ static bool active = 0;
 static BITMAPINFO bitmapInfo = {};
 static GameWindowBuffer gameWindowBuffer = {};
 static GameMemory* gameMemory = nullptr;
+static HeapMemory* heapMemory = nullptr;
 static char dllName[260];
 static GameInput gameInput = {};
 static LARGE_INTEGER performanceFrequency;
@@ -181,6 +182,10 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		{
 		 	processEventButton(gameInput.right, isDown);
 		}
+		if (wp == VK_SPACE)
+		{
+			processEventButton(gameInput.space, isDown);
+		}
 
 #if INTERNAL_BUILD
 		if(wp == 'R' && altWasDown && (replayBufferData.recordingState == NOT_RECORDING))
@@ -191,7 +196,7 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 			replayBufferData.recordingState = RECORDING;
 			replayBufferData.recordingSlot = slot;
 
-			assert(saveGameState(slot, gameMemory));
+			assert(saveGameState(slot, gameMemory, heapMemory));
 
 			char c[20] = {};
 			strcpy(c, "input0");
@@ -236,7 +241,7 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 
 			int slot = 0;
 
-			loadGameState(slot, gameMemory);
+			loadGameState(slot, gameMemory, heapMemory);
 
 			replayBufferData.recordingSlot = slot;
 
@@ -342,7 +347,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 	RegisterClass(&wc);
 
-	int multiplier = 6;
+	int multiplier = 1;
 
 	HWND wind = CreateWindowEx
 	(
@@ -357,8 +362,8 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
-		192 * multiplier,
-		40 * multiplier,
+		400 * multiplier,
+		400 * multiplier,
 		0,
 		0,
 		h,
@@ -370,12 +375,11 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	//todo add a guard
 
 	size_t gameMemoryBaseAdress = 0;
-	size_t gameMemorySize = MB(10);
-
-	assert(sizeof(GameMemory) <= gameMemorySize);
+	size_t gameMemorySize = sizeof(GameMemory);
+	size_t heapMemorySize = sizeof(HeapMemory);
 
 #if INTERNAL_BUILD
-	gameMemoryBaseAdress = TB(2);
+	gameMemoryBaseAdress = TB(1);
 #endif
 
 
@@ -383,7 +387,12 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	//gameMemory = (GameMemory*)VirtualAlloc((LPVOID)gameMemoryBaseAdress, gameMemorySize,
 	//	MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 
-	gameMemory = (GameMemory*)allocateWithGuard(gameMemorySize, (void*)gameMemoryBaseAdress);
+	char* memBlock = (char*)allocateWithoutGuard(gameMemorySize + heapMemorySize + 8, (void*)gameMemoryBaseAdress);
+
+	gameMemory = (GameMemory*)memBlock;
+	heapMemory = (HeapMemory*)(&memBlock[sizeof(GameMemory)]); //todo align 8
+
+	heapMemory->allocator.init(heapMemory->memory, sizeof(heapMemory->memory));
 
 	VolatileMemory* volatileMemory;
 	//volatileMemory = (VolatileMemory*)VirtualAlloc(0, sizeof(VolatileMemory),
@@ -400,6 +409,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 	
 	gameLogic_t* gameLogic_ptr;
+	onCreate_t* onCreate_ptr;
 
 	bitmapInfo.bmiHeader.biSize = sizeof(BITMAPINFO);
 	bitmapInfo.bmiHeader.biWidth = gameWindowBuffer.w;
@@ -410,7 +420,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 	FILETIME lastFileTime = win32GetLastWriteFile(dllName);
 
-	win32LoadDll(&gameLogic_ptr, dllName);
+	win32LoadDll(&gameLogic_ptr, &onCreate_ptr, dllName);
 
 #pragma region time
 
@@ -425,6 +435,8 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
+
+	onCreate_ptr(gameMemory, heapMemory);
 
 	while (running)
 	{
@@ -470,6 +482,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		 asynkButtonClear(gameInput.down);
 		 asynkButtonClear(gameInput.left);
 		 asynkButtonClear(gameInput.right);
+		 asynkButtonClear(gameInput.space);
 
 		MSG msg = {};
 		while(PeekMessage(&msg, wind, 0, 0, PM_REMOVE) > 0)
@@ -535,7 +548,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			if (replayBufferData.fileMappingCursor >= replayBufferData.fileMappingSize)
 			{
 				replayBufferData.fileMappingCursor = 0;
-				loadGameState(replayBufferData.recordingSlot, gameMemory);
+				loadGameState(replayBufferData.recordingSlot, gameMemory, heapMemory);
 
 			}
 
@@ -554,7 +567,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 
 		//execute game logic
-		gameLogic_ptr(&gameInput, gameMemory, volatileMemory, &gameWindowBuffer);
+		gameLogic_ptr(&gameInput, gameMemory, heapMemory ,volatileMemory, &gameWindowBuffer);
 
 		//draw screen
 		RECT r;
@@ -588,7 +601,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 			CloseHandle(file);
 
-			win32LoadDll(&gameLogic_ptr, dllName);
+			win32LoadDll(&gameLogic_ptr, &onCreate_ptr, dllName);
 
 		}
 #endif

@@ -4,7 +4,7 @@
 
 #define ENABLE_ASSERT 1
 
-#define ENABLE_CONSOLE 0
+#define ENABLE_CONSOLE 1
 
 #define ALLOW_ONLY_ONE_INSTANCE 1
 

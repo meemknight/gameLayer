@@ -1,16 +1,26 @@
 #pragma once
 #include "utility.h"
+#include "freeListAllocator.h"
+#include <string>
 
 
+//here you add the memory of the game like so
 struct GameMemory
 {
 	
-	float posX;
-	float posY;
-	char isInitialized = 0;
+	float posX = 0;
+	float posY = 0;
 
+	std::string test = "test1";
 
-	char memory[1000];
+};
+
+struct HeapMemory
+{
+
+	FreeListAllocator allocator;
+	char memory[MB(10)];
+		
 };
 
 struct VolatileMemory
@@ -66,6 +76,7 @@ struct GameInput
 	Button down;
 	Button left;
 	Button right;
+	Button space;
 
 };
 
@@ -77,9 +88,13 @@ struct GameWindowBuffer
 
 };
 
-#define GAMELOGIC(x) void x(GameInput *input, GameMemory* memory, VolatileMemory *volatileMemory,\
+#define GAMELOGIC(x) void x(GameInput *input, GameMemory* memory, \
+HeapMemory *heapMemory, VolatileMemory *volatileMemory,\
  GameWindowBuffer *windowBuffer)
 typedef GAMELOGIC(gameLogic_t);
 extern "C" __declspec(dllexport) GAMELOGIC(gameLogic);
 
+#define ONCREATE(x) void x(GameMemory* memory, HeapMemory *heapMemory)
+typedef ONCREATE(onCreate_t);
+extern "C" __declspec(dllexport) ONCREATE(onCreate);
 

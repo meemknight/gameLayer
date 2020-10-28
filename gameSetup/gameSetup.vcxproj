@@ -152,10 +152,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\windowsPlatformLayer\utility.cpp" />
+    <ClCompile Include="freeListAllocator.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\windowsPlatformLayer\buildConfig.h" />
+    <ClInclude Include="freeListAllocator.h" />
     <ClInclude Include="gameStructs.h" />
     <ClInclude Include="utility.h" />
   </ItemGroup>

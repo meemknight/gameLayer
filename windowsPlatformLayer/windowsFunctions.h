@@ -14,7 +14,7 @@
 #endif
 
 
-void win32LoadDll(gameLogic_t** gameLogicPtr, const char* dllName);
+void win32LoadDll(gameLogic_t * *gameLogicPtr, onCreate_t * *onCreatePtr, const char* dllName);
 void win32UnloadDll();
 
 FILETIME win32GetLastWriteFile(const char* name);
@@ -24,9 +24,10 @@ bool readEntireFile(const char* name, void* buffer, size_t size);
 bool clearFileContent(const char* name);
 //bool appendToFille(const char* name, void* buffer, size_t size);
 
-bool saveGameState(int id, GameMemory* gameMemory);
-bool loadGameState(int id, GameMemory* gameMemory);
+bool saveGameState(int id, GameMemory* gameMemory, HeapMemory *heapMemory);
+bool loadGameState(int id, GameMemory* gameMemory, HeapMemory *heapMemory);
 
+void* allocateWithoutGuard(size_t size, void* basePointer);
 void* allocateWithGuard(size_t size, void *basePointer);
 
 #define NOT_RECORDING 0

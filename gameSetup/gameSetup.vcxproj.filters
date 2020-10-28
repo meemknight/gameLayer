@@ -24,6 +24,9 @@
     <ClCompile Include="..\windowsPlatformLayer\utility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="freeListAllocator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gameStructs.h">
@@ -34,6 +37,9 @@
     </ClInclude>
     <ClInclude Include="..\windowsPlatformLayer\buildConfig.h">
       <Filter>Source Files\shader</Filter>
+    </ClInclude>
+    <ClInclude Include="freeListAllocator.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

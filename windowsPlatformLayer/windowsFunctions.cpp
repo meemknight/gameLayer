@@ -3,7 +3,7 @@
 
 static HMODULE dllHand;
 
-void win32LoadDll(gameLogic_t** gameLogicPtr, const char *dllName)
+void win32LoadDll(gameLogic_t** gameLogicPtr, onCreate_t** onCreatePtr,const char *dllName)
 {
 #if INTERNAL_BUILD
 	assert(CopyFile(dllName, "gameSetupCopy.dll", FALSE));
@@ -16,8 +16,10 @@ void win32LoadDll(gameLogic_t** gameLogicPtr, const char *dllName)
 	assert(dllHand);
 
 	*gameLogicPtr = (gameLogic_t*)GetProcAddress(dllHand, "gameLogic");
-
 	assert(*gameLogicPtr);
+
+	*onCreatePtr = (onCreate_t*)GetProcAddress(dllHand, "onCreate");
+	assert(*onCreatePtr);
 
 	OutputDebugString("RELOADED DLL");
 }
@@ -132,7 +134,7 @@ bool readEntireFile(const char *name, void* buffer, size_t size)
 	return rez;
 }
 
-bool saveGameState(int id, GameMemory *gameMemory)
+bool saveGameState(int id, GameMemory *gameMemory, HeapMemory *heapMemory)
 {
 	char fileName[256] = {};
 	strcpy(fileName, "mmemory0");
@@ -140,10 +142,19 @@ bool saveGameState(int id, GameMemory *gameMemory)
 	strcat(fileName, ".save");
 
 	bool b = writeEntireFile(fileName, gameMemory, sizeof(GameMemory));
+
+	memset(fileName, 0, sizeof(fileName));
+	strcpy(fileName, "heap0");
+	fileName[sizeof(fileName) - 1] += id;
+	strcat(fileName, ".save");
+
+	b &= writeEntireFile(fileName, heapMemory, sizeof(HeapMemory));
+
+
 	return b;
 }
 
-bool loadGameState(int id, GameMemory* gameMemory)
+bool loadGameState(int id, GameMemory* gameMemory, HeapMemory *heapMemory)
 {
 	char fileName[256] = {};
 	strcpy(fileName, "mmemory0");
@@ -151,6 +162,14 @@ bool loadGameState(int id, GameMemory* gameMemory)
 	strcat(fileName, ".save");
 
 	bool b = readEntireFile(fileName, gameMemory, sizeof(GameMemory));
+	
+	memset(fileName, 0, sizeof(fileName));
+	strcpy(fileName, "heap0");
+	fileName[sizeof(fileName) - 1] += id;
+	strcat(fileName, ".save");
+
+	b &= readEntireFile(fileName, heapMemory, sizeof(HeapMemory));
+	
 	return b;
 }
 
@@ -191,6 +210,20 @@ bool win32LoadXinput(Win32XinputData &xinputData)
 	}
 
 	return xinputData.xinputLoaded;
+}
+
+void* allocateWithoutGuard(size_t size, void* basePointer)
+{
+	void* pointer = VirtualAlloc(basePointer, size,
+		MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
+	
+	DWORD err;
+	if (pointer == nullptr)
+	{
+		err = GetLastError();
+	}
+
+	return pointer;
 }
 
 void* allocateWithGuard(size_t size, void* basePointer)
