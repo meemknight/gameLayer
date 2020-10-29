@@ -2,7 +2,7 @@
 #include "utility.h"
 #include "freeListAllocator.h"
 #include <string>
-
+#include <Windows.h>
 
 //here you add the memory of the game like so
 struct GameMemory
@@ -184,7 +184,7 @@ struct WindowSettings
 
 struct Console
 {
-	static constexpr int BUFFER_SIZE = 30;
+	static constexpr int BUFFER_SIZE = 560;
 
 	struct Letter
 	{
@@ -219,6 +219,40 @@ struct Console
 		}
 	}
 
+	///normal log
+	void log(const char* c)
+	{
+		writeText(c, 0);
+		writeText("\n");
+	}
+
+	///error log
+	void elog(const char* c)
+	{
+		writeText(c, 1);
+		writeText("\n");
+	}
+
+	///warn log (yellow)
+	void wlog(const char* c)
+	{
+		writeText(c, 2);
+		writeText("\n");
+	}
+
+	///good log (green)
+	void glog(const char* c)
+	{
+		writeText(c, 3);
+		writeText("\n");
+	}
+
+	///blue log (blue)
+	void blog(const char* c)
+	{
+		writeText(c, 4);
+		writeText("\n");
+	}
 };
 
 #define WRITEENTIREFILE(x) bool x(const char* name, void* buffer, size_t size)
@@ -245,6 +279,29 @@ struct GameWindowBuffer
 	int w;
 	int h;
 
+	void drawAt(int x, int y, char r, char g, char b)
+	{
+		if (x >= w || y >= h) 
+			{ return; }
+
+		memory[4 * (x + y * w) + 0] = b; //blue
+		memory[4 * (x + y * w) + 1] = g; //green
+		memory[4 * (x + y * w) + 2] = r; //red
+		memory[4 * (x + y * w) + 3] = 0; //reserved for alignment
+	}
+
+	void clear(char r = 0, char g = 0, char b = 0)
+	{
+		for (int y = 0; y < h; y++)
+			for (int x = 0; x < w; x++)
+			{
+				memory[4 * (x + y * w) + 0] = b; //blue
+				memory[4 * (x + y * w) + 1] = g; //green
+				memory[4 * (x + y * w) + 2] = r; //red
+				memory[4 * (x + y * w) + 3] = 0; //reserved for alignment
+
+			}
+	}
 };
 
 #define GAMELOGIC(x) void x(GameInput *input, GameMemory* memory, \

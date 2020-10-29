@@ -157,11 +157,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\gameSetup\freeListAllocator.cpp" />
+    <ClCompile Include="Console.cpp" />
     <ClCompile Include="utility.cpp" />
     <ClCompile Include="windowsFunctions.cpp" />
     <ClCompile Include="winMain.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Console.h" />
+    <ClInclude Include="font8x8_basic.h" />
     <ClInclude Include="windowsFunctions.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

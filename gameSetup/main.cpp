@@ -69,6 +69,13 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* memory, HeapMemory * 
 	windowSettings->h = 450;
 	windowSettings->drawWithOpenGl = false;
 
+	console.log("normal log here");
+	console.elog("error log here");
+	console.wlog("warn log here");
+	console.glog("green log here");
+	console.blog("blue log here");
+	console.log("log here...");
+
 }
 
 extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* mem,
@@ -101,17 +108,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	//windowSettings->h = 450;
 
 
-	//this is how you draw to the screen for now
-	//this clears the screen to black
-	for(int y=0; y<windowBuffer->h; y++)
-		for (int x = 0; x < windowBuffer->w; x++)
-		{
-			windowBuffer->memory[4 * (x + y * windowBuffer->w) + 0] = 0; //blue
-			windowBuffer->memory[4 * (x + y * windowBuffer->w) + 1] = 0; //green
-			windowBuffer->memory[4 * (x + y * windowBuffer->w) + 2] = 0; //red
-			windowBuffer->memory[4 * (x + y * windowBuffer->w) + 3] = 0; //reserved for alignment
-				
-		}
+	windowBuffer->clear();
 
 	char color1 = 255-input->controllers[0].LT * 255;
 	char color2 = 255-input->controllers[0].RT * 255;
@@ -129,9 +126,8 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 			if (newX >= windowBuffer->w) { continue; }
 			if (newY >= windowBuffer->h) { continue; }
 
-			windowBuffer->memory[4 * (newX + newY * windowBuffer->w) + 0] = 25;//blue
-			windowBuffer->memory[4 * (newX + newY * windowBuffer->w) + 1] = color1; //green
-			windowBuffer->memory[4 * (newX + newY * windowBuffer->w) + 2] = color2; //red
+			windowBuffer->drawAt(newX, newY, color2, color1, 25);
+
 		}
 
 	//move player

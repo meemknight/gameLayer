@@ -7,6 +7,7 @@
 #include "windowsFunctions.h"
 #include "buildConfig.h"
 #include <Xinput.h>
+#include "Console.h"
 
 static bool running = 1;
 static bool active = 0;
@@ -22,6 +23,8 @@ static WindowSettings windowSettings = {};
 
 static Win32ReplayBufferData replayBufferData;
 static Win32XinputData xinputData;
+
+static bool consoleRunning = false;
 
 extern "C"
 {
@@ -117,6 +120,7 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 	//}
 
 	bool isDown = 0;
+	bool isUp = 1;
 
 	switch (msg)
 	{
@@ -149,6 +153,7 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		ReleaseDC(wind, hdc);
 		
 		EndPaint(wind, &Paint);
+
 	} break;
 	case WM_ACTIVATEAPP:
 	{
@@ -190,6 +195,7 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
 		isDown = 1;
+		isUp = 0;
 	case WM_SYSKEYUP:
 	case WM_KEYUP: 
 	{
@@ -203,6 +209,10 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 			}
 		}
 		
+		if (wp == VK_OEM_3 && altWasDown & isUp)
+		{
+			consoleRunning = !consoleRunning;
+		}
 		
 #if INTERNAL_BUILD
 		if(wp == 'R' && altWasDown && (replayBufferData.recordingState == NOT_RECORDING))
@@ -693,64 +703,72 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
+		if (!consoleRunning) 
+		{
 #pragma region checkForChanges
 
-		if(((windowSettings.h != gameWindowBuffer.h)
-			|| (windowSettings.h != gameWindowBuffer.h)
-			) && windowSettings.h != 0 
-			&& windowSettings.w != 0)
-		{
-			setWindowSize(wind, windowSettings.h, windowSettings.w);
-			resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
-		}
-		else 
-		{
-			windowSettings.h = gameWindowBuffer.h;
-			windowSettings.w = gameWindowBuffer.w;
-		}
+			if (((windowSettings.h != gameWindowBuffer.h)
+				|| (windowSettings.h != gameWindowBuffer.h)
+				) && windowSettings.h != 0
+				&& windowSettings.w != 0)
+			{
+				setWindowSize(wind, windowSettings.h, windowSettings.w);
+				resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
+			}
+			else
+			{
+				windowSettings.h = gameWindowBuffer.h;
+				windowSettings.w = gameWindowBuffer.w;
+			}
 
-	
+
 #pragma endregion
 
 
-		volatileMemory->reset();
+			volatileMemory->reset();
 
-		gameInput.deltaTime = deltaTime;
+			gameInput.deltaTime = deltaTime;
 
-		//playback recording
+			//playback recording
 #if INTERNAL_BUILD 
-		if(replayBufferData.recordingState == PLAYING)
-		{
-			memcpy(&gameInput, (char*)replayBufferData.fileMappingPointer + replayBufferData.fileMappingCursor, sizeof(GameInput));
-		
-			replayBufferData.fileMappingCursor += sizeof(GameInput);
-			if (replayBufferData.fileMappingCursor >= replayBufferData.fileMappingSize)
+			if (replayBufferData.recordingState == PLAYING)
 			{
-				replayBufferData.fileMappingCursor = 0;
-				loadGameState(replayBufferData.recordingSlot, gameMemory, heapMemory);
+				memcpy(&gameInput, (char*)replayBufferData.fileMappingPointer + replayBufferData.fileMappingCursor, sizeof(GameInput));
+
+				replayBufferData.fileMappingCursor += sizeof(GameInput);
+				if (replayBufferData.fileMappingCursor >= replayBufferData.fileMappingSize)
+				{
+					replayBufferData.fileMappingCursor = 0;
+					loadGameState(replayBufferData.recordingSlot, gameMemory, heapMemory);
+
+				}
+
+#if NOT_RECORD_DELTATIME
+				gameInput.deltaTime = deltaTime;
+#endif	
 
 			}
 
-#if NOT_RECORD_DELTATIME
-			gameInput.deltaTime = deltaTime;
-#endif	
-
-		}
-
-		if(replayBufferData.recordingState == RECORDING)
-		{
-			DWORD nrOfBytes = 0;
-			WriteFile(replayBufferData.recordingFileHand, &gameInput, sizeof(GameInput), &nrOfBytes, 0);
-		}
+			if (replayBufferData.recordingState == RECORDING)
+			{
+				DWORD nrOfBytes = 0;
+				WriteFile(replayBufferData.recordingFileHand, &gameInput, sizeof(GameInput), &nrOfBytes, 0);
+			}
 #endif
 
-		//execute game logic
-		gameLogic_ptr(&gameInput, gameMemory, heapMemory ,volatileMemory, &gameWindowBuffer,
-			&windowSettings, &platformFunctions);
+			//execute game logic
+			gameLogic_ptr(&gameInput, gameMemory, heapMemory, volatileMemory, &gameWindowBuffer,
+				&windowSettings, &platformFunctions);
+
+		}else // run the console
+		{
+			drawConsole(&gameWindowBuffer, &platformFunctions.console);
+		}
+
 
 #pragma region draw screen
 		
-		if(windowSettings.drawWithOpenGl)
+		if(windowSettings.drawWithOpenGl && !consoleRunning)
 		{
 
 			HDC hdc = GetDC(wind);
@@ -758,15 +776,16 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			ReleaseDC(wind, hdc);
 		}else
 		{
+
+			//todo repair
 			RECT r;
 			GetClientRect(wind, &r);
-
 			int w = r.left;
 			int h = r.bottom;
-			//todo repair
 			HDC hdc = GetDC(wind);
 			PatBlt(hdc, 0, 0, w, h, BLACKNESS);
 			ReleaseDC(wind, hdc);
+			
 			SendMessage(wind, WM_PAINT, 0, 0);
 		}
 		
