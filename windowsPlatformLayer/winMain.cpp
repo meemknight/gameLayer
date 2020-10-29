@@ -403,6 +403,13 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
+#pragma region print to console
+	platformFunctions.console.glog("- Platform layer console -");
+	platformFunctions.console.glog("----- Luta Vlad (c) ------");
+	platformFunctions.console.glog("press ALT + ~ or ` to exit");
+	platformFunctions.console.writeText("\n");
+#pragma endregion
+
 #pragma region set platform functions pointers
 
 	platformFunctions.readEntirFile = readEntireFile;
@@ -410,9 +417,9 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
-
+#pragma region call game init
 	onCreate_ptr(gameMemory, heapMemory, &windowSettings, &platformFunctions);
-
+#pragma endregion
 
 #pragma region create window
 
@@ -454,9 +461,10 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
+#pragma region enable opengl
 	HGLRC hrc;
-
 	enableOpenGL(wind, &hrc);
+#pragma endregion
 
 
 #pragma region time
@@ -815,7 +823,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		}
 #endif
 
-#pragma region write to the console
+#if ENABLE_CONSOLE //write to the console
 		auto& console = platformFunctions.console;
 	
 		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), { 0,0 });
@@ -834,7 +842,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 				std::cout << console.buffer[i].c;
 		}
 
-#pragma endregion
+#endif
 
 
 

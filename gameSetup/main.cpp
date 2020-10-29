@@ -65,8 +65,8 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* memory, HeapMemory * 
 #pragma endregion
 
 	//set the size of the window
-	windowSettings->w = 450;
-	windowSettings->h = 450;
+	windowSettings->w = 550;
+	windowSettings->h = 550;
 	windowSettings->drawWithOpenGl = false;
 
 	console.log("normal log here");
