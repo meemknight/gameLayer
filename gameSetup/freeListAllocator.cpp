@@ -8,7 +8,6 @@
 #include "freeListAllocator.h"
 #include <cassert>
 #include <cstdint>
-#include <iostream>
 
 #if LINK_TO_GLOBAL_ALLOCATOR == 1
 
@@ -291,7 +290,7 @@ void* FreeListAllocator::allocate(size_t size)
 			{
 				//that was the last block, no size
 				//todo remove notice
-				std::cout << "no more memory\n";
+				//std::cout << "no more memory\n";
 
 				if (returnZeroIfNoMoreMemory)
 				{

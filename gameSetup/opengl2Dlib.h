@@ -25,7 +25,6 @@
 
 #pragma once
 #include <GL/glew.h>
-#include <iostream>
 #include <glm/glm.hpp>
 #include "stb_image.h"
 #include "stb_truetype.h"

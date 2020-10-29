@@ -1,6 +1,5 @@
 #include <Windows.h>
 #include "gameStructs.h"
-#include <iostream>
 #include <GL/glew.h>
 
 BOOL WINAPI DllMain(
