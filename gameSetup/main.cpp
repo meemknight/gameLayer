@@ -166,7 +166,8 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		mem->posX += speed * input->anyController.LThumb.x;
 		mem->posY -= speed * input->anyController.LThumb.y;
 
-		if(input->keyBoard[Button::P].pressed)
+		//todo fix button press
+		if(input->keyBoard[Button::Space].pressed)
 		{
 			windowSettings->drawWithOpenGl = !windowSettings->drawWithOpenGl;
 		}
