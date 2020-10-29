@@ -107,6 +107,9 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 				
 		}
 
+	char color1 = 255-input->controllers[0].LT * 255;
+	char color2 = 255-input->controllers[0].RT * 255;
+
 	//draw player
 	for(int y=0; y<20; y++)
 		for(int x=0; x<20; x++)
@@ -120,30 +123,30 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 			if (newX >= windowBuffer->w) { continue; }
 			if (newY >= windowBuffer->h) { continue; }
 
-			windowBuffer->memory[4 * (newX + newY * windowBuffer->w) + 0] = 0;//blue
-			windowBuffer->memory[4 * (newX + newY * windowBuffer->w) + 1] = 255; //green
-			windowBuffer->memory[4 * (newX + newY * windowBuffer->w) + 2] = 255; //red
+			windowBuffer->memory[4 * (newX + newY * windowBuffer->w) + 0] = 25;//blue
+			windowBuffer->memory[4 * (newX + newY * windowBuffer->w) + 1] = color1; //green
+			windowBuffer->memory[4 * (newX + newY * windowBuffer->w) + 2] = color2; //red
 		}
 
 	//move player
 
-	float spped = 340 * deltaTime;
+	float speed = 340 * deltaTime;
 		
-		if(input->up.held)
+		if(input->keyBoard[Button::W].held || input->anyController.Up.held)
 		{
-			mem->posY -= spped;
+			mem->posY -= speed;
 		}
-		if (input->down.held)
+		if (input->keyBoard[Button::S].held || input->anyController.Down.held)
 		{
-			mem->posY += spped;
+			mem->posY += speed;
 		}
-		if (input->left.held)
+		if (input->keyBoard[Button::A].held || input->anyController.Left.held)
 		{
-			mem->posX -= spped;
+			mem->posX -= speed;
 		}
-		if (input->right.held)
+		if (input->keyBoard[Button::D].held || input->anyController.Riight.held)
 		{
-			mem->posX += spped;
+			mem->posX += speed;
 		}
 
 
@@ -159,7 +162,13 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		glVertex2f(-0.5f, 0.5f);
 		glEnd();
 
-		//glFlush();  // Render now
 
+		mem->posX += speed * input->anyController.LThumb.x;
+		mem->posY -= speed * input->anyController.LThumb.y;
+
+		if(input->keyBoard[Button::P].pressed)
+		{
+			windowSettings->drawWithOpenGl = !windowSettings->drawWithOpenGl;
+		}
 
 }

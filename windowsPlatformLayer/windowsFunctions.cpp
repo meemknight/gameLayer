@@ -206,7 +206,6 @@ bool win32LoadXinput(Win32XinputData &xinputData)
 			)
 		{
 			xinputData.xinputLoaded = 1;
-
 		}
 		else
 		{

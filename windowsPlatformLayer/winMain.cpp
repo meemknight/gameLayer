@@ -158,10 +158,22 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 
 	}	break;
 	case WM_MENUCHAR:
-
+		//to remove an annoying sound
 		rez = MNC_CLOSE<<16;
-
 		break;
+	case WM_LBUTTONDOWN:
+		processEventButton(gameInput.leftMouse, 1);
+		break;
+	case WM_RBUTTONDOWN:
+		processEventButton(gameInput.rightMouse, 1);
+		break;
+	case WM_LBUTTONUP:
+		processEventButton(gameInput.leftMouse, 0);
+		break;
+	case WM_RBUTTONUP:
+		processEventButton(gameInput.rightMouse, 0);
+		break;
+
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
 		isDown = 1;
@@ -170,28 +182,15 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 	{
 		bool altWasDown = lp & (1 << 29);
 
-		if(wp == 'W')
+		for (int i = 0; i < Button::BUTTONS_COUNT; i++) 
 		{
-			processEventButton(gameInput.up, isDown);
-		}
-		if(wp == 'S')
-		{
-			processEventButton(gameInput.down, isDown);
+			if(wp == Button::buttonValues[i])
+			{
+				processEventButton(gameInput.keyBoard[i], isDown);
+			}
 		}
 		
-		if (wp == 'A')
-		{
-			processEventButton(gameInput.left, isDown);
-		}
-		if (wp == 'D')
-		{
-		 	processEventButton(gameInput.right, isDown);
-		}
-		if (wp == VK_SPACE)
-		{
-			processEventButton(gameInput.space, isDown);
-		}
-
+		
 #if INTERNAL_BUILD
 		if(wp == 'R' && altWasDown && (replayBufferData.recordingState == NOT_RECORDING))
 		{ 	
@@ -483,11 +482,38 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma region process messages
 
-		 asynkButtonClear(gameInput.up);
-		 asynkButtonClear(gameInput.down);
-		 asynkButtonClear(gameInput.left);
-		 asynkButtonClear(gameInput.right);
-		 asynkButtonClear(gameInput.space);
+		if (GetAsyncKeyState(VK_LBUTTON) == 0)
+		{
+			gameInput.leftMouse = {};
+		}
+		if (GetAsyncKeyState(VK_RBUTTON) == 0)
+		{
+			gameInput.rightMouse = {};
+		}
+
+		if(!active)
+		{
+			for (int i = 0; i < Button::BUTTONS_COUNT; i++)
+			{
+				gameInput.keyBoard[i] = {};
+			}
+
+			gameInput.leftMouse = {};
+			gameInput.rightMouse = {};
+
+		}else
+		{
+
+			for (int i = 0; i < Button::BUTTONS_COUNT; i++)
+			{
+				asynkButtonClear(gameInput.keyBoard[i]);
+			}
+
+			asynkButtonClear(gameInput.leftMouse);
+			asynkButtonClear(gameInput.rightMouse);
+		
+		}
+
 
 		MSG msg = {};
 		while(PeekMessage(&msg, wind, 0, 0, PM_REMOVE) > 0)
@@ -497,24 +523,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	
 		}
 
-		bool up = GetAsyncKeyState('W');
-		bool down = GetAsyncKeyState('S');
-		bool left = GetAsyncKeyState('A');
-		bool right = GetAsyncKeyState('D');
-
-		for(int i=0; i<XUSER_MAX_COUNT; i++)	
-		{
-			if(xinputData.controllerConnected[i])
-			{
-
-				up |= xinputData.controllers[i].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_UP;
-				down |= xinputData.controllers[i].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_DOWN;
-				left |= xinputData.controllers[i].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_LEFT;
-				right |= xinputData.controllers[i].Gamepad.wButtons & XINPUT_GAMEPAD_DPAD_RIGHT;
-
-			}
-		
-		}
 
 #pragma endregion
 
@@ -524,16 +532,128 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		{
 			for (int i = 0; i < XUSER_MAX_COUNT; i++)
 			{
-				if(xinputData.DynamicXinputGetState(i, &xinputData.controllers[i])
+				if (xinputData.DynamicXinputGetState(i, &xinputData.controllers[i])
 					== ERROR_SUCCESS)
 				{
 					xinputData.controllerConnected[i] = true;
-				}else
+				}
+				else
 				{
 					xinputData.controllerConnected[i] = false;
 				}
 			}
-			
+
+			gameInput.anyController = {};
+
+			for (int i = 0; i < 4; i++)
+			{
+				if (xinputData.controllerConnected[i])
+				{
+
+					asynkButtonClear(gameInput.controllers[i].A);
+					asynkButtonClear(gameInput.controllers[i].B);
+					asynkButtonClear(gameInput.controllers[i].X);
+					asynkButtonClear(gameInput.controllers[i].Y);
+
+					asynkButtonClear(gameInput.controllers[i].Up);
+					asynkButtonClear(gameInput.controllers[i].Down);
+					asynkButtonClear(gameInput.controllers[i].Left);
+					asynkButtonClear(gameInput.controllers[i].Riight);
+
+					asynkButtonClear(gameInput.controllers[i].Menu);
+					asynkButtonClear(gameInput.controllers[i].Back);
+
+					asynkButtonClear(gameInput.controllers[i].LPress);
+					asynkButtonClear(gameInput.controllers[i].RPress);
+
+					asynkButtonClear(gameInput.controllers[i].RB);
+					asynkButtonClear(gameInput.controllers[i].LB);
+
+
+					processAsynkButton(gameInput.controllers[i].A,
+						xinputData.controllers[i].Gamepad.wButtons & XINPUT_GAMEPAD_A);
+
+					processAsynkButton(gameInput.controllers[i].B,
+						xinputData.controllers[i].Gamepad.wButtons & XINPUT_GAMEPAD_B);
+					
+					processAsynkButton(gameInput.controllers[i].X,
+						xinputData.controllers[i].Gamepad.wButtons & XINPUT_GAMEPAD_X);
+
+					processAsynkButton(gameInput.controllers[i].Y,
+						xinputData.controllers[i].Gamepad.wButtons& XINPUT_GAMEPAD_Y);
+					//
+					processAsynkButton(gameInput.controllers[i].Up,
+						xinputData.controllers[i].Gamepad.wButtons& XINPUT_GAMEPAD_DPAD_UP);
+
+					processAsynkButton(gameInput.controllers[i].Down,
+						xinputData.controllers[i].Gamepad.wButtons& XINPUT_GAMEPAD_DPAD_DOWN);
+
+					processAsynkButton(gameInput.controllers[i].Left,
+						xinputData.controllers[i].Gamepad.wButtons& XINPUT_GAMEPAD_DPAD_LEFT);
+
+					processAsynkButton(gameInput.controllers[i].Riight,
+						xinputData.controllers[i].Gamepad.wButtons& XINPUT_GAMEPAD_DPAD_RIGHT);
+				
+					//
+					processAsynkButton(gameInput.controllers[i].Menu,
+						xinputData.controllers[i].Gamepad.wButtons& XINPUT_GAMEPAD_START);
+
+					processAsynkButton(gameInput.controllers[i].Back,
+						xinputData.controllers[i].Gamepad.wButtons& XINPUT_GAMEPAD_BACK);
+
+					processAsynkButton(gameInput.controllers[i].LPress,
+						xinputData.controllers[i].Gamepad.wButtons& XINPUT_GAMEPAD_LEFT_THUMB);
+
+					processAsynkButton(gameInput.controllers[i].RPress,
+						xinputData.controllers[i].Gamepad.wButtons& XINPUT_GAMEPAD_RIGHT_THUMB);
+				
+					//
+					processAsynkButton(gameInput.controllers[i].RB,
+						xinputData.controllers[i].Gamepad.wButtons& XINPUT_GAMEPAD_RIGHT_SHOULDER);
+
+					processAsynkButton(gameInput.controllers[i].LB,
+						xinputData.controllers[i].Gamepad.wButtons& XINPUT_GAMEPAD_RIGHT_SHOULDER);
+
+					gameInput.controllers[i].LT = xinputData.controllers->Gamepad.bLeftTrigger / 255.f;
+					gameInput.controllers[i].RT = xinputData.controllers->Gamepad.bRightTrigger / 255.f;
+					//todo tresshold here
+					
+					gameInput.controllers[i].LThumb.x = xinputData.controllers->Gamepad.sThumbLX / (float)0x7f'ff;
+					gameInput.controllers[i].LThumb.y = xinputData.controllers->Gamepad.sThumbLY / (float)0x7f'ff;
+					
+					gameInput.controllers[i].RThumb.x = xinputData.controllers->Gamepad.sThumbRX / (float)0x7f'ff;
+					gameInput.controllers[i].RThumb.y = xinputData.controllers->Gamepad.sThumbRY / (float)0x7f'ff;
+
+					//todo tresshold here
+					if (abs(gameInput.controllers[i].RThumb.x) < 0.2)
+					{
+						gameInput.controllers[i].RThumb.x = 0;
+					}
+					if (abs(gameInput.controllers[i].RThumb.y) < 0.2)
+					{
+						gameInput.controllers[i].RThumb.y = 0;
+					}
+
+					if (abs(gameInput.controllers[i].LThumb.x) < 0.2)
+					{
+						gameInput.controllers[i].LThumb.x = 0;
+					}
+					if (abs(gameInput.controllers[i].LThumb.y) < 0.2)
+					{
+						gameInput.controllers[i].LThumb.y = 0;
+					}
+
+					gameInput.anyController.merge(gameInput.controllers[i]);
+
+				}
+				else
+				{
+
+					gameInput.controllers[i] = {};
+				}
+
+			}
+
 		}
 
 
