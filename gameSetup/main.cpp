@@ -54,10 +54,13 @@ void operator delete[](void* ptr)
 
 //here you initialize the game memory for the first time
 extern "C" __declspec(dllexport) void onCreate(GameMemory* memory, HeapMemory * heapMemory,
-	WindowSettings *windowSettings)
+	WindowSettings *windowSettings, PlatformFunctions * platformFunctions)
 {
+#pragma region necesary setup
 	allocator = &heapMemory->allocator;
 	*memory = GameMemory();
+	auto& console = platformFunctions->console;
+#pragma endregion
 
 	//set the size of the window
 	windowSettings->w = 450;
@@ -66,13 +69,15 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* memory, HeapMemory * 
 
 }
 
-extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* mem, HeapMemory * heapMemory,
-	VolatileMemory *volatileMemory, GameWindowBuffer* windowBuffer, WindowSettings * windowSettings)
+extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* mem,
+	HeapMemory * heapMemory, VolatileMemory *volatileMemory, GameWindowBuffer* windowBuffer, 
+	WindowSettings * windowSettings, PlatformFunctions * platformFunctions)
 {
 
 #pragma region per frame setup
 	allocator = &heapMemory->allocator;
 	float deltaTime = input->deltaTime;
+	auto& console = platformFunctions->console;
 #pragma endregion
 
 	//do game logic
@@ -161,7 +166,6 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		glVertex2f(-0.5f, 0.5f);
 		glEnd();
 
-
 		mem->posX += speed * input->anyController.LThumb.x;
 		mem->posY -= speed * input->anyController.LThumb.y;
 
@@ -170,5 +174,16 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		{
 			windowSettings->drawWithOpenGl = !windowSettings->drawWithOpenGl;
 		}
+
+		if (input->keyBoard[Button::Enter].released)
+		{
+			console.writeText("test aicisa");
+		}
+		
+		for(int i=0; i<10; i++)
+			if (input->keyBoard[Button::NR0 + i].released)
+			{
+				console.writeLetter('0' + i);
+			}
 
 }

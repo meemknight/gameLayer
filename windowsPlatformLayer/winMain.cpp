@@ -14,6 +14,7 @@ static BITMAPINFO bitmapInfo = {};
 static GameWindowBuffer gameWindowBuffer = {};
 static GameMemory* gameMemory = nullptr;
 static HeapMemory* heapMemory = nullptr;
+static PlatformFunctions platformFunctions;
 static char dllName[260];
 static GameInput gameInput = {};
 static LARGE_INTEGER performanceFrequency;
@@ -380,6 +381,13 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
+#pragma region set platform functions pointers
+
+	platformFunctions.readEntirFile = readEntireFile;
+	platformFunctions.writeEntireFile = writeEntireFile;
+
+#pragma endregion
+
 
 	onCreate_ptr(gameMemory, heapMemory, &windowSettings);
 
@@ -450,37 +458,51 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		QueryPerformanceCounter(&time4);
 		LARGE_INTEGER deltaTimeInteger;
 		deltaTimeInteger.QuadPart = time4.QuadPart - time3.QuadPart;
-		
+
 		float deltaTime = (float)deltaTimeInteger.QuadPart / (float)performanceFrequency.QuadPart;
 		QueryPerformanceCounter(&time3);
 
-		if (timeBeginPeriod(1) == TIMERR_NOERROR)
+		//todo
+		//if (replayBufferData.recordingState != PLAYING)
 		{
-			QueryPerformanceCounter(&time2);
-			LARGE_INTEGER deltaTimeInteger;
-			deltaTimeInteger.QuadPart = time2.QuadPart - time1.QuadPart;
-			double dDeltaTime2 = (double)deltaTimeInteger.QuadPart / (double)performanceFrequency.QuadPart;
-
-			int sleep = (1000.0 / 60.0) - (dDeltaTime2 * 1000.0);
-			if (sleep > 0) { Sleep(sleep); }
-			timeEndPeriod(1);
-		}
-		else
-		{
-			int sleep = 0;
-			do
+			if (timeBeginPeriod(1) == TIMERR_NOERROR)
 			{
 				QueryPerformanceCounter(&time2);
-				int deltaTime2 = time2.QuadPart - time1.QuadPart;
-				double dDeltaTime2 = (double)deltaTime2 / (double)performanceFrequency.QuadPart;
+				LARGE_INTEGER deltaTimeInteger;
+				deltaTimeInteger.QuadPart = time2.QuadPart - time1.QuadPart;
+				double dDeltaTime2 = (double)deltaTimeInteger.QuadPart / (double)performanceFrequency.QuadPart;
 
-				sleep = (1000.0 / 60.0) - (dDeltaTime2 * 1000.0);
-			} while (sleep > 0);
+				int sleep = (1000.0 / 60.0) - (dDeltaTime2 * 1000.0);
+				if (sleep > 0) { Sleep(sleep); }
+				timeEndPeriod(1);
+			}
+			else
+			{
+				int sleep = 0;
+				do
+				{
+					QueryPerformanceCounter(&time2);
+					int deltaTime2 = time2.QuadPart - time1.QuadPart;
+					double dDeltaTime2 = (double)deltaTime2 / (double)performanceFrequency.QuadPart;
+
+					sleep = (1000.0 / 60.0) - (dDeltaTime2 * 1000.0);
+				} while (sleep > 0);
+			}
 		}
+
+	
 #pragma endregion
 
 
-#pragma region process messages
+#pragma region process messages & input
+		
+		gameInput.windowActive = active;
+		
+		POINT p;
+		GetCursorPos(&p);
+		ScreenToClient(wind, &p);
+		gameInput.mouseX = p.x;
+		gameInput.mouseY = p.y;
 
 		if (GetAsyncKeyState(VK_LBUTTON) == 0)
 		{
@@ -710,10 +732,9 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		}
 #endif
 
-
 		//execute game logic
 		gameLogic_ptr(&gameInput, gameMemory, heapMemory ,volatileMemory, &gameWindowBuffer,
-			&windowSettings);
+			&windowSettings, &platformFunctions);
 
 #pragma region draw screen
 		
@@ -762,6 +783,29 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 		}
 #endif
+
+#pragma region write to the console
+		auto& console = platformFunctions.console;
+	
+		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), { 0,0 });
+		
+		for(int i = console.bufferBeginPos; 
+			i< console.BUFFER_SIZE; i++)
+		{
+			if(console.buffer[i].c)
+				std::cout << console.buffer[i].c;
+		}
+
+		for (int i = 0;
+			i < console.bufferBeginPos; i++)
+		{
+			if (console.buffer[i].c)
+				std::cout << console.buffer[i].c;
+		}
+
+#pragma endregion
+
+
 
 	}
 

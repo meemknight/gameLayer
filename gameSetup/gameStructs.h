@@ -125,6 +125,9 @@ struct GameInput
 	ControllerButtons controllers[4] = {};
 	ControllerButtons anyController = {};
 
+	int mouseX = 0;
+	int mouseY = 0;
+	bool windowActive = 0;
 };
 
 
@@ -179,6 +182,63 @@ struct WindowSettings
 	bool drawWithOpenGl = true;
 };
 
+struct Console
+{
+	static constexpr int BUFFER_SIZE = 30;
+
+	struct Letter
+	{
+		Letter() = default;
+		Letter(char c) :c(c) { color = 0; }
+		Letter(char c, char color):c(c), color(color) {}
+
+		char c;
+		char color;
+	};
+
+	Letter buffer[BUFFER_SIZE] = {};
+	int bufferBeginPos = 0;
+
+	void writeLetter(Letter l)
+	{
+		buffer[bufferBeginPos] = l;
+		bufferBeginPos++;
+
+		if (bufferBeginPos >= BUFFER_SIZE)
+		{
+			bufferBeginPos = 0;
+		}
+	}
+
+	void writeText(const char *c, char color = 0)
+	{
+		while(*c)
+		{
+			writeLetter({ *c, color });
+			c++;
+		}
+	}
+
+};
+
+#define WRITEENTIREFILE(x) bool x(const char* name, void* buffer, size_t size)
+typedef WRITEENTIREFILE(writeEntireFile_t);
+WRITEENTIREFILE(writeEntireFile);
+
+#define READENTIREFILE(x) bool x(const char* name, void* buffer, size_t size)
+typedef READENTIREFILE(readEntireFile_t);
+READENTIREFILE(readEntireFile);
+
+struct PlatformFunctions
+{
+	Console console;
+
+	//todo add other functions here
+	writeEntireFile_t* writeEntireFile = 0;
+	readEntireFile_t* readEntirFile = 0;
+
+};
+
 struct GameWindowBuffer
 {
 	char *memory;
@@ -189,12 +249,13 @@ struct GameWindowBuffer
 
 #define GAMELOGIC(x) void x(GameInput *input, GameMemory* memory, \
 HeapMemory *heapMemory, VolatileMemory *volatileMemory,\
- GameWindowBuffer *windowBuffer, WindowSettings* windowSettings)
+ GameWindowBuffer *windowBuffer, WindowSettings* windowSettings,\
+PlatformFunctions *platformFunctions)
 typedef GAMELOGIC(gameLogic_t);
 extern "C" __declspec(dllexport) GAMELOGIC(gameLogic);
 
 #define ONCREATE(x) void x(GameMemory* memory, HeapMemory *heapMemory, \
-WindowSettings *windowSettings)
+WindowSettings *windowSettings, PlatformFunctions *platformFunctions)
 typedef ONCREATE(onCreate_t);
 extern "C" __declspec(dllexport) ONCREATE(onCreate);
 
