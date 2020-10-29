@@ -52,6 +52,8 @@ void operator delete[](void* ptr)
 #pragma endregion
 
 
+
+
 //here you initialize the game memory for the first time
 extern "C" __declspec(dllexport) void onCreate(GameMemory* memory, HeapMemory * heapMemory,
 	WindowSettings *windowSettings, PlatformFunctions * platformFunctions)
@@ -169,7 +171,6 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		mem->posX += speed * input->anyController.LThumb.x;
 		mem->posY -= speed * input->anyController.LThumb.y;
 
-		//todo fix button press
 		if(input->keyBoard[Button::Space].pressed)
 		{
 			windowSettings->drawWithOpenGl = !windowSettings->drawWithOpenGl;
@@ -181,7 +182,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		}
 		
 		for(int i=0; i<10; i++)
-			if (input->keyBoard[Button::NR0 + i].released)
+			if (input->keyBoard[Button::NR0 + i].pressed)
 			{
 				console.writeLetter('0' + i);
 			}

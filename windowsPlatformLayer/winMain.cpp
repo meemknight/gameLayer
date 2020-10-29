@@ -23,6 +23,11 @@ static WindowSettings windowSettings = {};
 static Win32ReplayBufferData replayBufferData;
 static Win32XinputData xinputData;
 
+extern "C"
+{
+//	_declspec(dllexport) DWORD NvOptimusEnablement = 1;
+}
+
 void processAsynkButton(Button &b, bool newState)
 {
 	if (newState)
@@ -66,14 +71,21 @@ void processEventButton(Button &b, bool newState)
 	
 	if (newState) 
 	{
+		if(b.held)
+		{
+			b.pressed = false;
+		}else
+		{
+			b.pressed = true;
+		}
+
 		b.held = true;
-		b.pressed = true;
 		b.released = false;
 	}
 	else 
 	{
 		b.held = false;
-		b.pressed = true;
+		b.pressed = false;
 		b.released = true;
 	}
 
@@ -389,7 +401,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 #pragma endregion
 
 
-	onCreate_ptr(gameMemory, heapMemory, &windowSettings);
+	onCreate_ptr(gameMemory, heapMemory, &windowSettings, &platformFunctions);
 
 
 #pragma region create window
