@@ -1,6 +1,7 @@
 #include <Windows.h>
 #include "gameStructs.h"
 #include <iostream>
+#include <GL/glew.h>
 
 BOOL WINAPI DllMain(
 	HINSTANCE hinstDLL,
@@ -62,7 +63,7 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* memory, HeapMemory * 
 	//set the size of the window
 	windowSettings->w = 450;
 	windowSettings->h = 450;
-
+	windowSettings->drawWithOpenGl = false;
 
 }
 
@@ -146,18 +147,19 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		}
 
 
+		//glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
+		glClear(GL_COLOR_BUFFER_BIT);         // Clear the color buffer
 
-	if(input->left.released)
-	{
-		mem->test += ".";
-	}
+		// Draw a Red 1x1 Square centered at origin
+		glBegin(GL_QUADS);              // Each set of 4 vertices form a quad
+		glColor3f(1.0f, 0.0f, 0.0f); // Red
+		glVertex2f(-0.5f, -0.5f);    // x, y
+		glVertex2f(0.5f, -0.5f);
+		glVertex2f(0.5f, 0.5f);
+		glVertex2f(-0.5f, 0.5f);
+		glEnd();
 
-	if (input->right.released)
-	{
-		if(mem->test.size())
-			mem->test.pop_back();
-	}
-	
-	std::cout << mem->test + "\n";
+		//glFlush();  // Render now
+
 
 }

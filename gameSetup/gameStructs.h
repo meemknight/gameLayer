@@ -85,7 +85,7 @@ struct WindowSettings
 {
 	int w;
 	int h;
-
+	bool drawWithOpenGl = true;
 };
 
 struct GameWindowBuffer

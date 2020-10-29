@@ -425,6 +425,9 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
+	HGLRC hrc;
+
+	enableOpenGL(wind, &hrc);
 
 
 #pragma region time
@@ -556,8 +559,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 #pragma endregion
 
 
-
-
 		volatileMemory->reset();
 
 		gameInput.deltaTime = deltaTime;
@@ -595,16 +596,28 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			&windowSettings);
 
 #pragma region draw screen
-		RECT r;
-		GetClientRect(wind, &r);
+		
+		if(windowSettings.drawWithOpenGl)
+		{
 
-		int w = r.left;
-		int h = r.bottom;
-		//todo repair
-		HDC hdc = GetDC(wind);
-		PatBlt(hdc, 0, 0, w, h, BLACKNESS);
-		ReleaseDC(wind, hdc);
-		SendMessage(wind, WM_PAINT, 0, 0);
+			HDC hdc = GetDC(wind);
+			SwapBuffers(hdc);
+			ReleaseDC(wind, hdc);
+		}else
+		{
+			RECT r;
+			GetClientRect(wind, &r);
+
+			int w = r.left;
+			int h = r.bottom;
+			//todo repair
+			HDC hdc = GetDC(wind);
+			PatBlt(hdc, 0, 0, w, h, BLACKNESS);
+			ReleaseDC(wind, hdc);
+			SendMessage(wind, WM_PAINT, 0, 0);
+		}
+		
+
 #pragma endregion
 
 	//check if game code changed	

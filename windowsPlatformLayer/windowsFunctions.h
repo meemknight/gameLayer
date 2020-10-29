@@ -71,3 +71,6 @@ struct Win32XinputData
 };
 
 bool win32LoadXinput(Win32XinputData& xinputData);
+
+void enableOpenGL(HWND hwnd, HGLRC* hRC);
+

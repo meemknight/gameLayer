@@ -1,5 +1,11 @@
 #include "windowsFunctions.h"
 #include "utility.h"
+#include <gl/glew.h>
+#include <gl/wglew.h>
+#include <wingdi.h>
+
+//#pragma comment(lib,"opengl32.lib")
+
 
 static HMODULE dllHand;
 
@@ -210,6 +216,37 @@ bool win32LoadXinput(Win32XinputData &xinputData)
 	}
 
 	return xinputData.xinputLoaded;
+}
+
+void enableOpenGL(HWND hwnd, HGLRC* hRC)
+{
+
+	PIXELFORMATDESCRIPTOR pfd = {};
+
+	int iFormat;
+
+	/* get the device context (DC) */
+	HDC hDC = GetDC(hwnd);
+
+
+	pfd.nSize = sizeof(pfd);
+	pfd.nVersion = 1;
+	pfd.dwFlags = PFD_DRAW_TO_WINDOW |
+		PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	pfd.iPixelType = PFD_TYPE_RGBA;
+	pfd.cColorBits = 32;
+	pfd.cDepthBits = 16;
+	pfd.cStencilBits = 8;
+	pfd.iLayerType = PFD_MAIN_PLANE;
+
+	iFormat = ChoosePixelFormat(hDC, &pfd);
+
+	SetPixelFormat(hDC, iFormat, &pfd);
+
+	/* create and enable the render context (RC) */
+	*hRC = wglCreateContext(hDC);
+
+	wglMakeCurrent(hDC, *hRC);
 }
 
 void* allocateWithoutGuard(size_t size, void* basePointer)
