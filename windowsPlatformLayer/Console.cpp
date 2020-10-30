@@ -3,6 +3,7 @@
 
 constexpr int magW = 3;
 constexpr int magH = 3;
+int Ypadding = 0;
 
 void drawConsole(GameWindowBuffer* window, Console* console)
 {
@@ -13,9 +14,9 @@ void drawConsole(GameWindowBuffer* window, Console* console)
 	auto mem = window->memory;
 
 	int celPosX=0; // pixel pos
-	int celPosY=0;
+	int celPosY=Ypadding * 8 * magH;
 
-	int cellXsize = w / (8*magW);
+	int cellXsize = w / (8*magW);		//nr of cells
 	int cellYsize = h / (8*magH);
 
 	auto drawChar = [&](char c, int x, int y, char color) 
@@ -79,6 +80,10 @@ void drawConsole(GameWindowBuffer* window, Console* console)
 					{
 						window->drawAt(x + xx, y + yy, 150, 150, 255);
 					}
+					else if (color == 5)
+					{
+						window->drawAt(x + xx, y + yy, 15, 15, 18);
+					}
 					else
 					{
 						window->drawAt(x + xx, y + yy, 200, 200, 200);
@@ -116,5 +121,68 @@ void drawConsole(GameWindowBuffer* window, Console* console)
 			
 		}
 	}
+
+#pragma region handle input
+
+	for(int i=8; i<255; i++)
+	{
+		if (GetAsyncKeyState(i) == -32767)
+		{
+			if(i == VK_BACK)
+			{
+				if(console->writeBufferPos)
+				{
+					console->writeBufferPos--;
+					console->writeBuffer[console->writeBufferPos] = 0;
+				}
+			}else
+			if((isalnum(i)  
+				|| i == VK_DIVIDE
+				)&& console->writeBufferPos < console->WRITE_BUFFER_SIZE)
+			{
+				console->writeBuffer[console->writeBufferPos] = i;
+				console->writeBufferPos++;
+			}else if(i == VK_UP)
+			{
+				Ypadding++;
+			}else if(i == VK_DOWN)
+			{
+				Ypadding--;
+			}
+
+		}
+
+
+	}
+
+#pragma endregion
+
+
+#pragma region draw input
+	{
+		for (int j = 0; j < magH * 8; j++)
+			for (int i = 0; i < w; i++)
+			{
+
+				window->drawAt(i, h - j, 200, 200, 200);
+
+			}
+
+		int yPos = h - (magH * 8 - 2);
+		int xPos = 8 * magW;
+		drawChar('>', 0, yPos, 5);
+		
+		char* c = console->writeBuffer;
+
+		while(*c)
+		{
+			drawChar(*c, xPos, yPos, 5);
+			c++;
+			xPos += 8 * magW;
+		}
+	
+	}
+#pragma endregion
+
 
 }

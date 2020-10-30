@@ -185,6 +185,7 @@ struct WindowSettings
 struct Console
 {
 	static constexpr int BUFFER_SIZE = 560;
+	static constexpr int WRITE_BUFFER_SIZE = 25;
 
 	struct Letter
 	{
@@ -197,6 +198,8 @@ struct Console
 	};
 
 	Letter buffer[BUFFER_SIZE] = {};
+	char writeBuffer[WRITE_BUFFER_SIZE+1] = {};
+	int writeBufferPos = 0;
 	int bufferBeginPos = 0;
 
 	void writeLetter(Letter l)
@@ -281,7 +284,7 @@ struct GameWindowBuffer
 
 	void drawAt(int x, int y, char r, char g, char b)
 	{
-		if (x >= w || y >= h) 
+		if (x >= w || y >= h || x < 0 || y < 0) 
 			{ return; }
 
 		memory[4 * (x + y * w) + 0] = b; //blue
