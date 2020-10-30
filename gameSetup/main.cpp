@@ -69,12 +69,8 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* memory, HeapMemory * 
 	windowSettings->h = 550;
 	windowSettings->drawWithOpenGl = false;
 
-	console.log("normal log here");
-	console.elog("error log here");
-	console.wlog("warn log here");
-	console.glog("green log here");
-	console.blog("blue log here");
-	console.log("log here...");
+	console.blog("serialized variables:");
+	console.log(memory->serializedVariables.var[0].name);
 
 }
 

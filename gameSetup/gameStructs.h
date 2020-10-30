@@ -7,11 +7,20 @@
 //here you add the memory of the game like so
 struct GameMemory
 {
-	
+	SerializedVariabels serializedVariables = {};
+
+	SERIALIZE(int, test, 0, "test");
+
+	//#define SERIALIZE(type, x, val) 
+//int test = 0; 
+//private:
+//	SerializedVariableInstance test_serialized = { serializedVariables,
+//	type::int_type, (void*)&test }; \
+//public:
+
 	float posX = 0;
 	float posY = 0;
 
-	std::string test = "test1";
 
 };
 
