@@ -9,6 +9,9 @@
 
 static HMODULE dllHand;
 
+HWND globalWind;
+HGLRC globalHGLRC;
+
 void win32LoadDll(gameLogic_t** gameLogicPtr, onCreate_t** onCreatePtr,const char *dllName)
 {
 #if INTERNAL_BUILD
@@ -160,6 +163,13 @@ bool saveGameState(int id, GameMemory *gameMemory, HeapMemory *heapMemory)
 	return b;
 }
 
+void makeContext()
+{
+	auto hDC = GetDC(globalWind);
+	wglMakeCurrent(hDC, globalHGLRC);
+	ReleaseDC(globalWind, hDC);
+}
+
 bool loadGameState(int id, GameMemory* gameMemory, HeapMemory *heapMemory)
 {
 	char fileName[256] = {};
@@ -300,7 +310,7 @@ void setWindowSize(HWND wind, int w, int h)
 
 	//adjust the size
 	SetWindowPos(wind, 0, 0, 0, winRC.right - winRC.left - dx, \
-		winRC.bottom - winRC.top - dy - 1, SWP_NOZORDER | SWP_NOMOVE);
+		winRC.bottom - winRC.top - dy, SWP_NOZORDER | SWP_NOMOVE);
 
 }
 

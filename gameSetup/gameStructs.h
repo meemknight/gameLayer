@@ -3,20 +3,18 @@
 #include "freeListAllocator.h"
 #include <string>
 #include <Windows.h>
+#include "opengl2Dlib.h"
 
 //here you add the memory of the game like so
 struct GameMemory
 {
 	SerializedVariabels serializedVariables = {};
 
+	gl2d::Renderer2D renderer;
+
 	SERIALIZE(int, test, 0, "test");
 
-	//#define SERIALIZE(type, x, val) 
-//int test = 0; 
-//private:
-//	SerializedVariableInstance test_serialized = { serializedVariables,
-//	type::int_type, (void*)&test }; \
-//public:
+	gl2d::Texture background;
 
 	float posX = 0;
 	float posY = 0;
@@ -186,8 +184,8 @@ struct VolatileMemory
 
 struct WindowSettings
 {
-	int w;
-	int h;
+	int w = 400;
+	int h = 400;
 	bool drawWithOpenGl = true;
 };
 
@@ -275,6 +273,10 @@ WRITEENTIREFILE(writeEntireFile);
 typedef READENTIREFILE(readEntireFile_t);
 READENTIREFILE(readEntireFile);
 
+#define MAKECONTEXT(x) void x()
+typedef MAKECONTEXT(makeContext_t);
+MAKECONTEXT(makeContext);
+
 struct PlatformFunctions
 {
 	Console console;
@@ -282,7 +284,7 @@ struct PlatformFunctions
 	//todo add other functions here
 	writeEntireFile_t* writeEntireFile = 0;
 	readEntireFile_t* readEntirFile = 0;
-
+	makeContext_t* makeContext = 0;
 };
 
 struct GameWindowBuffer

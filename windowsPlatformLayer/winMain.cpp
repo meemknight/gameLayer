@@ -19,12 +19,15 @@ static PlatformFunctions platformFunctions;
 static char dllName[260];
 static GameInput gameInput = {};
 static LARGE_INTEGER performanceFrequency;
-static WindowSettings windowSettings = {};
+static WindowSettings windowSettings;
 
 static Win32ReplayBufferData replayBufferData;
 static Win32XinputData xinputData;
 
 static bool consoleRunning = false;
+
+extern HWND globalWind;
+extern HGLRC globalHGLRC;
 
 extern "C"
 {
@@ -414,12 +417,10 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 	platformFunctions.readEntirFile = readEntireFile;
 	platformFunctions.writeEntireFile = writeEntireFile;
+	platformFunctions.makeContext = makeContext;
 
 #pragma endregion
 
-#pragma region call game init
-	onCreate_ptr(gameMemory, heapMemory, &windowSettings, &platformFunctions);
-#pragma endregion
 
 #pragma region create window
 
@@ -456,7 +457,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		0
 	);
 
-	setWindowSize(wind, windowSettings.h, windowSettings.w);
+	setWindowSize(wind, windowSettings.w, windowSettings.h);
 	resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
 
 #pragma endregion
@@ -464,8 +465,20 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 #pragma region enable opengl
 	HGLRC hrc;
 	enableOpenGL(wind, &hrc);
+	globalWind = wind;
+	globalHGLRC = hrc;
+	//glewExperimental = true;
+	//if (glewInit() != GLEW_OK)
+	//{
+	//	MessageBoxA(0, "glewInit", "Error from glew", MB_ICONERROR);
+	//}
 #pragma endregion
 
+#pragma region call game init
+	onCreate_ptr(gameMemory, heapMemory, &windowSettings, &platformFunctions);
+	setWindowSize(wind, windowSettings.w, windowSettings.h);
+	resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
+#pragma endregion
 
 #pragma region time
 
@@ -489,6 +502,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		LARGE_INTEGER deltaTimeInteger;
 		deltaTimeInteger.QuadPart = time4.QuadPart - time3.QuadPart;
 
+		//todo clamp delta time
 		float deltaTime = (float)deltaTimeInteger.QuadPart / (float)performanceFrequency.QuadPart;
 		QueryPerformanceCounter(&time3);
 
@@ -720,7 +734,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 				) && windowSettings.h != 0
 				&& windowSettings.w != 0)
 			{
-				setWindowSize(wind, windowSettings.h, windowSettings.w);
+				setWindowSize(wind, windowSettings.w, windowSettings.h);
 				resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
 			}
 			else

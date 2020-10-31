@@ -1,4 +1,3 @@
-#if 0
 //////////////////////////////////////////////////
 //opengl2Dlib.cpp				1.0
 //Copyright(c) 2020 Luta Vlad
@@ -1661,4 +1660,3 @@ namespace gl2d
 	}
 
 }
-#endif

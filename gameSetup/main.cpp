@@ -53,24 +53,45 @@ void operator delete[](void* ptr)
 
 
 
-
 //here you initialize the game memory for the first time
-extern "C" __declspec(dllexport) void onCreate(GameMemory* memory, HeapMemory * heapMemory,
+extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * heapMemory,
 	WindowSettings *windowSettings, PlatformFunctions * platformFunctions)
 {
 #pragma region necesary setup
 	allocator = &heapMemory->allocator;
-	*memory = GameMemory();
+	*mem = GameMemory();
 	auto& console = platformFunctions->console;
+
+	platformFunctions->makeContext();
+	glewExperimental = true;
+	if (glewInit() != GLEW_OK)
+	{
+		MessageBoxA(0, "glewInit", "Error from glew", MB_ICONERROR);
+	}
+
 #pragma endregion
 
+
 	//set the size of the window
-	windowSettings->w = 550;
-	windowSettings->h = 550;
-	windowSettings->drawWithOpenGl = false;
+	windowSettings->w = 600;
+	windowSettings->h = 400;
+	windowSettings->drawWithOpenGl = true;
+	
+	GLuint id = 0;
+
+	//glActiveTexture(GL_TEXTURE0);
+
+	//glGenTextures(1, &id);
+
+	gl2d::init();
+
+	mem->renderer.create();
+
+	mem->background.loadFromFile("resources//background.png");
+
 
 	console.blog("serialized variables:");
-	console.log(memory->serializedVariables.var[0].name);
+	console.log(mem->serializedVariables.var[0].name);
 
 }
 
@@ -83,6 +104,11 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	allocator = &heapMemory->allocator;
 	float deltaTime = input->deltaTime;
 	auto& console = platformFunctions->console;
+
+	glClear(GL_COLOR_BUFFER_BIT);
+	//glViewport(0, 0, windowBuffer->w, windowBuffer->h);
+	mem->renderer.updateWindowMetrics(windowBuffer->w, windowBuffer->h);
+
 #pragma endregion
 
 	//do game logic
@@ -100,31 +126,19 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 	//you can change the window settings
 	//!they will take place next frame
-	//windowSettings->w = 450;
-	//windowSettings->h = 450;
+	//windowSettings->w = 600;
+	//windowSettings->h = 400;
+	//windowSettings->drawWithOpenGl = true;
 
-
-	windowBuffer->clear();
 
 	char color1 = 255-input->controllers[0].LT * 255;
 	char color2 = 255-input->controllers[0].RT * 255;
 
+	mem->renderer.renderRectangle({ 0,0, 600, 400 }, {}, 0, mem->background);
+	
 	//draw player
-	for(int y=0; y<20; y++)
-		for(int x=0; x<20; x++)
-		{
-			int newX = mem->posX + x;
-			int newY = mem->posY + y;
+	mem->renderer.renderRectangle({ mem->posX , mem->posY, 20, 20 }, { color2, color1, 25, 255 });
 
-			if (newX < 0) { continue; }
-			if (newY < 0) { continue; }
-
-			if (newX >= windowBuffer->w) { continue; }
-			if (newY >= windowBuffer->h) { continue; }
-
-			windowBuffer->drawAt(newX, newY, color2, color1, 25);
-
-		}
 
 	//move player
 
@@ -147,26 +161,11 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 			mem->posX += speed;
 		}
 
-
-		//glClearColor(0.0f, 0.0f, 0.0f, 1.0f); 
-		glClear(GL_COLOR_BUFFER_BIT);         // Clear the color buffer
-
-		// Draw a Red 1x1 Square centered at origin
-		glBegin(GL_QUADS);              // Each set of 4 vertices form a quad
-		glColor3f(1.0f, 0.0f, 0.0f); // Red
-		glVertex2f(-0.5f, -0.5f);    // x, y
-		glVertex2f(0.5f, -0.5f);
-		glVertex2f(0.5f, 0.5f);
-		glVertex2f(-0.5f, 0.5f);
-		glEnd();
+		
 
 		mem->posX += speed * input->anyController.LThumb.x;
 		mem->posY -= speed * input->anyController.LThumb.y;
 
-		if(input->keyBoard[Button::Space].pressed)
-		{
-			windowSettings->drawWithOpenGl = !windowSettings->drawWithOpenGl;
-		}
 
 		if (input->keyBoard[Button::Enter].released)
 		{
@@ -179,4 +178,6 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 				console.writeLetter('0' + i);
 			}
 
+
+		mem->renderer.flush();
 }
