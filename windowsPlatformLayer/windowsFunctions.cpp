@@ -12,7 +12,8 @@ static HMODULE dllHand;
 HWND globalWind;
 HGLRC globalHGLRC;
 
-void win32LoadDll(gameLogic_t** gameLogicPtr, onCreate_t** onCreatePtr,const char *dllName)
+void win32LoadDll(gameLogic_t** gameLogicPtr, onCreate_t** onCreatePtr, onReload_t** onReloadPtr,
+	const char *dllName)
 {
 #if INTERNAL_BUILD
 	assert(CopyFile(dllName, "gameSetupCopy.dll", FALSE));
@@ -29,6 +30,9 @@ void win32LoadDll(gameLogic_t** gameLogicPtr, onCreate_t** onCreatePtr,const cha
 
 	*onCreatePtr = (onCreate_t*)GetProcAddress(dllHand, "onCreate");
 	assert(*onCreatePtr);
+
+	*onReloadPtr = (onReload_t*)GetProcAddress(dllHand, "onReload");
+	assert(*onReloadPtr);
 
 	OutputDebugString("RELOADED DLL");
 }

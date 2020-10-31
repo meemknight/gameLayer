@@ -330,3 +330,8 @@ WindowSettings *windowSettings, PlatformFunctions *platformFunctions)
 typedef ONCREATE(onCreate_t);
 extern "C" __declspec(dllexport) ONCREATE(onCreate);
 
+#define ONRELOAD(x) void x(GameMemory* memory, HeapMemory *heapMemory, \
+WindowSettings *windowSettings, PlatformFunctions *platformFunctions)
+typedef ONRELOAD(onReload_t);
+extern "C" __declspec(dllexport) ONRELOAD(onReload);
+

@@ -398,11 +398,11 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	
 	gameLogic_t* gameLogic_ptr;
 	onCreate_t* onCreate_ptr;
-
+	onReload_t* onReload_ptr;
 
 	FILETIME lastFileTime = win32GetLastWriteFile(dllName);
 
-	win32LoadDll(&gameLogic_ptr, &onCreate_ptr, dllName);
+	win32LoadDll(&gameLogic_ptr, &onCreate_ptr, &onReload_ptr, dllName);
 
 #pragma endregion
 
@@ -832,8 +832,10 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 			CloseHandle(file);
 
-			win32LoadDll(&gameLogic_ptr, &onCreate_ptr, dllName);
-
+			win32LoadDll(&gameLogic_ptr, &onCreate_ptr, &onReload_ptr, dllName);
+			onReload_ptr(gameMemory, heapMemory, &windowSettings, &platformFunctions);
+			setWindowSize(wind, windowSettings.w, windowSettings.h);
+			resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
 		}
 #endif
 

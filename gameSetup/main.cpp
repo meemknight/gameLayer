@@ -53,7 +53,6 @@ void operator delete[](void* ptr)
 
 
 
-//here you initialize the game memory for the first time
 extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * heapMemory,
 	WindowSettings *windowSettings, PlatformFunctions * platformFunctions)
 {
@@ -68,7 +67,7 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	{
 		MessageBoxA(0, "glewInit", "Error from glew", MB_ICONERROR);
 	}
-
+	gl2d::init();
 #pragma endregion
 
 
@@ -83,7 +82,7 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 
 	//glGenTextures(1, &id);
 
-	gl2d::init();
+	
 
 	mem->renderer.create();
 
@@ -94,6 +93,28 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	console.log(mem->serializedVariables.var[0].name);
 
 }
+
+//this might be usefull to change variables on runtime
+extern "C" __declspec(dllexport) void onReload(GameMemory * mem, HeapMemory * heapMemory,
+	WindowSettings * windowSettings, PlatformFunctions * platformFunctions)
+{
+#pragma region necesary setup
+	allocator = &heapMemory->allocator;
+	auto& console = platformFunctions->console;
+
+	platformFunctions->makeContext();
+	glewExperimental = true;
+	if (glewInit() != GLEW_OK)
+	{
+		MessageBoxA(0, "glewInit", "Error from glew", MB_ICONERROR);
+	}
+	gl2d::init();
+#pragma endregion
+
+	platformFunctions->console.log("reloaded...");
+
+}
+
 
 extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* mem,
 	HeapMemory * heapMemory, VolatileMemory *volatileMemory, GameWindowBuffer* windowBuffer, 
