@@ -165,6 +165,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 	float speed = 340 * deltaTime;
 		
+
 		if(input->keyBoard[Button::W].held || input->anyController.Up.held)
 		{
 			mem->posY -= speed;
@@ -201,4 +202,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 
 		mem->renderer.flush();
+
+
+
 }

@@ -1,5 +1,6 @@
 #include "Console.h"
 #include "font8x8_basic.h"
+#include <algorithm>
 
 constexpr int magW = 3;
 constexpr int magH = 3;
@@ -136,8 +137,8 @@ void drawConsole(GameWindowBuffer* window, Console* console)
 					console->writeBuffer[console->writeBufferPos] = 0;
 				}
 			}else
-			if((isalnum(i)  
-				|| i == VK_DIVIDE
+			if((isalnum(i) 
+				|| i == VK_SPACE
 				)&& console->writeBufferPos < console->WRITE_BUFFER_SIZE)
 			{
 				console->writeBuffer[console->writeBufferPos] = i;
@@ -148,6 +149,14 @@ void drawConsole(GameWindowBuffer* window, Console* console)
 			}else if(i == VK_DOWN)
 			{
 				Ypadding--;
+			}else if(i == VK_RETURN)
+			{
+				console->writeText(">");
+				console->writeText(console->writeBuffer);
+				console->writeText("\n");
+				processCommand(console->writeBuffer);
+				memset(console->writeBuffer, 0, sizeof(console->writeBuffer));
+				console->writeBufferPos = 0;
 			}
 
 		}
@@ -185,4 +194,16 @@ void drawConsole(GameWindowBuffer* window, Console* console)
 #pragma endregion
 
 
+}
+
+
+void processCommand(std::string msg)
+{
+	std::transform(msg.begin(), msg.end(), msg.begin(),
+		[](char c) { return std::tolower(c); });
+
+	//todo trim
+
+	
+	
 }

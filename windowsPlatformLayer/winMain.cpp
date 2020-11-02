@@ -446,7 +446,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		,
 		wc.lpszClassName,
 		"Geam",
-		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		windowSettings.w,
@@ -480,6 +480,8 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
 #pragma endregion
 
+	ShowWindow(wind, SW_NORMAL);
+
 #pragma region time
 
 	QueryPerformanceFrequency(&performanceFrequency);
@@ -487,6 +489,10 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	LARGE_INTEGER time2;
 	LARGE_INTEGER time3;
 	LARGE_INTEGER time4;
+
+	int dtCounter = 0;
+	int currentFrameCount = 1;
+	float dtSecondCounter = 1;
 
 	QueryPerformanceCounter(&time1);
 	QueryPerformanceCounter(&time3);
@@ -497,14 +503,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	{
 
 #pragma region time
-
-		QueryPerformanceCounter(&time4);
-		LARGE_INTEGER deltaTimeInteger;
-		deltaTimeInteger.QuadPart = time4.QuadPart - time3.QuadPart;
-
-		//todo clamp delta time
-		float deltaTime = (float)deltaTimeInteger.QuadPart / (float)performanceFrequency.QuadPart;
-		QueryPerformanceCounter(&time3);
 
 		//todo
 		//if (replayBufferData.recordingState != PLAYING)
@@ -534,7 +532,25 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			}
 		}
 
+		QueryPerformanceCounter(&time4);
+		LARGE_INTEGER deltaTimeInteger;
+		deltaTimeInteger.QuadPart = time4.QuadPart - time3.QuadPart;
+
+		//todo clamp delta time
+		float deltaTime = (float)deltaTimeInteger.QuadPart / (float)performanceFrequency.QuadPart;
+		QueryPerformanceCounter(&time3);
 	
+		dtSecondCounter -= deltaTime;
+		dtCounter++;
+
+		if (dtSecondCounter < 0)
+		{
+			dtSecondCounter++;
+			currentFrameCount = dtCounter;
+			dtCounter = 0;
+			std::cout << currentFrameCount << '\n';
+		}
+
 #pragma endregion
 
 
@@ -837,27 +853,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			setWindowSize(wind, windowSettings.w, windowSettings.h);
 			resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
 		}
-#endif
-
-#if ENABLE_CONSOLE //write to the console
-		auto& console = platformFunctions.console;
-	
-		SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), { 0,0 });
-		
-		for(int i = console.bufferBeginPos; 
-			i< console.BUFFER_SIZE; i++)
-		{
-			if(console.buffer[i].c)
-				std::cout << console.buffer[i].c;
-		}
-
-		for (int i = 0;
-			i < console.bufferBeginPos; i++)
-		{
-			if (console.buffer[i].c)
-				std::cout << console.buffer[i].c;
-		}
-
 #endif
 
 
