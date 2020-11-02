@@ -517,6 +517,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 				int sleep = (1000.0 / 60.0) - (dDeltaTime2 * 1000.0);
 				if (sleep > 0) { Sleep(sleep); }
 				timeEndPeriod(1);
+				QueryPerformanceCounter(&time1);
 			}
 			else
 			{
@@ -529,6 +530,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 					sleep = (1000.0 / 60.0) - (dDeltaTime2 * 1000.0);
 				} while (sleep > 0);
+				QueryPerformanceCounter(&time1);
 			}
 		}
 
