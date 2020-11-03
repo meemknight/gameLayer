@@ -187,6 +187,10 @@ struct WindowSettings
 	int w = 400;
 	int h = 400;
 	bool drawWithOpenGl = true;
+	bool lockTo60fps = true;
+
+	//not implemented
+	bool fullScreen = false;
 };
 
 struct Console

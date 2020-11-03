@@ -75,7 +75,10 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	windowSettings->w = 600;
 	windowSettings->h = 400;
 	windowSettings->drawWithOpenGl = true;
+	windowSettings->lockTo60fps = false;
 	
+	gl2d::setVsync(1);
+
 	GLuint id = 0;
 
 	//glActiveTexture(GL_TEXTURE0);
@@ -112,6 +115,7 @@ extern "C" __declspec(dllexport) void onReload(GameMemory * mem, HeapMemory * he
 #pragma endregion
 
 	platformFunctions->console.log("reloaded...");
+	gl2d::setVsync(1);
 
 }
 
@@ -191,14 +195,10 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 		if (input->keyBoard[Button::Enter].released)
 		{
-			console.writeText("test aicisa");
+			windowSettings->fullScreen = !windowSettings->fullScreen;
 		}
 		
-		for(int i=0; i<10; i++)
-			if (input->keyBoard[Button::NR0 + i].pressed)
-			{
-				console.writeLetter('0' + i);
-			}
+		
 
 
 		mem->renderer.flush();

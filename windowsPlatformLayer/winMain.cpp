@@ -103,6 +103,66 @@ void asynkButtonClear(Button &b)
 	b.pressed = 0;
 }
 
+#pragma region fullScreen
+
+WINDOWPLACEMENT windowPlacementPrev = { sizeof(windowPlacementPrev) };
+static bool fullscreen = false;
+
+void setupFullscreen()
+{
+
+	DISPLAY_DEVICE displayDevice = {};
+	displayDevice.cb = sizeof(displayDevice);
+	bool foundPrimaryDevice = false;
+
+	for (int i = 0; EnumDisplayDevices(nullptr, i, &displayDevice, EDD_GET_DEVICE_INTERFACE_NAME); i++)
+	{
+		if ((displayDevice.StateFlags & DISPLAY_DEVICE_PRIMARY_DEVICE) != 0)
+		{
+			foundPrimaryDevice = true;
+			break;
+		}
+
+	}
+
+	const char* monitorName = nullptr;
+
+	if (foundPrimaryDevice)
+	{
+		monitorName = displayDevice.DeviceName;
+	}
+
+	DEVMODE monitorSettings = { };
+	monitorSettings.dmSize = sizeof(monitorSettings);
+	monitorSettings.dmDriverExtra = 0;
+	bool found = 0;
+
+	for (int i = 0; EnumDisplaySettings(monitorName, i, &monitorSettings); i++)
+	{
+
+		if (monitorSettings.dmDisplayFixedOutput == DMDFO_DEFAULT
+			&& monitorSettings.dmPanningWidth == 1920
+			&& monitorSettings.dmPanningHeight == 1080
+			)
+		{
+			found = 1;
+			break;
+		}
+
+	}
+
+
+	if (found)
+	{
+		ChangeDisplaySettings(&monitorSettings, CDS_FULLSCREEN);
+	}
+
+
+}
+
+
+#pragma endregion
+
 LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 {
 	LRESULT rez = 0;
@@ -314,7 +374,6 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 	return rez;
 }
 
-
 int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 {
 
@@ -505,7 +564,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 #pragma region time
 
 		//todo
-		//if (replayBufferData.recordingState != PLAYING)
+		if (windowSettings.lockTo60fps)
 		{
 			if (timeBeginPeriod(1) == TIMERR_NOERROR)
 			{
@@ -857,6 +916,62 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		}
 #endif
 
+#pragma region fullScreen
+
+	if(fullscreen != windowSettings.fullScreen)
+	{
+		DWORD dwStyle = GetWindowLong(wind, GWL_STYLE);
+		if (dwStyle & (WS_OVERLAPPEDWINDOW))
+		{
+			MONITORINFO mi = { sizeof(mi) };
+			if (
+				GetWindowPlacement(wind, &windowPlacementPrev) &&
+				GetMonitorInfo(MonitorFromWindow(wind,
+					//MONITOR_DEFAULTTONEAREST
+					MONITOR_DEFAULTTOPRIMARY
+				), &mi)
+				)
+			{
+				setupFullscreen();
+
+
+				SetWindowLong(wind, GWL_STYLE,
+					dwStyle & ~WS_OVERLAPPEDWINDOW);
+				SetWindowPos(wind, HWND_TOP,
+					mi.rcMonitor.left, mi.rcMonitor.top,
+					mi.rcMonitor.right - mi.rcMonitor.left,
+					mi.rcMonitor.bottom - mi.rcMonitor.top,
+					SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+
+				fullscreen = 1;
+				windowSettings.fullScreen = 1;
+
+				resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
+			}
+			
+		}
+		else
+		{
+			ChangeDisplaySettings(nullptr, 0);
+
+
+			SetWindowLong(wind, GWL_STYLE,
+				dwStyle | (WS_OVERLAPPEDWINDOW));
+
+			SetWindowPlacement(wind, &windowPlacementPrev);
+			SetWindowPos(wind, NULL, 0, 0, 0, 0,
+				SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER |
+				SWP_NOOWNERZORDER | SWP_FRAMECHANGED);
+			
+			fullscreen = 0;
+			windowSettings.fullScreen = 0;
+
+
+			resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
+		}
+	}
+
+#pragma endregion
 
 
 	}
