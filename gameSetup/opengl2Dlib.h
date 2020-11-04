@@ -356,23 +356,40 @@ namespace gl2d
 	///////////////////// ParticleSysyem /////////////////////
 #pragma region ParticleSysyem
 
+	struct ParticleApearence
+	{
+		glm::vec2 size; 
+		glm::vec4 color1;
+		glm::vec4 color2;
+
+	};
+
+	enum TRANZITION_TYPES
+	{
+		none = 0,
+		linear,
+		curbe,
+		abruptCurbe,
+	};
+
 	struct ParticleSettings
 	{
-		glm::vec2 particleLifeTime;
-		glm::vec2 emisSpeed;
+		glm::vec2 particleLifeTime; // move
+		glm::vec2 emisSpeed;		// move
 		glm::vec2 directionX;
 		glm::vec2 directionY;
 		glm::vec2 dragX;
 		glm::vec2 dragY;
-		glm::vec2 sizeX;
-		glm::vec2 sizeY;
+		
 		glm::vec2 rotation;
-
-		//todo
-		glm::vec4 color1;
-		glm::vec4 color2;
+		glm::vec2 rotationSpeed;
 		glm::vec2 rotationDrag;
-		//todo: stop particles
+
+		ParticleApearence createApearence;
+		ParticleApearence createEndApearence;
+
+
+		int tranzitionType;
 	};
 
 
@@ -383,13 +400,14 @@ namespace gl2d
 
 		int size = 0;
 		glm::vec2 position = {};
-		int createdPosition = 0;
 		float createTimeCountdown = 0;
+		int maxCreatePerEvent = 1;
 
 		void applyMovement(float deltaTime);
 
 		void draw(Renderer2D& r);
 
+		bool emitParticles = true;
 
 		float* posX = 0;
 		float* posY = 0;
@@ -399,8 +417,7 @@ namespace gl2d
 
 		float* rotation = 0;
 
-		float* sizeX = 0;
-		float* sizeY = 0;
+		float* sizeXY = 0;
 
 		float* dragX = 0;
 		float* dragY = 0;
@@ -408,9 +425,18 @@ namespace gl2d
 		float* duration = 0;
 		float* durationTotal = 0;
 
+		glm::vec4* color = 0;
+
+		float* rotationSpeed = 0;
+		float* rotationDrag = 0;
+
+		char* deathRattle = 0;
+
 		float simulationSpeed = 1;
 
 		ParticleSettings ps;
+		ParticleSettings particleOnDeath;
+		int deathParticleEmitCount;
 
 		std::mt19937 random{std::random_device{}()};
 	

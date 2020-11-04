@@ -147,20 +147,50 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	{
 		mem->particleInitialized = true;
 
+		gl2d::ParticleSettings deathParticle;
+
+		deathParticle.particleLifeTime = { 1,1.1 };
+		deathParticle.directionX = { -30,30 };
+		deathParticle.directionY = { -30,30 };
+		deathParticle.createApearence.size = { 40, 40 };
+		deathParticle.dragX = { 0,0 };
+		deathParticle.dragY = { 0,0 };
+		deathParticle.rotation = { 0, 360 };
+		deathParticle.rotationSpeed = { -50, 50 };
+		deathParticle.rotationDrag = { 0, 0 };
+		deathParticle.createApearence.color1 = { 0.9, 0.9, 0.9, 0.9 };
+		deathParticle.createApearence.color2 = { 1, 1, 1, 1 };
+		deathParticle.createEndApearence.color1 = { 0.9, 0.4, 0.5, 1 };
+		deathParticle.createEndApearence.size = { 1,1 };
+		deathParticle.tranzitionType = gl2d::TRANZITION_TYPES::abruptCurbe;
+
 		gl2d::ParticleSettings particleSettings;
 
-		particleSettings.emisSpeed = { 0.01, 0.01 };
-		particleSettings.particleLifeTime = { 1, 2 };
-		particleSettings.directionX = { -30,30 };
-		particleSettings.directionY = {40,60};
-		particleSettings.sizeX = { 20, 20 };
-		particleSettings.sizeY = { 20, 20 };
-		particleSettings.dragX = { -10,10 };
-		particleSettings.dragY = { -10,10 };
+		particleSettings.emisSpeed = { 0.01, 1 };
+		particleSettings.particleLifeTime = { 1, 1 };
+		particleSettings.directionX = { -300,300 };
+		particleSettings.directionY = {-300,300};
+		particleSettings.createApearence.size = { 30, 30 };
+		particleSettings.dragX = { -50,50 };
+		particleSettings.dragY = { -50,50 };
 		particleSettings.rotation = { 0, 360 };
+		particleSettings.rotationSpeed = { 0, 10 };
+		particleSettings.rotationDrag = { 0, 100 };
+
+		particleSettings.createApearence.color1 = { 0, 0.2, 0.4, 0.9 };
+		particleSettings.createApearence.color2 = { 0.1, 0.4, 0.5, 1 };
+		
+		particleSettings.createEndApearence.color1 = { 1,0.5,0.5,0.3 };
+		particleSettings.createEndApearence.size = {25,25};
+
+		particleSettings.tranzitionType = gl2d::TRANZITION_TYPES::linear;
 
 		mem->ps.initParticleSystem(100, { mem->posX + 10,mem->posY + 10}, particleSettings);
 		mem->ps.simulationSpeed = 1;
+		mem->ps.maxCreatePerEvent = 4;
+		mem->ps.deathParticleEmitCount = 5;
+		mem->ps.particleOnDeath = deathParticle;
+
 	}
 
 	//the volatile memory persists only for one frame
@@ -218,10 +248,18 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		{
 			windowSettings->fullScreen = !windowSettings->fullScreen;
 		}
+
+		if(input->leftMouse.held)
+		{
+			mem->ps.emitParticles = true;
+		}else
+		{
+			mem->ps.emitParticles = false;
+		}
 		
 		
-		mem->ps.position.x = mem->posX + 10;
-		mem->ps.position.y = mem->posY + 10;
+		mem->ps.position.x = input->mouseX;
+		mem->ps.position.y = input->mouseY;
 
 		mem->ps.applyMovement(deltaTime);
 

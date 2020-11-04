@@ -1664,7 +1664,6 @@ namespace gl2d
 	{
 		this->size = size;
 		this->position = position;
-		this->createdPosition = min(1, size);
 		createTimeCountdown = rand(ps.emisSpeed);
 
 		this->ps = ps;
@@ -1687,11 +1686,8 @@ namespace gl2d
 		if (rotation)
 			delete[] rotation;
 
-		if (sizeX)
-			delete[] sizeX;
-
-		if (sizeY)
-			delete[] sizeY;
+		if (sizeXY)
+			delete[] sizeXY;
 
 		if (dragY)
 			delete[] dragY;
@@ -1705,6 +1701,18 @@ namespace gl2d
 		if (durationTotal)
 			delete[] durationTotal;
 
+		if (color)
+			delete[] color;
+
+		if (rotationSpeed)
+			delete[] rotationSpeed;
+
+		if (rotationDrag)
+			delete[] rotationDrag;
+
+		if (deathRattle)
+			delete[] deathRattle;
+
 		int size32Aligned = size + (4-(size%4));
 
 		posX = new float[size32Aligned];
@@ -1712,36 +1720,25 @@ namespace gl2d
 		directionX = new float[size32Aligned];
 		directionY = new float[size32Aligned];
 		rotation = new float[size32Aligned];
-		sizeX = new float[size32Aligned];
-		sizeY = new float[size32Aligned];
+		sizeXY = new float[size32Aligned];
 		dragX = new float[size32Aligned];
 		dragY = new float[size32Aligned];
 		duration = new float[size32Aligned];
 		durationTotal = new float[size32Aligned];
+		color = new glm::vec4[size];
+		rotationSpeed = new float[size32Aligned];
+		rotationDrag = new float[size32Aligned];
+		deathRattle = new char[size32Aligned];
 
 #pragma endregion
 
-#pragma region setparticles
-
-		for(int i=0; i< createdPosition; i++)
+		for(int i=0; i<size; i++)
 		{
-			//reset particle
-			posX[i] = position.x;
-			posY[i] = position.y;
-			directionX[i] = rand(ps.directionX);
-			directionY[i] = rand(ps.directionY);
-			rotation[i] = rand(ps.rotation);;
-			sizeX[i] = rand(ps.sizeX);
-			sizeY[i] = rand(ps.sizeY);
-			dragX[i] = rand(ps.dragX);
-			dragY[i] = rand(ps.dragY);
-
-			duration[i] = rand(ps.particleLifeTime);
-			durationTotal[i] = duration[i];
+			duration[i] = 0;
+			sizeXY[i] = 0;
+			deathRattle[i] = 0;
 
 		}
-	
-#pragma endregion
 
 
 	}
@@ -1753,59 +1750,138 @@ namespace gl2d
 
 #pragma region newParticles
 
+		int recreatedParticlesThisFrame = 0;
 
-		if(createdPosition < size && createTimeCountdown <= 0)
-		{
-			createTimeCountdown += rand(ps.emisSpeed);
-		
-			for(int i=createdPosition; i<createdPosition+1; i++)
-			{
-				posX[i] = position.x;
-				posY[i] = position.y;
-				directionX[i] = rand(ps.directionX);
-				directionY[i] = rand(ps.directionY);
-				rotation[i] = rand(ps.rotation);;
-				sizeX[i] = rand(ps.sizeX);
-				sizeY[i] = rand(ps.sizeY);
-				dragX[i] = rand(ps.dragX);
-				dragY[i] = rand(ps.dragY);
+		//if(createdPosition < size && createTimeCountdown <= 0 && emitParticles)
+		//{
+		//	createTimeCountdown = rand(ps.emisSpeed);
+		//
+		//	for(int i=createdPosition; i<createdPosition+ maxCreatePerEvent; i++)
+		//	{
+		//		//reset particle
+		//		posX[i] = position.x;
+		//		posY[i] = position.y;
+		//		directionX[i] = rand(ps.directionX);
+		//		directionY[i] = rand(ps.directionY);
+		//		rotation[i] = rand(ps.rotation);;
+		//		sizeXY[i] = rand(ps.createApearence.size);
+		//		dragX[i] = rand(ps.dragX);
+		//		dragY[i] = rand(ps.dragY);
+		//		color[i].x = rand({ ps.createApearence.color1.x, ps.createApearence.color2.x });
+		//		color[i].y = rand({ ps.createApearence.color1.y, ps.createApearence.color2.y });
+		//		color[i].z = rand({ ps.createApearence.color1.z, ps.createApearence.color2.z });
+		//		color[i].w = rand({ ps.createApearence.color1.w, ps.createApearence.color2.w });
+		//		rotationSpeed[i] = rand(ps.rotationSpeed);
+		//		rotationDrag[i] = rand(ps.rotationDrag);
+		//		deathRattle[i] = 1;
+		//
+		//		duration[i] = rand(ps.particleLifeTime);
+		//		durationTotal[i] = duration[i];
+		//
+		//		recreatedParticlesThisFrame++;
+		//	}
+		//	
+		//	createdPosition++;
+		//
+		//
+		//}
 
-				duration[i] = rand(ps.particleLifeTime);
-				durationTotal[i] = duration[i];
-			}
-			
-			createdPosition++;
-
-		
-		}
-
-		if(createdPosition < size)
+		if(emitParticles)
 		{
 			createTimeCountdown -= deltaTime;
 		}
+
 #pragma endregion
 
 #pragma region time
 
-		for (int i = 0; i < createdPosition; i++)
+
+		for (int i = 0; i < size; i++)
 		{
+			
+			if(duration[i] > 0)
 			duration[i] -= deltaTime;
 
 			if(duration[i] <= 0)
 			{
-				duration[i] += rand(ps.particleLifeTime);
-				durationTotal[i] = duration[i];
+				if (deathRattle[i] == 1 && deathParticleEmitCount)
+				{
+					deathRattle[i] = 0;
 
-				//reset particle
-				posX[i] = position.x;
-				posY[i] = position.y;
-				directionX[i] = rand(ps.directionX);
-				directionY[i] = rand(ps.directionY);
-				rotation[i] = rand(ps.rotation);
-				sizeX[i] = rand(ps.sizeX);
-				sizeY[i] = rand(ps.sizeY);
-				dragX[i] = rand(ps.dragX);
-				dragY[i] = rand(ps.dragY);
+					int createdParts = 0;
+
+					for(int j=0;j<size; j++)
+					{
+						
+						if(sizeXY[j] == 0 && i != j)
+						{
+							createdParts++;
+
+							duration[j] = rand(particleOnDeath.particleLifeTime);
+							durationTotal[j] = duration[j];
+							
+							//reset particle
+							posX[j] = posX[i];
+							posY[j] = posY[i];
+							directionX[j] = rand(particleOnDeath.directionX);
+							directionY[j] = rand(particleOnDeath.directionY);
+							rotation[j] = rand(particleOnDeath.rotation);
+							sizeXY[j] = rand(particleOnDeath.createApearence.size);
+							dragX[j] = rand(particleOnDeath.dragX);
+							dragY[j] = rand(particleOnDeath.dragY);
+							color[j].x = rand({ particleOnDeath.createApearence.color1.x, particleOnDeath.createApearence.color2.x });
+							color[j].y = rand({ particleOnDeath.createApearence.color1.y, particleOnDeath.createApearence.color2.y });
+							color[j].z = rand({ particleOnDeath.createApearence.color1.z, particleOnDeath.createApearence.color2.z });
+							color[j].w = rand({ particleOnDeath.createApearence.color1.w, particleOnDeath.createApearence.color2.w });
+							rotationSpeed[j] = rand(particleOnDeath.rotationSpeed);
+							rotationDrag[j] = rand(particleOnDeath.rotationDrag);
+							deathRattle[j] = 0;
+
+							if(createdParts > deathParticleEmitCount)
+							{
+								break;
+							}
+						}
+
+					}
+
+				}
+
+				if(emitParticles && recreatedParticlesThisFrame < maxCreatePerEvent && 
+					createTimeCountdown < 0)
+				{
+					createTimeCountdown = rand(ps.emisSpeed);
+
+					duration[i] = rand(ps.particleLifeTime);
+					durationTotal[i] = duration[i];
+
+					//reset particle
+					posX[i] = position.x;
+					posY[i] = position.y;
+					directionX[i] = rand(ps.directionX);
+					directionY[i] = rand(ps.directionY);
+					rotation[i] = rand(ps.rotation);;
+					sizeXY[i] = rand(ps.createApearence.size);
+					dragX[i] = rand(ps.dragX);
+					dragY[i] = rand(ps.dragY);
+					color[i].x = rand({ ps.createApearence.color1.x, ps.createApearence.color2.x });
+					color[i].y = rand({ ps.createApearence.color1.y, ps.createApearence.color2.y });
+					color[i].z = rand({ ps.createApearence.color1.z, ps.createApearence.color2.z });
+					color[i].w = rand({ ps.createApearence.color1.w, ps.createApearence.color2.w });
+					rotationSpeed[i] = rand(ps.rotationSpeed);
+					rotationDrag[i] = rand(ps.rotationDrag);
+					deathRattle[i] = 1;
+
+					recreatedParticlesThisFrame++;
+				}else
+				{
+					duration[i] = 0;
+					sizeXY[i] = 0;
+				}
+			
+
+				
+
 			}
 
 		}
@@ -1813,18 +1889,28 @@ namespace gl2d
 #pragma endregion
 
 
-
+	
 #pragma region applyDrag
 
-		for(int i=0; i<createdPosition; i++)
+		for(int i=0; i< size; i++)
 		{
-			directionX[i] += deltaTime * dragX[i];
+			if(duration[i] > 0)
+				directionX[i] += deltaTime * dragX[i];
 		
 		}
 
-		for (int i = 0; i < createdPosition; i++)
+		for (int i = 0; i < size; i++)
 		{
-			directionY[i] += deltaTime * dragY[i];
+			if (duration[i] > 0)
+				directionY[i] += deltaTime * dragY[i];
+
+		}
+
+		for (int i = 0; i < size; i++)
+		{
+
+			if (duration[i] > 0)
+				rotationSpeed[i] += deltaTime * rotationDrag[i];
 
 		}
 #pragma endregion
@@ -1832,15 +1918,24 @@ namespace gl2d
 
 #pragma region apply movement
 
-		for (int i = 0; i < createdPosition; i++)
+		for (int i = 0; i < size; i++)
 		{
-			posX[i] += deltaTime * directionX[i];
+			if (duration[i] > 0)
+				posX[i] += deltaTime * directionX[i];
 
 		}
 
-		for (int i = 0; i < createdPosition; i++)
+		for (int i = 0; i < size; i++)
 		{
-			posY[i] += deltaTime * directionY[i];
+			if (duration[i] > 0)
+				posY[i] += deltaTime * directionY[i];
+
+		}
+
+		for (int i = 0; i < size; i++)
+		{
+			if (duration[i] > 0)
+				rotation[i] += deltaTime * rotationSpeed[i];
 
 		}
 
@@ -1848,9 +1943,9 @@ namespace gl2d
 
 
 
-
 	}
 
+	//todo update !!!!
 	void ParticleSystem::cleanup()
 	{
 		if (posX)
@@ -1869,11 +1964,9 @@ namespace gl2d
 		if (rotation)
 			delete[] rotation;
 
-		if (sizeX)
-			delete[] sizeX;
+		if (sizeXY)
+			delete[] sizeXY;
 
-		if (sizeY)
-			delete[] sizeY;
 
 		if (dragY)
 			delete[] dragY;
@@ -1886,26 +1979,59 @@ namespace gl2d
 		directionX = 0; 
 		directionY = 0; 
 		rotation = 0;
-		sizeX = 0;
-		sizeY = 0;
+		sizeXY = 0;
 		dragX = 0;
 		dragY = 0;
 
 	}
 	
+	float merge(float a, float b, float perc)
+	{
+		return a * perc + b * (1 - perc);
+
+	}
+
 	void ParticleSystem::draw(Renderer2D& r)
 	{
-		for(int i=0;i< createdPosition; i++)
+
+		for(int i=0;i< size; i++)
 		{
+			if (sizeXY[i] == 0) { continue; }
+
+			float lifePerc = duration[i] / durationTotal[i]; //close to 0 when gone, 1 when full
+
+			switch (this->ps.tranzitionType)
+			{
+			case gl2d::TRANZITION_TYPES::none:
+				lifePerc = 1;
+				break;
+			case gl2d::TRANZITION_TYPES::linear:
+
+				break;
+			case gl2d::TRANZITION_TYPES::curbe:
+				lifePerc *= lifePerc;
+				break;
+			case gl2d::TRANZITION_TYPES::abruptCurbe:
+				lifePerc *= lifePerc * lifePerc;
+				break;
+			default:
+				break;
+			}
 
 			glm::vec4 pos = {};
 
 			pos.x = posX[i];
 			pos.y = posY[i];
-			pos.z = sizeX[i];
-			pos.w = sizeY[i];
+			pos.z = merge(sizeXY[i], ps.createEndApearence.size.x, lifePerc);
+			pos.w = pos.z;
 
-			r.renderRectangle(pos, {1,0.5,0,0.5}, { 0,0 }, rotation[i]);
+			glm::vec4 c;
+			c.x = merge(color[i].x, ps.createEndApearence.color1.x, lifePerc);
+			c.y = merge(color[i].y, ps.createEndApearence.color1.y, lifePerc);
+			c.z = merge(color[i].z, ps.createEndApearence.color1.z, lifePerc);
+			c.w = merge(color[i].w, ps.createEndApearence.color1.w, lifePerc);
+
+			r.renderRectangle(pos, c, { 0,0 }, rotation[i]);
 		
 		}
 
