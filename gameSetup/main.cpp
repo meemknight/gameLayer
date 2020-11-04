@@ -91,6 +91,9 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 
 	mem->background.loadFromFile("resources//background.png");
 
+	gl2d::ParticleSettings pasticleSettings;
+
+	mem->ps.initParticleSystem(10, { 100,100 }, pasticleSettings);
 
 	console.blog("serialized variables:");
 	console.log(mem->serializedVariables.var[0].name);
@@ -199,6 +202,9 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		}
 		
 		
+		mem->ps.applyMovement(deltaTime);
+
+		mem->ps.draw(mem->renderer);
 
 
 		mem->renderer.flush();

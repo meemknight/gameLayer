@@ -311,6 +311,9 @@ namespace gl2d
 
 #pragma endregion
 
+	///////////////////// TextureAtlas /////////////////////
+#pragma region TextureAtlas
+
 	glm::vec4 computeTextureAtlas(int xCount, int yCount, int x, int y, bool flip = 0);
 
 	glm::vec4 computeTextureAtlasWithPadding(int mapXsize, int mapYsize, int xCount, int yCount, int x, int y, bool flip = 0);
@@ -347,6 +350,58 @@ namespace gl2d
 		}
 	};
 	// Get default internal texture (white texture)
+#pragma endregion
+
+	///////////////////// ParticleSysyem /////////////////////
+#pragma region ParticleSysyem
+
+	struct ParticleSettings
+	{
+		float particleLifeTime = 3;
+		float emisSpeed = 1;
+	
+	
+	};
+
+
+	struct ParticleSystem
+	{
+		void initParticleSystem(int size, glm::vec2 position, const ParticleSettings &ps);
+		void cleanup();
+
+		int size = 0;
+		glm::vec2 position = {};
+		int createdPosition = 0;
+		float createTimeCountdown = 0;
+
+		void applyMovement(float deltaTime);
+
+		void draw(Renderer2D& r);
+
+
+		float *posX = 0;
+		float* posY = 0;
+
+		float* directionX = 0;
+		float *directionY = 0;
+		
+		float* rotation = 0;
+
+		float* sizeX = 0;
+		float* sizeY = 0;
+
+		float* dragX = 0;
+		float* dragY = 0;
+
+		float* duration = 0;
+
+		ParticleSettings ps;
+	};
+
+
+#pragma endregion
+
+
 
 
 };

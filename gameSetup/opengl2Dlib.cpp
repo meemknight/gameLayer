@@ -8,6 +8,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <nmmintrin.h>
 
 #undef max
 
@@ -1657,6 +1658,227 @@ namespace gl2d
 		{
 			return { x * xSize + Xpadding, 1 - (y * ySize) - Ypadding, (x + 1) * xSize - Xpadding, 1.f - ((y + 1) * ySize) + Ypadding };
 		}
+	}
+
+	void ParticleSystem::initParticleSystem(int size, glm::vec2 position, const ParticleSettings& ps)
+	{
+		this->size = size;
+		this->position = position;
+		this->createdPosition = min(1, size);
+		createTimeCountdown = ps.emisSpeed;
+
+		this->ps = ps;
+
+#pragma region allocations
+
+		if (posX)
+			delete[] posX;
+
+		if (posY)
+			delete[] posY;
+
+
+		if (directionX)
+			delete[] directionX;
+
+		if (directionY)
+			delete[] directionY;
+
+		if (rotation)
+			delete[] rotation;
+
+		if (sizeX)
+			delete[] sizeX;
+
+		if (sizeY)
+			delete[] sizeY;
+
+		if (dragY)
+			delete[] dragY;
+
+		if (dragX)
+			delete[] dragX;
+
+		if (duration)
+			delete[] duration;
+
+		int size32Aligned = size + (4-(size%4));
+
+		posX = new float[size32Aligned];
+		posY = new float[size32Aligned];
+		directionX = new float[size32Aligned];
+		directionY = new float[size32Aligned];
+		rotation = new float[size32Aligned];
+		sizeX = new float[size32Aligned];
+		sizeY = new float[size32Aligned];
+		dragX = new float[size32Aligned];
+		dragY = new float[size32Aligned];
+		duration = new float[size32Aligned];
+
+#pragma endregion
+
+#pragma region setparticles
+
+		for(int i=0; i<size; i++)
+		{
+			posX[i] = position.x;
+			posY[i] = position.y;
+			directionX[i] = 0;
+			directionY[i] = 30;
+			rotation[i] = 0;
+			sizeX[i] = 10;
+			sizeY[i] = 10;
+			dragX[i] = 0;
+			dragY[i] = 10;
+			duration[i] = ps.particleLifeTime;
+		}
+	
+#pragma endregion
+
+
+	}
+
+	void ParticleSystem::applyMovement(float deltaTime)
+	{
+
+#pragma region newParticles
+
+
+		if(createdPosition < size && createTimeCountdown <= 0)
+		{
+			createTimeCountdown += ps.emisSpeed;
+			createdPosition++;
+		}
+
+		if(createdPosition < size)
+		{
+			createTimeCountdown -= deltaTime;
+		}
+#pragma endregion
+
+#pragma region time
+
+		for (int i = 0; i < createdPosition; i++)
+		{
+			duration[i] -= deltaTime;
+
+			if(duration[i] <= 0)
+			{
+				duration[i] += ps.particleLifeTime;
+				
+				//reset particle
+				posX[i] = position.x;
+				posY[i] = position.y;
+				directionX[i] = 30;
+				directionY[i] = 30;
+				rotation[i] = 0;
+				sizeX[i] = 10;
+				sizeY[i] = 10;
+				dragX[i] = 0;
+				dragY[i] = 10;
+			}
+
+		}
+
+#pragma endregion
+
+
+
+#pragma region applyDrag
+
+		for(int i=0; i<createdPosition; i++)
+		{
+			directionX[i] += deltaTime * dragX[i];
+		
+		}
+
+		for (int i = 0; i < createdPosition; i++)
+		{
+			directionY[i] += deltaTime * dragY[i];
+
+		}
+#pragma endregion
+
+
+#pragma region apply movement
+
+		for (int i = 0; i < createdPosition; i++)
+		{
+			posX[i] += deltaTime * directionX[i];
+
+		}
+
+		for (int i = 0; i < createdPosition; i++)
+		{
+			posY[i] += deltaTime * directionY[i];
+
+		}
+
+#pragma endregion
+
+
+
+
+	}
+
+	void ParticleSystem::cleanup()
+	{
+		if (posX)
+			delete[] posX;
+
+		if (posY)
+			delete[] posY;
+
+
+		if (directionX)
+			delete[] directionX;
+
+		if (directionY)
+			delete[] directionY;
+
+		if (rotation)
+			delete[] rotation;
+
+		if (sizeX)
+			delete[] sizeX;
+
+		if (sizeY)
+			delete[] sizeY;
+
+		if (dragY)
+			delete[] dragY;
+
+		if (dragX)
+			delete[] dragX;
+
+		posX = 0;
+		posY = 0;
+		directionX = 0; 
+		directionY = 0; 
+		rotation = 0;
+		sizeX = 0;
+		sizeY = 0;
+		dragX = 0;
+		dragY = 0;
+
+	}
+	
+	void ParticleSystem::draw(Renderer2D& r)
+	{
+		for(int i=0;i< createdPosition; i++)
+		{
+
+			glm::vec4 pos = {};
+
+			pos.x = posX[i];
+			pos.y = posY[i];
+			pos.z = sizeX[i];
+			pos.w = sizeY[i];
+
+			r.renderRectangle(pos, Colors_Orange);
+		
+		}
+
 	}
 
 }

@@ -13,6 +13,8 @@ static bool running = 1;
 static bool active = 0;
 static BITMAPINFO bitmapInfo = {};
 static GameWindowBuffer gameWindowBuffer = {};
+static GameWindowBuffer fpsCounterBuffer = {};
+
 static GameMemory* gameMemory = nullptr;
 static HeapMemory* heapMemory = nullptr;
 static PlatformFunctions platformFunctions;
@@ -199,6 +201,7 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 	}break;
 	case WM_PAINT:
 	{
+
 		PAINTSTRUCT Paint;
 		HDC DeviceContext = BeginPaint(wind, &Paint);
 		
@@ -518,6 +521,14 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 	setWindowSize(wind, windowSettings.w, windowSettings.h);
 	resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
+
+	fpsCounterBuffer.w = 8 * 8 * 3;
+	fpsCounterBuffer.h = 1 * 8 * 3;
+	fpsCounterBuffer.memory =
+		(char*)VirtualAlloc(0, 4 * fpsCounterBuffer.w * fpsCounterBuffer.h,
+			MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
+
+	fpsCounterBuffer.clear(10, 40, 85);
 
 #pragma endregion
 
@@ -872,7 +883,21 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 			HDC hdc = GetDC(wind);
 			SwapBuffers(hdc);
+			//ReleaseDC(wind, hdc);
+
+			//HDC hdc = GetDC(wind);
+
+			//StretchDIBits(hdc,
+			//	0, 0, fpsCounterBuffer.w, fpsCounterBuffer.h,
+			//	0, 0, fpsCounterBuffer.w, fpsCounterBuffer.h,
+			//	fpsCounterBuffer.memory,
+			//	&bitmapInfo,
+			//	DIB_RGB_COLORS,
+			//	SRCCOPY
+			//);
+
 			ReleaseDC(wind, hdc);
+
 		}else
 		{
 

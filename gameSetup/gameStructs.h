@@ -16,6 +16,8 @@ struct GameMemory
 
 	gl2d::Texture background;
 
+	gl2d::ParticleSystem ps;
+
 	float posX = 0;
 	float posY = 0;
 
