@@ -26,6 +26,7 @@
 #pragma once
 #include <GL/glew.h>
 #include <glm/glm.hpp>
+#include <random>
 #include "stb_image.h"
 #include "stb_truetype.h"
 
@@ -357,16 +358,27 @@ namespace gl2d
 
 	struct ParticleSettings
 	{
-		float particleLifeTime = 3;
-		float emisSpeed = 1;
-	
-	
+		glm::vec2 particleLifeTime;
+		glm::vec2 emisSpeed;
+		glm::vec2 directionX;
+		glm::vec2 directionY;
+		glm::vec2 dragX;
+		glm::vec2 dragY;
+		glm::vec2 sizeX;
+		glm::vec2 sizeY;
+		glm::vec2 rotation;
+
+		//todo
+		glm::vec4 color1;
+		glm::vec4 color2;
+		glm::vec2 rotationDrag;
+		//todo: stop particles
 	};
 
 
 	struct ParticleSystem
 	{
-		void initParticleSystem(int size, glm::vec2 position, const ParticleSettings &ps);
+		void initParticleSystem(int size, glm::vec2 position, const ParticleSettings& ps);
 		void cleanup();
 
 		int size = 0;
@@ -379,12 +391,12 @@ namespace gl2d
 		void draw(Renderer2D& r);
 
 
-		float *posX = 0;
+		float* posX = 0;
 		float* posY = 0;
 
 		float* directionX = 0;
-		float *directionY = 0;
-		
+		float* directionY = 0;
+
 		float* rotation = 0;
 
 		float* sizeX = 0;
@@ -394,8 +406,15 @@ namespace gl2d
 		float* dragY = 0;
 
 		float* duration = 0;
+		float* durationTotal = 0;
+
+		float simulationSpeed = 1;
 
 		ParticleSettings ps;
+
+		std::mt19937 random{std::random_device{}()};
+	
+		float rand(glm::vec2 v);
 	};
 
 

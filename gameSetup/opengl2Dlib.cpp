@@ -1665,7 +1665,7 @@ namespace gl2d
 		this->size = size;
 		this->position = position;
 		this->createdPosition = min(1, size);
-		createTimeCountdown = ps.emisSpeed;
+		createTimeCountdown = rand(ps.emisSpeed);
 
 		this->ps = ps;
 
@@ -1702,6 +1702,9 @@ namespace gl2d
 		if (duration)
 			delete[] duration;
 
+		if (durationTotal)
+			delete[] durationTotal;
+
 		int size32Aligned = size + (4-(size%4));
 
 		posX = new float[size32Aligned];
@@ -1714,23 +1717,28 @@ namespace gl2d
 		dragX = new float[size32Aligned];
 		dragY = new float[size32Aligned];
 		duration = new float[size32Aligned];
+		durationTotal = new float[size32Aligned];
 
 #pragma endregion
 
 #pragma region setparticles
 
-		for(int i=0; i<size; i++)
+		for(int i=0; i< createdPosition; i++)
 		{
+			//reset particle
 			posX[i] = position.x;
 			posY[i] = position.y;
-			directionX[i] = 0;
-			directionY[i] = 30;
-			rotation[i] = 0;
-			sizeX[i] = 10;
-			sizeY[i] = 10;
-			dragX[i] = 0;
-			dragY[i] = 10;
-			duration[i] = ps.particleLifeTime;
+			directionX[i] = rand(ps.directionX);
+			directionY[i] = rand(ps.directionY);
+			rotation[i] = rand(ps.rotation);;
+			sizeX[i] = rand(ps.sizeX);
+			sizeY[i] = rand(ps.sizeY);
+			dragX[i] = rand(ps.dragX);
+			dragY[i] = rand(ps.dragY);
+
+			duration[i] = rand(ps.particleLifeTime);
+			durationTotal[i] = duration[i];
+
 		}
 	
 #pragma endregion
@@ -1741,13 +1749,34 @@ namespace gl2d
 	void ParticleSystem::applyMovement(float deltaTime)
 	{
 
+		deltaTime *= simulationSpeed;
+
 #pragma region newParticles
 
 
 		if(createdPosition < size && createTimeCountdown <= 0)
 		{
-			createTimeCountdown += ps.emisSpeed;
+			createTimeCountdown += rand(ps.emisSpeed);
+		
+			for(int i=createdPosition; i<createdPosition+1; i++)
+			{
+				posX[i] = position.x;
+				posY[i] = position.y;
+				directionX[i] = rand(ps.directionX);
+				directionY[i] = rand(ps.directionY);
+				rotation[i] = rand(ps.rotation);;
+				sizeX[i] = rand(ps.sizeX);
+				sizeY[i] = rand(ps.sizeY);
+				dragX[i] = rand(ps.dragX);
+				dragY[i] = rand(ps.dragY);
+
+				duration[i] = rand(ps.particleLifeTime);
+				durationTotal[i] = duration[i];
+			}
+			
 			createdPosition++;
+
+		
 		}
 
 		if(createdPosition < size)
@@ -1764,18 +1793,19 @@ namespace gl2d
 
 			if(duration[i] <= 0)
 			{
-				duration[i] += ps.particleLifeTime;
-				
+				duration[i] += rand(ps.particleLifeTime);
+				durationTotal[i] = duration[i];
+
 				//reset particle
 				posX[i] = position.x;
 				posY[i] = position.y;
-				directionX[i] = 30;
-				directionY[i] = 30;
-				rotation[i] = 0;
-				sizeX[i] = 10;
-				sizeY[i] = 10;
-				dragX[i] = 0;
-				dragY[i] = 10;
+				directionX[i] = rand(ps.directionX);
+				directionY[i] = rand(ps.directionY);
+				rotation[i] = rand(ps.rotation);
+				sizeX[i] = rand(ps.sizeX);
+				sizeY[i] = rand(ps.sizeY);
+				dragX[i] = rand(ps.dragX);
+				dragY[i] = rand(ps.dragY);
 			}
 
 		}
@@ -1875,10 +1905,17 @@ namespace gl2d
 			pos.z = sizeX[i];
 			pos.w = sizeY[i];
 
-			r.renderRectangle(pos, Colors_Orange);
+			r.renderRectangle(pos, {1,0.5,0,0.5}, { 0,0 }, rotation[i]);
 		
 		}
 
+	}
+
+	float ParticleSystem::rand(glm::vec2 v)
+	{
+		std::uniform_real_distribution<float> dist(v.x, v.y);
+
+		return dist(random);
 	}
 
 }

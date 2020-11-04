@@ -91,9 +91,6 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 
 	mem->background.loadFromFile("resources//background.png");
 
-	gl2d::ParticleSettings pasticleSettings;
-
-	mem->ps.initParticleSystem(10, { 100,100 }, pasticleSettings);
 
 	console.blog("serialized variables:");
 	console.log(mem->serializedVariables.var[0].name);
@@ -116,6 +113,8 @@ extern "C" __declspec(dllexport) void onReload(GameMemory * mem, HeapMemory * he
 	}
 	gl2d::init();
 #pragma endregion
+
+	mem->particleInitialized = false;
 
 	platformFunctions->console.log("reloaded...");
 	gl2d::setVsync(1);
@@ -144,6 +143,25 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	// mem->positionX
 	//if you want to add any you can do so in gameStructs.h
 
+	if (!mem->particleInitialized)
+	{
+		mem->particleInitialized = true;
+
+		gl2d::ParticleSettings particleSettings;
+
+		particleSettings.emisSpeed = { 0.01, 0.01 };
+		particleSettings.particleLifeTime = { 1, 2 };
+		particleSettings.directionX = { -30,30 };
+		particleSettings.directionY = {40,60};
+		particleSettings.sizeX = { 20, 20 };
+		particleSettings.sizeY = { 20, 20 };
+		particleSettings.dragX = { -10,10 };
+		particleSettings.dragY = { -10,10 };
+		particleSettings.rotation = { 0, 360 };
+
+		mem->ps.initParticleSystem(100, { mem->posX + 10,mem->posY + 10}, particleSettings);
+		mem->ps.simulationSpeed = 1;
+	}
 
 	//the volatile memory persists only for one frame
 	char* c = (char*)volatileMemory->allocate(100);
@@ -202,6 +220,9 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		}
 		
 		
+		mem->ps.position.x = mem->posX + 10;
+		mem->ps.position.y = mem->posY + 10;
+
 		mem->ps.applyMovement(deltaTime);
 
 		mem->ps.draw(mem->renderer);
