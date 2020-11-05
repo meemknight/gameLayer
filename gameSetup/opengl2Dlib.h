@@ -361,7 +361,6 @@ namespace gl2d
 		glm::vec2 size; 
 		glm::vec4 color1;
 		glm::vec4 color2;
-
 	};
 
 	enum TRANZITION_TYPES
@@ -370,12 +369,21 @@ namespace gl2d
 		linear,
 		curbe,
 		abruptCurbe,
+		wave,
+		wave2,
 	};
 
+	
 	struct ParticleSettings
 	{
+		ParticleSettings* deathRattle = nullptr;
+
+		int emitCount;
+
+		glm::vec2 positionX;
+		glm::vec2 positionY;
+
 		glm::vec2 particleLifeTime; // move
-		glm::vec2 emisSpeed;		// move
 		glm::vec2 directionX;
 		glm::vec2 directionY;
 		glm::vec2 dragX;
@@ -388,6 +396,7 @@ namespace gl2d
 		ParticleApearence createApearence;
 		ParticleApearence createEndApearence;
 
+		gl2d::Texture* texturePtr = 0;
 
 		int tranzitionType;
 	};
@@ -395,19 +404,17 @@ namespace gl2d
 
 	struct ParticleSystem
 	{
-		void initParticleSystem(int size, glm::vec2 position, const ParticleSettings& ps);
+		void initParticleSystem(int size);
 		void cleanup();
 
+		void emitParticleWave(ParticleSettings *ps);
+
 		int size = 0;
-		glm::vec2 position = {};
-		float createTimeCountdown = 0;
-		int maxCreatePerEvent = 1;
 
 		void applyMovement(float deltaTime);
 
 		void draw(Renderer2D& r);
 
-		bool emitParticles = true;
 
 		float* posX = 0;
 		float* posY = 0;
@@ -430,13 +437,13 @@ namespace gl2d
 		float* rotationSpeed = 0;
 		float* rotationDrag = 0;
 
-		char* deathRattle = 0;
+		char* tranzitionType= 0;
+		ParticleSettings** deathRattle = 0;
+		ParticleApearence** endApearance = 0;
+
+		gl2d::Texture** textures = 0;
 
 		float simulationSpeed = 1;
-
-		ParticleSettings ps;
-		ParticleSettings particleOnDeath;
-		int deathParticleEmitCount;
 
 		std::mt19937 random{std::random_device{}()};
 	

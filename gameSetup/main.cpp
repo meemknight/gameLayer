@@ -90,6 +90,7 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	mem->renderer.create();
 
 	mem->background.loadFromFile("resources//background.png");
+	mem->dot.loadFromFile("resources//dot.png");
 
 
 	console.blog("serialized variables:");
@@ -143,53 +144,49 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	// mem->positionX
 	//if you want to add any you can do so in gameStructs.h
 
+
 	if (!mem->particleInitialized)
 	{
 		mem->particleInitialized = true;
 
-		gl2d::ParticleSettings deathParticle;
+		mem->deathParticle.particleLifeTime = { 1,1.1 };
+		mem->deathParticle.directionX = { -30,30 };
+		mem->deathParticle.directionY = { -30,30 };
+		mem->deathParticle.createApearence.size = { 40, 40 };
+		mem->deathParticle.dragX = { 0,0 };
+		mem->deathParticle.dragY = { 0,0 };
+		mem->deathParticle.rotation = { 0, 360 };
+		mem->deathParticle.rotationSpeed = { -50, 50 };
+		mem->deathParticle.rotationDrag = { 0, 0 };
+		mem->deathParticle.createApearence.color1 = { 0.9, 0.9, 0.9, 0.9 };
+		mem->deathParticle.createApearence.color2 = { 1, 1, 1, 1 };
+		mem->deathParticle.createEndApearence.color1 = { 0.9, 0.4, 0.5, 1 };
+		mem->deathParticle.createEndApearence.size = { 1,1 };
+		mem->deathParticle.tranzitionType = gl2d::TRANZITION_TYPES::abruptCurbe;
+		//mem->deathParticle.deathRattle = &mem->deathParticle;
+		mem->deathParticle.emitCount= 40;
 
-		deathParticle.particleLifeTime = { 1,1.1 };
-		deathParticle.directionX = { -30,30 };
-		deathParticle.directionY = { -30,30 };
-		deathParticle.createApearence.size = { 40, 40 };
-		deathParticle.dragX = { 0,0 };
-		deathParticle.dragY = { 0,0 };
-		deathParticle.rotation = { 0, 360 };
-		deathParticle.rotationSpeed = { -50, 50 };
-		deathParticle.rotationDrag = { 0, 0 };
-		deathParticle.createApearence.color1 = { 0.9, 0.9, 0.9, 0.9 };
-		deathParticle.createApearence.color2 = { 1, 1, 1, 1 };
-		deathParticle.createEndApearence.color1 = { 0.9, 0.4, 0.5, 1 };
-		deathParticle.createEndApearence.size = { 1,1 };
-		deathParticle.tranzitionType = gl2d::TRANZITION_TYPES::abruptCurbe;
+		mem->particleSettings.emitCount = 5;
+		mem->particleSettings.particleLifeTime = { 1, 1 };
+		mem->particleSettings.directionX = { -300,300 };
+		mem->particleSettings.directionY = {-300,300};
+		mem->particleSettings.createApearence.size = { 40, 40 };
+		mem->particleSettings.dragX = { -50,50 };
+		mem->particleSettings.dragY = { -50,50 };
+		mem->particleSettings.rotation = { 0, 360 };
+		mem->particleSettings.rotationSpeed = { 0, 10 };
+		mem->particleSettings.rotationDrag = { 0, 100 };
+		mem->particleSettings.createApearence.color1 = { 0, 0.2, 0.4, 0.9 };
+		mem->particleSettings.createApearence.color2 = { 0.1, 0.4, 0.5, 1 };
+		mem->particleSettings.createEndApearence.color1 = { 1,0.5,0.5,0.3 };
+		mem->particleSettings.createEndApearence.size = {25,25};
+		mem->particleSettings.tranzitionType = gl2d::TRANZITION_TYPES::wave2;
+		mem->particleSettings.texturePtr = &mem->dot;
+		mem->particleSettings.deathRattle = &mem->deathParticle;
 
-		gl2d::ParticleSettings particleSettings;
 
-		particleSettings.emisSpeed = { 0.01, 1 };
-		particleSettings.particleLifeTime = { 1, 1 };
-		particleSettings.directionX = { -300,300 };
-		particleSettings.directionY = {-300,300};
-		particleSettings.createApearence.size = { 30, 30 };
-		particleSettings.dragX = { -50,50 };
-		particleSettings.dragY = { -50,50 };
-		particleSettings.rotation = { 0, 360 };
-		particleSettings.rotationSpeed = { 0, 10 };
-		particleSettings.rotationDrag = { 0, 100 };
-
-		particleSettings.createApearence.color1 = { 0, 0.2, 0.4, 0.9 };
-		particleSettings.createApearence.color2 = { 0.1, 0.4, 0.5, 1 };
-		
-		particleSettings.createEndApearence.color1 = { 1,0.5,0.5,0.3 };
-		particleSettings.createEndApearence.size = {25,25};
-
-		particleSettings.tranzitionType = gl2d::TRANZITION_TYPES::linear;
-
-		mem->ps.initParticleSystem(100, { mem->posX + 10,mem->posY + 10}, particleSettings);
+		mem->ps.initParticleSystem(500);
 		mem->ps.simulationSpeed = 1;
-		mem->ps.maxCreatePerEvent = 4;
-		mem->ps.deathParticleEmitCount = 5;
-		mem->ps.particleOnDeath = deathParticle;
 
 	}
 
@@ -249,18 +246,17 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 			windowSettings->fullScreen = !windowSettings->fullScreen;
 		}
 
-		if(input->leftMouse.held)
+		if(input->leftMouse.pressed)
 		{
-			mem->ps.emitParticles = true;
-		}else
-		{
-			mem->ps.emitParticles = false;
+			//mem->ps.emitParticles = true;
+			mem->particleSettings.positionX = { input->mouseX ,input->mouseX };
+			mem->particleSettings.positionY = { input->mouseY ,input->mouseY };
+
+			mem->ps.emitParticleWave(&mem->particleSettings);
+
 		}
 		
 		
-		mem->ps.position.x = input->mouseX;
-		mem->ps.position.y = input->mouseY;
-
 		mem->ps.applyMovement(deltaTime);
 
 		mem->ps.draw(mem->renderer);

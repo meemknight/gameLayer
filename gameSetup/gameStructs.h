@@ -15,6 +15,7 @@ struct GameMemory
 	SERIALIZE(int, test, 0, "test");
 
 	gl2d::Texture background;
+	gl2d::Texture dot;
 
 	int particleInitialized = 0;
 	gl2d::ParticleSystem ps;
@@ -22,7 +23,8 @@ struct GameMemory
 	float posX = 0;
 	float posY = 0;
 
-
+	gl2d::ParticleSettings deathParticle;
+	gl2d::ParticleSettings particleSettings;
 };
 
 
