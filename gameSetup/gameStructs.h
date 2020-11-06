@@ -25,6 +25,7 @@ struct GameMemory
 
 	gl2d::ParticleSettings deathParticle;
 	gl2d::ParticleSettings particleSettings;
+	gl2d::ParticleSettings emitPart;
 };
 
 

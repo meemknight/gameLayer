@@ -376,9 +376,12 @@ namespace gl2d
 	
 	struct ParticleSettings
 	{
-		ParticleSettings* deathRattle = nullptr;
+		ParticleSettings* deathRattle  = nullptr;
+		ParticleSettings* subemitParticle = nullptr;
 
-		int emitCount;
+		int onCreateCount;
+
+		glm::vec2 subemitParticleTime;
 
 		glm::vec2 positionX;
 		glm::vec2 positionY;
@@ -407,7 +410,7 @@ namespace gl2d
 		void initParticleSystem(int size);
 		void cleanup();
 
-		void emitParticleWave(ParticleSettings *ps);
+		void emitParticleWave(ParticleSettings *ps, glm::vec2 pos);
 
 		int size = 0;
 
@@ -437,9 +440,12 @@ namespace gl2d
 		float* rotationSpeed = 0;
 		float* rotationDrag = 0;
 
+		float* emitTime = 0;
+
 		char* tranzitionType= 0;
 		ParticleSettings** deathRattle = 0;
-		ParticleApearence** endApearance = 0;
+		ParticleSettings** thisParticleSettings = 0;
+		ParticleSettings** emitParticle = 0;
 
 		gl2d::Texture** textures = 0;
 

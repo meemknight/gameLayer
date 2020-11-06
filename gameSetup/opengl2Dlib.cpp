@@ -1715,8 +1715,14 @@ namespace gl2d
 		if (tranzitionType)
 			delete[] tranzitionType;
 
-		if (endApearance)
-			delete[] endApearance;
+		if (thisParticleSettings)
+			delete[] thisParticleSettings;
+
+		if (emitTime)
+			delete[] emitTime;
+
+		if (emitParticle)
+			delete[] emitParticle;
 
 		int size32Aligned = size + (4-(size%4));
 
@@ -1734,9 +1740,11 @@ namespace gl2d
 		rotationSpeed = new float[size32Aligned];
 		rotationDrag = new float[size32Aligned];
 		deathRattle = new ParticleSettings * [size32Aligned];
-		endApearance = new ParticleApearence*[size32Aligned];
+		thisParticleSettings = new ParticleSettings * [size32Aligned];
+		emitParticle = new ParticleSettings *[size32Aligned];
 		tranzitionType = new char[size32Aligned];
-		textures = new gl2d::Texture*[size32Aligned];
+		textures = new gl2d::Texture * [size32Aligned];
+		emitTime = new float[size32Aligned];
 
 #pragma endregion
 
@@ -1746,7 +1754,8 @@ namespace gl2d
 			sizeXY[i] = 0;
 			deathRattle[i] = 0;
 			textures[i] = nullptr;
-			endApearance[i] = nullptr;
+			thisParticleSettings[i] = nullptr;
+			emitParticle[i] = nullptr;
 		}
 
 
@@ -1805,13 +1814,19 @@ namespace gl2d
 			if(duration[i] > 0)
 			duration[i] -= deltaTime;
 
+			if (emitTime[i] > 0 && emitParticle[i])
+				emitTime[i] -= deltaTime;
+
 			if(duration[i] <= 0)
 			{
-				if (deathRattle[i] != nullptr && deathRattle[i]->emitCount)
+				if (deathRattle[i] != nullptr && deathRattle[i]->onCreateCount)
 				{
+					
+					this->emitParticleWave(deathRattle[i], { posX[i], posY[i] });
+
+#if 0
 
 					int createdParts = 0;
-
 					for(int j=0;j<size; j++)
 					{
 						
@@ -1823,8 +1838,8 @@ namespace gl2d
 							durationTotal[j] = duration[j];
 							
 							//reset particle
-							posX[j] = posX[i];
-							posY[j] = posY[i];
+							posX[j] = posX[i] + rand(deathRattle[i]->positionX);
+							posY[j] = posY[i] + rand(deathRattle[i]->positionY);
 							directionX[j] = rand(deathRattle[i]->directionX);
 							directionY[j] = rand(deathRattle[i]->directionY);
 							rotation[j] = rand(deathRattle[i]->rotation);
@@ -1840,9 +1855,12 @@ namespace gl2d
 							textures[j] = deathRattle[i]->texturePtr;
 							tranzitionType[j] = deathRattle[i]->tranzitionType;
 							deathRattle[j] = deathRattle[i]->deathRattle;
-							endApearance[j] = &deathRattle[i]->createEndApearence;
+							thisParticleSettings[j] = deathRattle[i];
+							emitTime[j] = rand(thisParticleSettings[j]->subemitParticleTime);
+							emitParticle[j] = thisParticleSettings[j]->subemitParticle;
 
-							if(createdParts > deathRattle[i]->emitCount)
+
+							if(createdParts > deathRattle[i]->onCreateCount)
 							{
 								break;
 							}
@@ -1850,18 +1868,22 @@ namespace gl2d
 
 					}
 
-					deathRattle[i] = nullptr;
+#endif
 
 				}
 
-				
+				deathRattle[i] = nullptr;
 				duration[i] = 0;
 				sizeXY[i] = 0;
-				
+				emitParticle[i] = nullptr;
+
+			}else if(emitTime[i]<= 0 && emitParticle[i])
+			{
+				emitTime[i] = rand(thisParticleSettings[i]->subemitParticleTime);
+
+				//emit particle
+				this->emitParticleWave(emitParticle[i], { posX[i], posY[i] });
 			
-
-				
-
 			}
 
 		}
@@ -1962,14 +1984,14 @@ namespace gl2d
 
 	}
 
-	void ParticleSystem::emitParticleWave(ParticleSettings *ps)
+	void ParticleSystem::emitParticleWave(ParticleSettings *ps, glm::vec2 pos)
 	{
 		int recreatedParticlesThisFrame = 0;
 
 		for (int i = 0; i < size; i++)
 		{
 			
-			if (recreatedParticlesThisFrame < ps->emitCount &&
+			if (recreatedParticlesThisFrame < ps->onCreateCount &&
 				sizeXY[i] == 0)
 			{
 
@@ -1977,8 +1999,8 @@ namespace gl2d
 				durationTotal[i] = duration[i];
 
 				//reset particle
-				posX[i] = rand(ps->positionX);
-				posY[i] = rand(ps->positionY);
+				posX[i] = pos.x + rand(ps->positionX);
+				posY[i] = pos.y + rand(ps->positionY);
 				directionX[i] = rand(ps->directionX);
 				directionY[i] = rand(ps->directionY);
 				rotation[i] = rand(ps->rotation);;
@@ -1994,7 +2016,10 @@ namespace gl2d
 				textures[i] = ps->texturePtr;
 				deathRattle[i] = ps->deathRattle;
 				tranzitionType[i] = ps->tranzitionType;
-				endApearance[i] = &ps->createEndApearence;
+				thisParticleSettings[i] = ps;
+				emitParticle[i] = ps->subemitParticle;
+				emitTime[i] = rand(thisParticleSettings[i]->subemitParticleTime);
+
 				recreatedParticlesThisFrame++;
 			}
 			
@@ -2047,17 +2072,17 @@ namespace gl2d
 			glm::vec4 pos = {};
 			glm::vec4 c;
 
-			if(endApearance[i])
+			if(thisParticleSettings[i])
 			{
 				pos.x = posX[i];
 				pos.y = posY[i];
-				pos.z = merge(sizeXY[i], endApearance[i]->size.x, lifePerc);
+				pos.z = merge(sizeXY[i], thisParticleSettings[i]->createEndApearence.size.x, lifePerc);
 				pos.w = pos.z;
 
-				c.x = merge(color[i].x, endApearance[i]->color1.x, lifePerc);
-				c.y = merge(color[i].y, endApearance[i]->color1.y, lifePerc);
-				c.z = merge(color[i].z, endApearance[i]->color1.z, lifePerc);
-				c.w = merge(color[i].w, endApearance[i]->color1.w, lifePerc);
+				c.x = merge(color[i].x, thisParticleSettings[i]->createEndApearence.color1.x, lifePerc);
+				c.y = merge(color[i].y, thisParticleSettings[i]->createEndApearence.color1.y, lifePerc);
+				c.z = merge(color[i].z, thisParticleSettings[i]->createEndApearence.color1.z, lifePerc);
+				c.w = merge(color[i].w, thisParticleSettings[i]->createEndApearence.color1.w, lifePerc);
 			}else
 			{
 				pos.x = posX[i];

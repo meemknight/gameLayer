@@ -115,7 +115,6 @@ extern "C" __declspec(dllexport) void onReload(GameMemory * mem, HeapMemory * he
 	gl2d::init();
 #pragma endregion
 
-	mem->particleInitialized = false;
 
 	platformFunctions->console.log("reloaded...");
 	gl2d::setVsync(1);
@@ -148,47 +147,71 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	if (!mem->particleInitialized)
 	{
 		mem->particleInitialized = true;
-
-		mem->deathParticle.particleLifeTime = { 1,1.1 };
-		mem->deathParticle.directionX = { -30,30 };
-		mem->deathParticle.directionY = { -30,30 };
-		mem->deathParticle.createApearence.size = { 40, 40 };
-		mem->deathParticle.dragX = { 0,0 };
-		mem->deathParticle.dragY = { 0,0 };
-		mem->deathParticle.rotation = { 0, 360 };
-		mem->deathParticle.rotationSpeed = { -50, 50 };
-		mem->deathParticle.rotationDrag = { 0, 0 };
-		mem->deathParticle.createApearence.color1 = { 0.9, 0.9, 0.9, 0.9 };
-		mem->deathParticle.createApearence.color2 = { 1, 1, 1, 1 };
-		mem->deathParticle.createEndApearence.color1 = { 0.9, 0.4, 0.5, 1 };
-		mem->deathParticle.createEndApearence.size = { 1,1 };
-		mem->deathParticle.tranzitionType = gl2d::TRANZITION_TYPES::abruptCurbe;
-		//mem->deathParticle.deathRattle = &mem->deathParticle;
-		mem->deathParticle.emitCount= 40;
-
-		mem->particleSettings.emitCount = 5;
-		mem->particleSettings.particleLifeTime = { 1, 1 };
-		mem->particleSettings.directionX = { -300,300 };
-		mem->particleSettings.directionY = {-300,300};
-		mem->particleSettings.createApearence.size = { 40, 40 };
-		mem->particleSettings.dragX = { -50,50 };
-		mem->particleSettings.dragY = { -50,50 };
-		mem->particleSettings.rotation = { 0, 360 };
-		mem->particleSettings.rotationSpeed = { 0, 10 };
-		mem->particleSettings.rotationDrag = { 0, 100 };
-		mem->particleSettings.createApearence.color1 = { 0, 0.2, 0.4, 0.9 };
-		mem->particleSettings.createApearence.color2 = { 0.1, 0.4, 0.5, 1 };
-		mem->particleSettings.createEndApearence.color1 = { 1,0.5,0.5,0.3 };
-		mem->particleSettings.createEndApearence.size = {25,25};
-		mem->particleSettings.tranzitionType = gl2d::TRANZITION_TYPES::wave2;
-		mem->particleSettings.texturePtr = &mem->dot;
-		mem->particleSettings.deathRattle = &mem->deathParticle;
-
-
 		mem->ps.initParticleSystem(500);
 		mem->ps.simulationSpeed = 1;
-
 	}
+
+	mem->deathParticle.positionX = { -40,40 };
+	mem->deathParticle.positionY = { -40,40 };
+	mem->deathParticle.particleLifeTime = { 1,1.1 };
+	mem->deathParticle.directionX = { -30,30 };
+	mem->deathParticle.directionY = { -30,30 };
+	mem->deathParticle.createApearence.size = { 40, 40 };
+	mem->deathParticle.dragX = { 0,0 };
+	mem->deathParticle.dragY = { 0,0 };
+	mem->deathParticle.rotation = { 0, 360 };
+	mem->deathParticle.rotationSpeed = { -50, 50 };
+	mem->deathParticle.rotationDrag = { 0, 0 };
+	mem->deathParticle.createApearence.color1 = { 0.9, 0.9, 0.9, 0.9 };
+	mem->deathParticle.createApearence.color2 = { 1, 1, 1, 1 };
+	mem->deathParticle.createEndApearence.color1 = { 0.9, 0.4, 0.5, 1 };
+	mem->deathParticle.createEndApearence.size = { 1,1 };
+	mem->deathParticle.tranzitionType = gl2d::TRANZITION_TYPES::abruptCurbe;
+	//mem->deathParticle.deathRattle = &mem->deathParticle;
+	mem->deathParticle.onCreateCount = 40;
+
+	mem->emitPart.onCreateCount = 2;
+	mem->emitPart.particleLifeTime = { 1, 1 };
+	mem->emitPart.directionX = { -20,200 };
+	mem->emitPart.directionY = { 30, 60 };
+	mem->emitPart.createApearence.size = { 10, 10 };
+	mem->emitPart.dragX = { -10,10 };
+	mem->emitPart.dragY = { 200,250 };
+	mem->emitPart.rotation = { 0, 0 };
+	mem->emitPart.rotationSpeed = { 0, 0 };
+	mem->emitPart.rotationDrag = { 0, 0 };
+	mem->emitPart.createApearence.color1 = { 0, 0.3, 0.5, 0.6 };
+	mem->emitPart.createApearence.color2 = { 0.1, 0.4, 0.6, 1 };
+	mem->emitPart.createEndApearence.color1 = { 0.5,0.5,0.5,0.3 };
+	mem->emitPart.createEndApearence.size = { 2,2 };
+	mem->emitPart.tranzitionType = gl2d::TRANZITION_TYPES::curbe;
+	//mem->emitPart.texturePtr = &mem->dot;
+	mem->emitPart.deathRattle = nullptr;
+	mem->emitPart.positionX = { -2,2 };
+	mem->emitPart.positionY = { -10,0 };
+
+
+	mem->particleSettings.onCreateCount = 5;
+	mem->particleSettings.subemitParticleTime = {0.1, 0.2};
+	mem->particleSettings.particleLifeTime = { 1, 1 };
+	mem->particleSettings.directionX = { -300,300 };
+	mem->particleSettings.directionY = {-300,300};
+	mem->particleSettings.createApearence.size = { 40, 40 };
+	mem->particleSettings.dragX = { -50,50 };
+	mem->particleSettings.dragY = { -50,50 };
+	mem->particleSettings.rotation = { 0, 360 };
+	mem->particleSettings.rotationSpeed = { 0, 10 };
+	mem->particleSettings.rotationDrag = { 0, 100 };
+	mem->particleSettings.createApearence.color1 = { 0, 0.2, 0.4, 0.9 };
+	mem->particleSettings.createApearence.color2 = { 0.1, 0.4, 0.5, 1 };
+	mem->particleSettings.createEndApearence.color1 = { 1,0.5,0.5,0.3 };
+	mem->particleSettings.createEndApearence.size = {25,25};
+	mem->particleSettings.tranzitionType = gl2d::TRANZITION_TYPES::wave;
+	mem->particleSettings.texturePtr = &mem->dot;
+	mem->particleSettings.deathRattle = &mem->deathParticle;
+	mem->particleSettings.subemitParticle = &mem->emitPart;
+	mem->particleSettings.positionX = { -20,20 };
+	mem->particleSettings.positionY = { -20,20 };
 
 	//the volatile memory persists only for one frame
 	char* c = (char*)volatileMemory->allocate(100);
@@ -246,13 +269,11 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 			windowSettings->fullScreen = !windowSettings->fullScreen;
 		}
 
-		if(input->leftMouse.pressed)
+		if (input->leftMouse.pressed)
 		{
 			//mem->ps.emitParticles = true;
-			mem->particleSettings.positionX = { input->mouseX ,input->mouseX };
-			mem->particleSettings.positionY = { input->mouseY ,input->mouseY };
 
-			mem->ps.emitParticleWave(&mem->particleSettings);
+			mem->ps.emitParticleWave(&mem->particleSettings, {input->mouseX, input->mouseY});
 
 		}
 		
