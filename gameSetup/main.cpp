@@ -142,6 +142,8 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	//all the global variabels will be stored in "mem"
 	// mem->positionX
 	//if you want to add any you can do so in gameStructs.h
+#pragma region part1
+
 
 	mem->deathParticle.positionX = { -40,40 };
 	mem->deathParticle.positionY = { -40,40 };
@@ -172,8 +174,8 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	mem->emitPart.rotation = { 0, 0 };
 	mem->emitPart.rotationSpeed = { 0, 0 };
 	mem->emitPart.rotationDrag = { 0, 0 };
-	mem->emitPart.createApearence.color1 = { 0, 0.3, 0.5, 0.8 };
-	mem->emitPart.createApearence.color2 = { 0.1, 0.4, 0.6, 1 };
+	mem->emitPart.createApearence.color1 = { 0, 0.3, 0.5, 0.6 };
+	mem->emitPart.createApearence.color2 = { 0.1, 0.4, 0.6, 0.7 };
 	mem->emitPart.createEndApearence.color1 = { 0.5,0.5,0.5,0.6 };
 	mem->emitPart.createEndApearence.size = { 2,2 };
 	mem->emitPart.tranzitionType = gl2d::TRANZITION_TYPES::curbe;
@@ -194,8 +196,8 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	mem->particleSettings.rotation = { 0, 360 };
 	mem->particleSettings.rotationSpeed = { 0, 10 };
 	mem->particleSettings.rotationDrag = { 0, 100 };
-	mem->particleSettings.createApearence.color1 = { 0, 0.2, 0.4, 0.9 };
-	mem->particleSettings.createApearence.color2 = { 0.1, 0.4, 0.5, 1 };
+	mem->particleSettings.createApearence.color1 = { 0, 0.2, 0.4, 0.7 };
+	mem->particleSettings.createApearence.color2 = { 0.1, 0.4, 0.5, 0.8 };
 	mem->particleSettings.createEndApearence.color1 = { 1,0.5,0.5,0.6 };
 	mem->particleSettings.createEndApearence.size = {25,25};
 	mem->particleSettings.tranzitionType = gl2d::TRANZITION_TYPES::wave;
@@ -204,6 +206,54 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	mem->particleSettings.subemitParticle = &mem->emitPart;
 	mem->particleSettings.positionX = { -20,20 };
 	mem->particleSettings.positionY = { -20,20 };
+
+#pragma endregion
+
+	mem->firePart.onCreateCount = 2;
+	mem->firePart.subemitParticle = nullptr;
+	mem->firePart.subemitParticleTime = {};
+	mem->firePart.particleLifeTime = {0.9, 1.5};
+	mem->firePart.directionX = { -8,8 };
+	mem->firePart.directionY = { -4,-6 };
+	mem->firePart.createApearence.size = { 30, 30 };
+	mem->firePart.dragX = { -5,5 };
+	mem->firePart.dragY = { -50,-80 };
+	mem->firePart.rotation = { 0, 360 };
+	mem->firePart.rotationSpeed = { 0, 10 };
+	mem->firePart.rotationDrag = { 0, 100 };
+	mem->firePart.createApearence.color1 = { 0.1, 0.3, 0.8, 0.6 };
+	mem->firePart.createApearence.color2 = { 0.2, 0.4, 0.9, 0.8 };
+	mem->firePart.createEndApearence.color1 = { 0.6,0.4,0.7,0.1 };
+	mem->firePart.createEndApearence.size = { 10,15 };
+	mem->firePart.tranzitionType = gl2d::TRANZITION_TYPES::wave;
+	//mem->firePart.texturePtr = &mem->dot;
+	mem->firePart.deathRattle = &mem->smokePart;
+	//mem->firePart.subemitParticle = &mem->emitPart;
+	mem->firePart.positionX = { -20,20 };
+	mem->firePart.positionY = { -20,20 };
+
+	mem->smokePart.onCreateCount = 1;
+	mem->smokePart.subemitParticle = nullptr;
+	mem->smokePart.subemitParticleTime = {};
+	mem->smokePart.particleLifeTime = { 0.9, 1 };
+	mem->smokePart.directionX = { -8,8 };
+	mem->smokePart.directionY = { -4,-6 };
+	mem->smokePart.createApearence.size = { 10, 15 };
+	mem->smokePart.dragX = { -5,5 };
+	mem->smokePart.dragY = { -50,-80 };
+	mem->smokePart.rotation = { 0, 360 };
+	mem->smokePart.rotationSpeed = { 0, 10 };
+	mem->smokePart.rotationDrag = { 0, 100 };
+	mem->smokePart.createApearence.color1 = { 0.2, 0.1, 0.1, 0.5 };
+	mem->smokePart.createApearence.color2 = { 0.5, 0.2, 0.2, 0.6 };
+	mem->smokePart.createEndApearence.color1 = { 0.1,0.1,0.1,0.2 };
+	mem->smokePart.createEndApearence.size = { 2,5 };
+	mem->smokePart.tranzitionType = gl2d::TRANZITION_TYPES::curbe;
+	//mem->smokePart.texturePtr = &mem->dot;
+	//mem->smokePart.deathRattle = &mem->emitPart;
+	//mem->smokePart.subemitParticle = &mem->emitPart;
+	mem->smokePart.positionX = { -20,20 };
+	mem->smokePart.positionY = { -20,20 };
 
 	//the volatile memory persists only for one frame
 	char* c = (char*)volatileMemory->allocate(100);
@@ -261,11 +311,14 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 			windowSettings->fullScreen = !windowSettings->fullScreen;
 		}
 
-		if (input->leftMouse.pressed)
+		if (input->keyBoard[Button::Space].released)
 		{
-			//mem->ps.emitParticles = true;
+			mem->ps.postProcessing = !mem->ps.postProcessing;
+		}
 
-			mem->ps.emitParticleWave(&mem->particleSettings, {input->mouseX, input->mouseY});
+		if (input->leftMouse.held)
+		{
+			mem->ps.emitParticleWave(&mem->firePart, {input->mouseX, input->mouseY});
 
 		}
 		

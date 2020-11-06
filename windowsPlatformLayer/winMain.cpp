@@ -234,7 +234,7 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		else
 		{
 #if INTERNAL_BUILD
-			SetLayeredWindowAttributes(wind, RGB(0, 0, 0), 105, LWA_ALPHA);
+			SetLayeredWindowAttributes(wind, RGB(0, 0, 0), 200, LWA_ALPHA);
 #endif
 
 			active = false;

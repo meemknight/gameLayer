@@ -417,6 +417,9 @@ namespace gl2d
 
 		void draw(Renderer2D& r);
 
+		bool postProcessing = true;
+		float pixelateFactor = 2;
+
 	private:
 
 		int size = 0;

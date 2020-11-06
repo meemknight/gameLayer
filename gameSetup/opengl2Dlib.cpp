@@ -17,6 +17,7 @@ namespace gl2d
 #pragma region shaders
 
 	static internal::ShaderProgram defaultShader = {};
+	static internal::ShaderProgram defaultParticleShader = {};
 	static Camera defaultCamera = cameraCreateDefault();
 
 	static const char* defaultVertexShader =
@@ -46,19 +47,67 @@ namespace gl2d
 		"    color = v_color * texture(u_sampler, v_texture);\n"
 		"}\n";
 
-	static const char* maskFragmentShader =
+	static const char* defaultParticleVertexShader =
 		"#version 300 es\n"
 		"precision mediump float;\n"
-		"out vec4 color;\n"
-		"in vec4 v_color;\n"
-		"in vec2 v_texture;\n"
-		"uniform sampler2D u_sampler;\n"
-		"uniform sampler2D u_mask;\n"
+		"in vec2 quad_positions;\n"
+		"in vec4 quad_colors;\n"
+		"in vec2 texturePositions;\n"
+		"out vec4 v_color;\n"
+		"out vec2 v_texture;\n"
 		"void main()\n"
 		"{\n"
-		"    color = v_color * texture(u_sampler, v_texture)* texture(u_mask, v_texture);\n"
+		"	gl_Position = vec4(quad_positions, 0, 1);\n"
+		"	v_color = quad_colors;\n"
+		"	v_texture = texturePositions;\n"
 		"}\n";
 
+	static const char* defaultParcileFragmentShader =
+		R"(#version 300 es
+precision mediump float;
+out vec4 color;
+in vec4 v_color;
+in vec2 v_texture;
+uniform sampler2D u_sampler;
+
+vec3 rgbTohsv(vec3 c)
+{
+	vec4 K = vec4(0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0);
+	vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+	vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+
+	float d = q.x - min(q.w, q.y);
+	float e = 1.0e-10;
+	return vec3(abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+}
+ 
+
+vec3 hsvTorgb(vec3 c)
+{
+	vec4 K = vec4(1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0);
+	vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
+	return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
+}
+
+const float cFilter = 5.f;
+
+void main()
+{
+	color = v_color * texture(u_sampler, v_texture);
+	
+	
+	color.rgb *= cFilter;
+	color.rgb = floor(color.rgb);
+	color.rgb /= cFilter;
+
+	//color.rgb = rgbTohsv(color.rgb);
+	
+
+	//color.rgb = hsvTorgb(color.rgb);
+
+	if(color.a <0.01)discard;
+	color.a = 1.f;
+})";
 
 #pragma endregion
 
@@ -221,6 +270,7 @@ namespace gl2d
 		}
 
 		defaultShader = internal::createShaderProgram(defaultVertexShader, defaultFragmentShader);
+		defaultParticleShader = internal::createShaderProgram(defaultParticleVertexShader, defaultParcileFragmentShader);
 		enableNecessaryGLFeatures();
 	}
 
@@ -420,11 +470,13 @@ namespace gl2d
 			return;
 		}
 
-		glUseProgram(currentShader.id);
 
 		glViewport(0, 0, windowW, windowH);
 
 		glBindVertexArray(vao);
+		
+		glUseProgram(currentShader.id);
+
 		glUniform1i(currentShader.u_sampler, 0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, buffers[Renderer2DBufferType::quadPositions]);
@@ -1188,7 +1240,7 @@ namespace gl2d
 	void Renderer2D::resetCameraAndShader()
 	{
 		currentCamera = defaultCamera;
-		currentShader = defaultShader;
+		currentShader =	defaultShader;
 	}
 
 #pragma endregion
@@ -2040,17 +2092,20 @@ namespace gl2d
 
 		unsigned int w = r.windowW;
 		unsigned int h = r.windowH;
-		float downscale = 2;
 
-		if (fb.texture.GetSize() != glm::ivec2{w/ downscale,h/ downscale })
+		if(postProcessing)
 		{
-			fb.resize(w/ downscale, h/ downscale);
+			if (fb.texture.GetSize() != glm::ivec2{ w / pixelateFactor,h / pixelateFactor })
+			{
+				fb.resize(w / pixelateFactor, h / pixelateFactor);
 
+			}
+
+			r.flush();
+
+			r.updateWindowMetrics(w / pixelateFactor, h / pixelateFactor);
 		}
-
-		r.flush();
-
-		r.updateWindowMetrics(w/ downscale, h/ downscale);
+		
 
 		for(int i=0;i< size; i++)
 		{
@@ -2109,42 +2164,53 @@ namespace gl2d
 				c.w = color[i].w;
 			}
 
+			glm::vec4 p;
 
-			if(textures[i] != nullptr)
+			if(postProcessing)
 			{
-				r.renderRectangle(pos / float(downscale), c, { 0,0 }, rotation[i], *textures[i]);
-			}else
+				p = pos / float(pixelateFactor);
+				c.w = sqrt(c.w);
+				// c.w = 1;
+			}
+			else
 			{
-				r.renderRectangle(pos / float(downscale), c, { 0,0 }, rotation[i]);
+				p = pos; 
 			}
 
+
+
+
+			if (textures[i] != nullptr)
+			{
+				r.renderRectangle(p, c, { 0,0 }, rotation[i], *textures[i]);
+			}
+			else
+			{
+				r.renderRectangle(p, c, { 0,0 }, rotation[i]);
+			}
+
+			
 		}
 
 
-		fb.clear();
-		r.flushFBO(fb);
+		if (postProcessing)
+		{
 
-		r.updateWindowMetrics(w, h);
+			fb.clear();
+			r.flushFBO(fb);
 
-#pragma region process texture
+			r.updateWindowMetrics(w, h);
 
-		//int downScale = 2;
-		//auto s = fb.texture.GetSize();
-		//for (int y = 0; y < s.y; y++)
-		//{
-		//	for (int x = 0; x < s.x; x++)
-		//	{
-		//
-		//
-		//	}
-		//
-		//}
+			auto s = r.currentShader;
 
-#pragma endregion
+			r.renderRectangle({ 0,0,w,h }, {}, 0, fb.texture);
+			
+			r.setShaderProgram(defaultParticleShader);
+			r.flush();
 
+			r.setShaderProgram(s);
 
-		r.renderRectangle({ 0,0,w,h }, {}, 0, fb.texture);
-
+		}
 
 
 	}
