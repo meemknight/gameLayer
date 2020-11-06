@@ -1758,13 +1758,12 @@ namespace gl2d
 			emitParticle[i] = nullptr;
 		}
 
+		fb.create(100, 100);
 
 	}
 
 	void ParticleSystem::applyMovement(float deltaTime)
 	{
-
-		deltaTime *= simulationSpeed;
 
 #pragma region newParticles
 
@@ -2039,6 +2038,20 @@ namespace gl2d
 	void ParticleSystem::draw(Renderer2D& r)
 	{
 
+		unsigned int w = r.windowW;
+		unsigned int h = r.windowH;
+		float downscale = 2;
+
+		if (fb.texture.GetSize() != glm::ivec2{w/ downscale,h/ downscale })
+		{
+			fb.resize(w/ downscale, h/ downscale);
+
+		}
+
+		r.flush();
+
+		r.updateWindowMetrics(w/ downscale, h/ downscale);
+
 		for(int i=0;i< size; i++)
 		{
 			if (sizeXY[i] == 0) { continue; }
@@ -2096,23 +2109,53 @@ namespace gl2d
 				c.w = color[i].w;
 			}
 
-		
 
 			if(textures[i] != nullptr)
 			{
-				r.renderRectangle(pos, c, { 0,0 }, rotation[i], *textures[i]);
+				r.renderRectangle(pos / float(downscale), c, { 0,0 }, rotation[i], *textures[i]);
 			}else
 			{
-				r.renderRectangle(pos, c, { 0,0 }, rotation[i]);
+				r.renderRectangle(pos / float(downscale), c, { 0,0 }, rotation[i]);
 			}
 
-		
 		}
+
+
+		fb.clear();
+		r.flushFBO(fb);
+
+		r.updateWindowMetrics(w, h);
+
+#pragma region process texture
+
+		//int downScale = 2;
+		//auto s = fb.texture.GetSize();
+		//for (int y = 0; y < s.y; y++)
+		//{
+		//	for (int x = 0; x < s.x; x++)
+		//	{
+		//
+		//
+		//	}
+		//
+		//}
+
+#pragma endregion
+
+
+		r.renderRectangle({ 0,0,w,h }, {}, 0, fb.texture);
+
+
 
 	}
 
 	float ParticleSystem::rand(glm::vec2 v)
 	{
+		if(v.x > v.y)
+		{
+			std::swap(v.x, v.y);
+		}
+
 		std::uniform_real_distribution<float> dist(v.x, v.y);
 
 		return dist(random);

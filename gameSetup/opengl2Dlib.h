@@ -412,12 +412,14 @@ namespace gl2d
 
 		void emitParticleWave(ParticleSettings *ps, glm::vec2 pos);
 
-		int size = 0;
 
 		void applyMovement(float deltaTime);
 
 		void draw(Renderer2D& r);
 
+	private:
+
+		int size = 0;
 
 		float* posX = 0;
 		float* posY = 0;
@@ -449,10 +451,10 @@ namespace gl2d
 
 		gl2d::Texture** textures = 0;
 
-		float simulationSpeed = 1;
-
 		std::mt19937 random{std::random_device{}()};
-	
+		
+		gl2d::FrameBuffer fb;
+
 		float rand(glm::vec2 v);
 	};
 

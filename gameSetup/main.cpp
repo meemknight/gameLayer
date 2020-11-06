@@ -83,14 +83,14 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 
 	//glActiveTexture(GL_TEXTURE0);
 
-	//glGenTextures(1, &id);
-
-	
 
 	mem->renderer.create();
 
 	mem->background.loadFromFile("resources//background.png");
 	mem->dot.loadFromFile("resources//dot.png");
+
+
+	mem->ps.initParticleSystem(500);
 
 
 	console.blog("serialized variables:");
@@ -143,14 +143,6 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	// mem->positionX
 	//if you want to add any you can do so in gameStructs.h
 
-
-	if (!mem->particleInitialized)
-	{
-		mem->particleInitialized = true;
-		mem->ps.initParticleSystem(500);
-		mem->ps.simulationSpeed = 1;
-	}
-
 	mem->deathParticle.positionX = { -40,40 };
 	mem->deathParticle.positionY = { -40,40 };
 	mem->deathParticle.particleLifeTime = { 1,1.1 };
@@ -168,7 +160,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	mem->deathParticle.createEndApearence.size = { 1,1 };
 	mem->deathParticle.tranzitionType = gl2d::TRANZITION_TYPES::abruptCurbe;
 	//mem->deathParticle.deathRattle = &mem->deathParticle;
-	mem->deathParticle.onCreateCount = 40;
+	mem->deathParticle.onCreateCount = 20;
 
 	mem->emitPart.onCreateCount = 2;
 	mem->emitPart.particleLifeTime = { 1, 1 };
@@ -180,9 +172,9 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	mem->emitPart.rotation = { 0, 0 };
 	mem->emitPart.rotationSpeed = { 0, 0 };
 	mem->emitPart.rotationDrag = { 0, 0 };
-	mem->emitPart.createApearence.color1 = { 0, 0.3, 0.5, 0.6 };
+	mem->emitPart.createApearence.color1 = { 0, 0.3, 0.5, 0.8 };
 	mem->emitPart.createApearence.color2 = { 0.1, 0.4, 0.6, 1 };
-	mem->emitPart.createEndApearence.color1 = { 0.5,0.5,0.5,0.3 };
+	mem->emitPart.createEndApearence.color1 = { 0.5,0.5,0.5,0.6 };
 	mem->emitPart.createEndApearence.size = { 2,2 };
 	mem->emitPart.tranzitionType = gl2d::TRANZITION_TYPES::curbe;
 	//mem->emitPart.texturePtr = &mem->dot;
@@ -204,7 +196,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	mem->particleSettings.rotationDrag = { 0, 100 };
 	mem->particleSettings.createApearence.color1 = { 0, 0.2, 0.4, 0.9 };
 	mem->particleSettings.createApearence.color2 = { 0.1, 0.4, 0.5, 1 };
-	mem->particleSettings.createEndApearence.color1 = { 1,0.5,0.5,0.3 };
+	mem->particleSettings.createEndApearence.color1 = { 1,0.5,0.5,0.6 };
 	mem->particleSettings.createEndApearence.size = {25,25};
 	mem->particleSettings.tranzitionType = gl2d::TRANZITION_TYPES::wave;
 	mem->particleSettings.texturePtr = &mem->dot;
