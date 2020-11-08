@@ -289,7 +289,8 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 			replayBufferData.recordingState = RECORDING;
 			replayBufferData.recordingSlot = slot;
 
-			assert(saveGameState(slot, gameMemory, heapMemory));
+			if(!saveGameState(slot, gameMemory, heapMemory))
+				assert(0);
 
 			char c[20] = {};
 			strcpy(c, "input0");

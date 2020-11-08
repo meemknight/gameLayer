@@ -52,7 +52,6 @@ void operator delete[](void* ptr)
 #pragma endregion
 
 
-
 extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * heapMemory,
 	WindowSettings *windowSettings, PlatformFunctions * platformFunctions)
 {
@@ -83,7 +82,6 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 
 	mem->background.loadFromFile("resources//background.png");
 	mem->dot.loadFromFile("resources//dot.png");
-
 
 	mem->ps.initParticleSystem(500);
 
@@ -206,6 +204,8 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 #pragma endregion
 
+	/*
+
 	mem->firePart.onCreateCount = 2;
 	mem->firePart.subemitParticleTime = {};
 	mem->firePart.particleLifeTime = {0.9, 1.5};
@@ -326,6 +326,12 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 		mem->renderer.flush();
 
+		*/
 
+	
+mem->renderer.renderRectangle({ 10,10,100,100 }, Colors_Green);
+
+
+mem->renderer.flush();
 
 }

@@ -16,9 +16,30 @@ void win32LoadDll(gameLogic_t** gameLogicPtr, onCreate_t** onCreatePtr, onReload
 	const char *dllName)
 {
 #if INTERNAL_BUILD
-	assert(CopyFile(dllName, "gameSetupCopy.dll", FALSE));
+	std::string newName = dllName;
 
-	dllHand = LoadLibrary("gameSetupCopy.dll");
+	int lastLine = 0;
+
+	for(int i=0;i <newName.size();i++)
+	{
+		if(dllName[i] == '\\')
+		{
+			lastLine = i;
+		}
+
+	}
+	
+	newName = std::string( newName.begin(), newName.begin() + lastLine);
+	newName += "\\gameSetupCopy.dll";
+
+
+	if (!CopyFile(dllName, newName.c_str(), FALSE) )
+	{
+		volatile auto err = GetLastError();
+	}
+
+
+	dllHand = LoadLibrary(newName.c_str());
 #else
 	dllHand = LoadLibrary(dllName);
 #endif

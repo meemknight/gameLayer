@@ -4,16 +4,15 @@
 #include <string>
 #include <Windows.h>
 #include "opengl2Dlib.h"
-#include <SFML/Audio.hpp>
 
 //here you add the memory of the game like so
 struct GameMemory
 {
 	SerializedVariabels serializedVariables = {};
+	SERIALIZE(int, test, 0, "test");
 
 	gl2d::Renderer2D renderer;
 
-	SERIALIZE(int, test, 0, "test");
 
 	gl2d::Texture background;
 	gl2d::Texture dot;
