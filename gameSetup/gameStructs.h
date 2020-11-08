@@ -4,6 +4,7 @@
 #include <string>
 #include <Windows.h>
 #include "opengl2Dlib.h"
+#include <SFML/Audio.hpp>
 
 //here you add the memory of the game like so
 struct GameMemory
@@ -21,6 +22,8 @@ struct GameMemory
 
 	float posX = 0;
 	float posY = 0;
+
+	//sf::Music musicPlayer;
 
 	gl2d::ParticleSettings deathParticle;
 	gl2d::ParticleSettings particleSettings;

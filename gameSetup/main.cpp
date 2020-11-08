@@ -58,7 +58,7 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 {
 #pragma region necesary setup
 	allocator = &heapMemory->allocator;
-	*mem = GameMemory();
+	new(mem) GameMemory; //*mem = GameMemory();
 	auto& console = platformFunctions->console;
 
 	platformFunctions->makeContext();
@@ -76,12 +76,7 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	windowSettings->h = 400;
 	windowSettings->drawWithOpenGl = true;
 	windowSettings->lockTo60fps = false;
-	
 	gl2d::setVsync(1);
-
-	GLuint id = 0;
-
-	//glActiveTexture(GL_TEXTURE0);
 
 
 	mem->renderer.create();
@@ -93,8 +88,10 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	mem->ps.initParticleSystem(500);
 
 
-	console.blog("serialized variables:");
-	console.log(mem->serializedVariables.var[0].name);
+	//mem->musicPlayer.openFromFile("resources//rainForest.wav");
+	//mem->musicPlayer.setVolume(50);
+	//mem->musicPlayer.play();
+	//mem->musicPlayer.setLoop(1);
 
 }
 
@@ -203,14 +200,13 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	mem->particleSettings.tranzitionType = gl2d::TRANZITION_TYPES::wave;
 	mem->particleSettings.texturePtr = &mem->dot;
 	mem->particleSettings.deathRattle = &mem->deathParticle;
-	mem->particleSettings.subemitParticle = &mem->emitPart;
+	//mem->particleSettings.subemitParticle = &mem->emitPart;
 	mem->particleSettings.positionX = { -20,20 };
 	mem->particleSettings.positionY = { -20,20 };
 
 #pragma endregion
 
 	mem->firePart.onCreateCount = 2;
-	mem->firePart.subemitParticle = nullptr;
 	mem->firePart.subemitParticleTime = {};
 	mem->firePart.particleLifeTime = {0.9, 1.5};
 	mem->firePart.directionX = { -8,8 };
@@ -228,7 +224,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	mem->firePart.tranzitionType = gl2d::TRANZITION_TYPES::wave;
 	//mem->firePart.texturePtr = &mem->dot;
 	mem->firePart.deathRattle = &mem->smokePart;
-	//mem->firePart.subemitParticle = &mem->emitPart;
+	mem->firePart.subemitParticle = nullptr;
 	mem->firePart.positionX = { -20,20 };
 	mem->firePart.positionY = { -20,20 };
 
