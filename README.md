@@ -1,5 +1,6 @@
----
-	#GameLayer
+
+#GameLayer
+
 ---
 
 This project offers you all you need to make a game (or other graphical program) in c++.
