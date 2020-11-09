@@ -100,10 +100,10 @@ There is a maximum size of volatile memory like there is a maximum size of heap 
 
 Used for drawing with pixels.
 
-windowBuffer->clear(); // clears the screen
-windowBuffer->drawAt(); puts pixel
-windowBuffer->w //width of the screen
-windowBuffer->h //height of the screen
+* windowBuffer->clear(); // clears the screen
+* windowBuffer->drawAt(); puts pixel
+* windowBuffer->w //width of the screen
+* windowBuffer->h //height of the screen
 
 ## ! You can't draw both with opengl and pixel by pixel
 
@@ -111,8 +111,8 @@ windowBuffer->h //height of the screen
 
 Used for changing the screen size and more.
 
-windowSettings->drawWithOpenGl = true; // enables opengl or pixel by pixel mode described earlier
-windowSettings->w = 600; // if you do this every frame wou can lock the window width to 600 pixels for example
+* windowSettings->drawWithOpenGl = true; // enables opengl or pixel by pixel mode described earlier
+* windowSettings->w = 600; // if you do this every frame wou can lock the window width to 600 pixels for example
 
 # Opengl
 
