@@ -33,16 +33,16 @@ enough memory from the beginning.
 
 
 The that i have talked about recieve some pointers to some variables that are usefull for your program:
-	- deltaTime: measured in seconds, the time passed since last frame
-	- allocator: the global allocator pointer (for internal usage)
-	- console: the internal console. (more on this later)
-	- input: the game input (more on this later)
-	- mem: the game memory, here you have things declared in GameMemory structure from the gameStructs.h file
-	- heapMemory: (for internal usage)
-	- volatileMemory: used for temporary allocations (more on this later)
-	- windowBuffer: used for drawing to the screen (more on this later)
-	- windowSettings: used to set the window width, height and other things (more on this later)
-	- platformFunctions: it has some usefull functions like readEntirFile or writeEntireFile
+	* deltaTime: measured in seconds, the time passed since last frame
+	* allocator: the global allocator pointer (for internal usage)
+	* console: the internal console. (more on this later)
+	* input: the game input (more on this later)
+	* mem: the game memory, here you have things declared in GameMemory structure from the gameStructs.h file
+	* heapMemory: (for internal usage)
+	* volatileMemory: used for temporary allocations (more on this later)
+	* windowBuffer: used for drawing to the screen (more on this later)
+	* windowSettings: used to set the window width, height and other things (more on this later)
+	* platformFunctions: it has some usefull functions like readEntirFile or writeEntireFile
 	
 # What not to do:
 
