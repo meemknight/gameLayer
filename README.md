@@ -11,13 +11,13 @@ You can draw to the screen with opengl or draw pixel by pixel
  
 # Configure:
 
- 	+1. Unpack dependences.rar
-	+2. Open the solution with visual studio
-	+3. Right click solution -> properties - >Common properties -> Startup Project
-	+4. Select Multiple Startup projects
-	+5. Set gameSetup to none and windowsPlatformLayer to start
-	+6. Also set the gameSetup the first project in this list
-	+7. Then on project dependences select windowsPlatformLayer and make it dependent on gameSetup
+ 	1. Unpack dependences.rar
+	2. Open the solution with visual studio
+	3. Right click solution -> properties - >Common properties -> Startup Project
+	4. Select Multiple Startup projects
+	5. Set gameSetup to none and windowsPlatformLayer to start
+	6. Also set the gameSetup the first project in this list
+	7. Then on project dependences select windowsPlatformLayer and make it dependent on gameSetup
 
 ---
 
@@ -50,8 +50,9 @@ There are some features that this setup has and it has a few limitations:
 	- You should not use global variables (I'll go into detail later)
 	- You should never use global variables that allocate memory (This will crash the program)
 	* You can instead declare variables that allocate memory in gameStructs.h like a string or a vector
-## You should not include iostream because it declares global variable that allocate memory. Use the custom console instead or printf
 	- Don't use malloc, use new / delete
+## You should not include iostream because it declares global variable that allocate memory. Use the custom console instead or printf
+	
 ---
 
 # Hot code reloading
