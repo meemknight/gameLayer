@@ -328,7 +328,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 		*/
 
-	
+
 mem->renderer.renderRectangle({ 10,10,100,100 }, Colors_Green);
 
 

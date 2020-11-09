@@ -713,7 +713,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 					asynkButtonClear(gameInput.controllers[i].Up);
 					asynkButtonClear(gameInput.controllers[i].Down);
 					asynkButtonClear(gameInput.controllers[i].Left);
-					asynkButtonClear(gameInput.controllers[i].Riight);
+					asynkButtonClear(gameInput.controllers[i].Right);
 
 					asynkButtonClear(gameInput.controllers[i].Menu);
 					asynkButtonClear(gameInput.controllers[i].Back);
@@ -746,7 +746,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 					processAsynkButton(gameInput.controllers[i].Left,
 						xinputData.controllers[i].Gamepad.wButtons& XINPUT_GAMEPAD_DPAD_LEFT);
 
-					processAsynkButton(gameInput.controllers[i].Riight,
+					processAsynkButton(gameInput.controllers[i].Right,
 						xinputData.controllers[i].Gamepad.wButtons& XINPUT_GAMEPAD_DPAD_RIGHT);
 				
 					//

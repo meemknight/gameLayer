@@ -8,7 +8,11 @@
 //here you add the memory of the game like so
 struct GameMemory
 {
+#pragma region internal things
 	SerializedVariabels serializedVariables = {};
+#pragma endregion
+
+
 	SERIALIZE(int, test, 0, "test");
 
 	gl2d::Renderer2D renderer;
@@ -82,7 +86,7 @@ struct ControllerButtons
 	Button Up;
 	Button Down;
 	Button Left;
-	Button Riight;
+	Button Right;
 
 	Button LB;
 	Button RB;
@@ -110,7 +114,7 @@ struct ControllerButtons
 		Up.merge(b.Up);
 		Down.merge(b.Down);
 		Left.merge(b.Left);
-		Riight.merge(b.Riight);
+		Right.merge(b.Right);
 		LB.merge(b.LB);
 		RB.merge(b.RB);
 		LPress.merge(b.LPress);
@@ -158,7 +162,7 @@ struct HeapMemory
 
 struct VolatileMemory
 {
-	static const size_t maxSize = KB(5);
+	static const size_t maxSize = KB(10);
 
 	char memory[maxSize];
 	char* stackTop = 0;
