@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-//opengl2Dlib.cpp				1.0
+//opengl2Dlib.cpp				1.1
 //Copyright(c) 2020 Luta Vlad
 //https://github.com/meemknight/gl2d
 //////////////////////////////////////////////////
@@ -101,12 +101,12 @@ void main()
 	color.rgb /= cFilter;
 
 	//color.rgb = rgbTohsv(color.rgb);
-	
 
 	//color.rgb = hsvTorgb(color.rgb);
 
 	if(color.a <0.01)discard;
 	color.a = 1.f;
+
 })";
 
 #pragma endregion
@@ -474,7 +474,7 @@ void main()
 		glViewport(0, 0, windowW, windowH);
 
 		glBindVertexArray(vao);
-		
+
 		glUseProgram(currentShader.id);
 
 		glUniform1i(currentShader.u_sampler, 0);
@@ -534,6 +534,10 @@ void main()
 	void enableNecessaryGLFeatures()
 	{
 		glEnable(GL_BLEND);
+		glEnable(GL_MULTISAMPLE);
+		glEnable(GL_LINE_SMOOTH);
+		glEnable(GL_POLYGON_SMOOTH);
+		glEnable(GL_SAMPLE_SHADING);
 
 		glDisable(GL_DEPTH_TEST);
 
@@ -1240,7 +1244,7 @@ void main()
 	void Renderer2D::resetCameraAndShader()
 	{
 		currentCamera = defaultCamera;
-		currentShader =	defaultShader;
+		currentShader = defaultShader;
 	}
 
 #pragma endregion
@@ -1776,7 +1780,7 @@ void main()
 		if (emitParticle)
 			delete[] emitParticle;
 
-		int size32Aligned = size + (4-(size%4));
+		int size32Aligned = size + (4 - (size % 4));
 
 		posX = new float[size32Aligned];
 		posY = new float[size32Aligned];
@@ -1793,14 +1797,14 @@ void main()
 		rotationDrag = new float[size32Aligned];
 		deathRattle = new ParticleSettings * [size32Aligned];
 		thisParticleSettings = new ParticleSettings * [size32Aligned];
-		emitParticle = new ParticleSettings *[size32Aligned];
+		emitParticle = new ParticleSettings * [size32Aligned];
 		tranzitionType = new char[size32Aligned];
 		textures = new gl2d::Texture * [size32Aligned];
 		emitTime = new float[size32Aligned];
 
 #pragma endregion
 
-		for(int i=0; i<size; i++)
+		for (int i = 0; i < size; i++)
 		{
 			duration[i] = 0;
 			sizeXY[i] = 0;
@@ -1855,39 +1859,39 @@ void main()
 		//
 		//}
 
-	
+
 #pragma endregion
 
 
 		for (int i = 0; i < size; i++)
 		{
-			
-			if(duration[i] > 0)
-			duration[i] -= deltaTime;
+
+			if (duration[i] > 0)
+				duration[i] -= deltaTime;
 
 			if (emitTime[i] > 0 && emitParticle[i])
 				emitTime[i] -= deltaTime;
 
-			if(duration[i] <= 0)
+			if (duration[i] <= 0)
 			{
 				if (deathRattle[i] != nullptr && deathRattle[i]->onCreateCount)
 				{
-					
+
 					this->emitParticleWave(deathRattle[i], { posX[i], posY[i] });
 
 #if 0
 
 					int createdParts = 0;
-					for(int j=0;j<size; j++)
+					for (int j = 0; j < size; j++)
 					{
-						
-						if(sizeXY[j] == 0 && i != j)
+
+						if (sizeXY[j] == 0 && i != j)
 						{
 							createdParts++;
 
 							duration[j] = rand(deathRattle[i]->particleLifeTime);
 							durationTotal[j] = duration[j];
-							
+
 							//reset particle
 							posX[j] = posX[i] + rand(deathRattle[i]->positionX);
 							posY[j] = posY[i] + rand(deathRattle[i]->positionY);
@@ -1911,7 +1915,7 @@ void main()
 							emitParticle[j] = thisParticleSettings[j]->subemitParticle;
 
 
-							if(createdParts > deathRattle[i]->onCreateCount)
+							if (createdParts > deathRattle[i]->onCreateCount)
 							{
 								break;
 							}
@@ -1928,13 +1932,14 @@ void main()
 				sizeXY[i] = 0;
 				emitParticle[i] = nullptr;
 
-			}else if(emitTime[i]<= 0 && emitParticle[i])
+			}
+			else if (emitTime[i] <= 0 && emitParticle[i])
 			{
 				emitTime[i] = rand(thisParticleSettings[i]->subemitParticleTime);
 
 				//emit particle
 				this->emitParticleWave(emitParticle[i], { posX[i], posY[i] });
-			
+
 			}
 
 		}
@@ -1942,11 +1947,11 @@ void main()
 
 #pragma region applyDrag
 
-		for(int i=0; i< size; i++)
+		for (int i = 0; i < size; i++)
 		{
-			if(duration[i] > 0)
+			if (duration[i] > 0)
 				directionX[i] += deltaTime * dragX[i];
-		
+
 		}
 
 		for (int i = 0; i < size; i++)
@@ -2026,8 +2031,8 @@ void main()
 
 		posX = 0;
 		posY = 0;
-		directionX = 0; 
-		directionY = 0; 
+		directionX = 0;
+		directionY = 0;
 		rotation = 0;
 		sizeXY = 0;
 		dragX = 0;
@@ -2035,13 +2040,13 @@ void main()
 
 	}
 
-	void ParticleSystem::emitParticleWave(ParticleSettings *ps, glm::vec2 pos)
+	void ParticleSystem::emitParticleWave(ParticleSettings* ps, glm::vec2 pos)
 	{
 		int recreatedParticlesThisFrame = 0;
 
 		for (int i = 0; i < size; i++)
 		{
-			
+
 			if (recreatedParticlesThisFrame < ps->onCreateCount &&
 				sizeXY[i] == 0)
 			{
@@ -2073,14 +2078,14 @@ void main()
 
 				recreatedParticlesThisFrame++;
 			}
-			
+
 
 
 		}
 
 
 	}
-	
+
 	float merge(float a, float b, float perc)
 	{
 		return a * perc + b * (1 - perc);
@@ -2093,7 +2098,7 @@ void main()
 		unsigned int w = r.windowW;
 		unsigned int h = r.windowH;
 
-		if(postProcessing)
+		if (postProcessing)
 		{
 			if (fb.texture.GetSize() != glm::ivec2{ w / pixelateFactor,h / pixelateFactor })
 			{
@@ -2105,9 +2110,9 @@ void main()
 
 			r.updateWindowMetrics(w / pixelateFactor, h / pixelateFactor);
 		}
-		
 
-		for(int i=0;i< size; i++)
+
+		for (int i = 0; i < size; i++)
 		{
 			if (sizeXY[i] == 0) { continue; }
 
@@ -2128,7 +2133,7 @@ void main()
 				lifePerc *= lifePerc * lifePerc;
 				break;
 			case gl2d::TRANZITION_TYPES::wave:
-				lifePerc = (std::cos(lifePerc * 5 * 3.141592) * lifePerc + lifePerc)/2.f;
+				lifePerc = (std::cos(lifePerc * 5 * 3.141592) * lifePerc + lifePerc) / 2.f;
 				break;
 			case gl2d::TRANZITION_TYPES::wave2:
 				lifePerc = std::cos(lifePerc * 5 * 3.141592) * std::sqrt(lifePerc) * 0.9f + 0.1f;
@@ -2140,7 +2145,7 @@ void main()
 			glm::vec4 pos = {};
 			glm::vec4 c;
 
-			if(thisParticleSettings[i])
+			if (thisParticleSettings[i])
 			{
 				pos.x = posX[i];
 				pos.y = posY[i];
@@ -2151,7 +2156,8 @@ void main()
 				c.y = merge(color[i].y, thisParticleSettings[i]->createEndApearence.color1.y, lifePerc);
 				c.z = merge(color[i].z, thisParticleSettings[i]->createEndApearence.color1.z, lifePerc);
 				c.w = merge(color[i].w, thisParticleSettings[i]->createEndApearence.color1.w, lifePerc);
-			}else
+			}
+			else
 			{
 				pos.x = posX[i];
 				pos.y = posY[i];
@@ -2166,18 +2172,16 @@ void main()
 
 			glm::vec4 p;
 
-			if(postProcessing)
+			if (postProcessing)
 			{
 				p = pos / float(pixelateFactor);
-				c.w = sqrt(c.w);
+				//c.w = sqrt(c.w);
 				// c.w = 1;
 			}
 			else
 			{
-				p = pos; 
+				p = pos;
 			}
-
-
 
 
 			if (textures[i] != nullptr)
@@ -2189,7 +2193,7 @@ void main()
 				r.renderRectangle(p, c, { 0,0 }, rotation[i]);
 			}
 
-			
+
 		}
 
 
@@ -2204,7 +2208,7 @@ void main()
 			auto s = r.currentShader;
 
 			r.renderRectangle({ 0,0,w,h }, {}, 0, fb.texture);
-			
+
 			r.setShaderProgram(defaultParticleShader);
 			r.flush();
 
@@ -2217,7 +2221,7 @@ void main()
 
 	float ParticleSystem::rand(glm::vec2 v)
 	{
-		if(v.x > v.y)
+		if (v.x > v.y)
 		{
 			std::swap(v.x, v.y);
 		}

@@ -17,7 +17,7 @@ static GameWindowBuffer fpsCounterBuffer = {};
 
 static GameMemory* gameMemory = nullptr;
 static HeapMemory* heapMemory = nullptr;
-static PlatformFunctions platformFunctions;
+	   PlatformFunctions platformFunctions;
 static char dllName[260];
 static GameInput gameInput = {};
 static LARGE_INTEGER performanceFrequency;
@@ -164,6 +164,11 @@ void setupFullscreen()
 
 
 #pragma endregion
+
+LRESULT CALLBACK tempWindProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+{
+	return DefWindowProc(hWnd, message, wParam, lParam);
+}
 
 LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -485,6 +490,74 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 #pragma endregion
 
 
+
+#pragma region fake window
+	{
+		//---- fake Window
+		WNDCLASSEX wcex;
+		wcex.cbSize = sizeof(WNDCLASSEX);
+		wcex.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
+		wcex.lpfnWndProc = tempWindProc;
+		wcex.cbClsExtra = 0;
+		wcex.cbWndExtra = 0;
+		wcex.hInstance = h;
+		wcex.hIcon = LoadIcon(NULL, IDI_APPLICATION);
+		wcex.hCursor = LoadCursor(NULL, IDC_ARROW);
+		wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
+		wcex.lpszMenuName = NULL;
+		wcex.lpszClassName = "coco";
+		wcex.hIconSm = NULL;
+
+		if (!RegisterClassEx(&wcex))
+		{
+			return 0;
+		}
+
+		HWND hwnd = CreateWindow(
+			"coco",
+			"dddd",
+			WS_OVERLAPPEDWINDOW,
+			CW_USEDEFAULT, CW_USEDEFAULT,
+			500, 500,
+			NULL,
+			NULL,
+			h,
+			NULL
+		);
+
+		HDC hdc = GetDC(hwnd);
+		PIXELFORMATDESCRIPTOR pfd = {};
+
+		pfd.nSize = sizeof(PIXELFORMATDESCRIPTOR);
+		pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
+		pfd.iPixelType = PFD_TYPE_RGBA;
+		pfd.cColorBits = 32;
+		pfd.cDepthBits = 32;
+		pfd.iLayerType = PFD_MAIN_PLANE;
+
+		int nPixelFormat = ChoosePixelFormat(hdc, &pfd);
+
+		SetPixelFormat(hdc, nPixelFormat, &pfd);
+
+		HGLRC hrc = wglCreateContext(hdc);
+
+		wglMakeCurrent(hdc, hrc);
+
+		glewExperimental = true;
+		if (glewInit() != GLEW_OK)
+		{
+			MessageBoxA(0, "glewInit", "Error from glew", MB_ICONERROR);
+			return 1;
+		}
+
+		wglMakeCurrent(NULL, NULL);
+		wglDeleteContext(hrc);
+		ReleaseDC(hwnd, hdc);
+		DestroyWindow(hwnd);
+
+	}
+#pragma endregion
+
 #pragma region create window
 
 	WNDCLASS wc = {};
@@ -641,6 +714,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		{
 			gameInput.leftMouse = {};
 		}
+
 		if (GetAsyncKeyState(VK_RBUTTON) == 0)
 		{
 			gameInput.rightMouse = {};

@@ -3,9 +3,12 @@
 #include <gl/glew.h>
 #include <gl/wglew.h>
 #include <wingdi.h>
+#include <string>
+
+using namespace std::string_literals;
 
 //#pragma comment(lib,"opengl32.lib")
-
+extern PlatformFunctions platformFunctions;
 
 static HMODULE dllHand;
 
@@ -255,11 +258,12 @@ bool win32LoadXinput(Win32XinputData &xinputData)
 void enableOpenGL(HWND hwnd, HGLRC* hRC)
 {
 
+	/*
 	PIXELFORMATDESCRIPTOR pfd = {};
 
 	int iFormat;
 
-	/* get the device context (DC) */
+	// get the device context (DC) 
 	HDC hDC = GetDC(hwnd);
 
 
@@ -277,10 +281,96 @@ void enableOpenGL(HWND hwnd, HGLRC* hRC)
 
 	SetPixelFormat(hDC, iFormat, &pfd);
 
-	/* create and enable the render context (RC) */
+	// create and enable the render context (RC)
 	*hRC = wglCreateContext(hDC);
 
 	wglMakeCurrent(hDC, *hRC);
+	*/
+
+	HDC hDC;
+
+	PIXELFORMATDESCRIPTOR pfd = {};
+	pfd.nSize = sizeof(pfd);
+	pfd.nVersion = 1;
+	pfd.dwFlags = PFD_DRAW_TO_WINDOW |
+		PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
+	pfd.iPixelType = PFD_TYPE_RGBA;
+	pfd.cColorBits = 32; //todo look into this (24)
+	pfd.cDepthBits = 16;
+	pfd.cStencilBits = 8;
+	pfd.iLayerType = PFD_MAIN_PLANE;
+
+	if (
+		true
+		//wglewIsSupported("WGL_ARB_create_context") == 1
+		)
+	{
+
+
+		hDC = GetDC(hwnd);
+
+		const int iPixelFormatAttribList[] = {
+			WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
+			WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
+			WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
+			WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
+			WGL_COLOR_BITS_ARB, 32,
+			WGL_DEPTH_BITS_ARB, 24,
+			WGL_STENCIL_BITS_ARB, 8,
+			WGL_SAMPLE_BUFFERS_ARB, GL_TRUE,
+			WGL_SAMPLES_ARB, 4,
+			0 // End of attributes list
+		};
+		int attributes[] = {
+			//WGL_CONTEXT_MAJOR_VERSION_ARB, 3
+			//, WGL_CONTEXT_MINOR_VERSION_ARB, 2
+			//, WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
+			0
+		};
+
+		int nPixelFormat = 0;
+		UINT iNumFormats = 0;
+
+		wglChoosePixelFormatARB(hDC, iPixelFormatAttribList, NULL, 1, &nPixelFormat, (UINT*)&iNumFormats);
+
+		SetPixelFormat(hDC, nPixelFormat, &pfd);
+
+		*hRC = wglCreateContextAttribsARB(hDC, 0, attributes);
+
+		wglMakeCurrent(hDC, *hRC);
+
+		ReleaseDC(hwnd, hDC);
+	}
+	else
+	{
+
+
+		int iFormat;
+
+		/* get the device context (DC) */
+		hDC = GetDC(hwnd);
+
+		iFormat = ChoosePixelFormat(hDC, &pfd);
+
+		SetPixelFormat(hDC, iFormat, &pfd);
+
+		/* create and enable the render context (RC) */
+		*hRC = wglCreateContext(hDC);
+
+		wglMakeCurrent(hDC, *hRC);
+
+		ReleaseDC(hwnd, hDC);
+	}
+
+
+	int multiSample = 0;
+	int samples = 0;
+	glGetIntegerv(GL_SAMPLE_BUFFERS, &multiSample);
+	glGetIntegerv(GL_SAMPLES, &samples);
+
+	platformFunctions.console.blog(("Multi sample window: "s  + std::to_string(multiSample)).c_str());
+	platformFunctions.console.blog(("Samples count: "s + std::to_string(samples)).c_str());
+
 }
 
 void* allocateWithoutGuard(size_t size, void* basePointer)

@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-//opengl2Dlib.h				1.0
+//opengl2Dlib.h				1.1
 //Copyright(c) 2020 Luta Vlad
 //https://github.com/meemknight/gl2d
 //
@@ -20,6 +20,10 @@
 //		pixel art sprite atlases
 //	draw to screen of frame buffer that	can \
 //		be used as a texture
+//
+//	a particle system that can use a custom \
+//	shader and apply a pixelate effect
+//
 //
 //////////////////////////////////////////////////
 
@@ -358,7 +362,7 @@ namespace gl2d
 
 	struct ParticleApearence
 	{
-		glm::vec2 size; 
+		glm::vec2 size;
 		glm::vec4 color1;
 		glm::vec4 color2;
 	};
@@ -373,10 +377,10 @@ namespace gl2d
 		wave2,
 	};
 
-	
+
 	struct ParticleSettings
 	{
-		ParticleSettings* deathRattle  = nullptr;
+		ParticleSettings* deathRattle = nullptr;
 		ParticleSettings* subemitParticle = nullptr;
 
 		int onCreateCount;
@@ -391,7 +395,7 @@ namespace gl2d
 		glm::vec2 directionY;
 		glm::vec2 dragX;
 		glm::vec2 dragY;
-		
+
 		glm::vec2 rotation;
 		glm::vec2 rotationSpeed;
 		glm::vec2 rotationDrag;
@@ -410,7 +414,7 @@ namespace gl2d
 		void initParticleSystem(int size);
 		void cleanup();
 
-		void emitParticleWave(ParticleSettings *ps, glm::vec2 pos);
+		void emitParticleWave(ParticleSettings* ps, glm::vec2 pos);
 
 
 		void applyMovement(float deltaTime);
@@ -447,15 +451,15 @@ namespace gl2d
 
 		float* emitTime = 0;
 
-		char* tranzitionType= 0;
+		char* tranzitionType = 0;
 		ParticleSettings** deathRattle = 0;
 		ParticleSettings** thisParticleSettings = 0;
 		ParticleSettings** emitParticle = 0;
 
 		gl2d::Texture** textures = 0;
 
-		std::mt19937 random{std::random_device{}()};
-		
+		std::mt19937 random{ std::random_device{}() };
+
 		gl2d::FrameBuffer fb;
 
 		float rand(glm::vec2 v);

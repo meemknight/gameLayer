@@ -57,7 +57,7 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 {
 #pragma region necesary setup
 	allocator = &heapMemory->allocator;
-	new(mem) GameMemory; //*mem = GameMemory();
+	new(mem) GameMemory; // *mem = GameMemory();
 	auto& console = platformFunctions->console;
 
 	platformFunctions->makeContext();
@@ -83,8 +83,7 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	mem->background.loadFromFile("resources//background.png");
 	mem->dot.loadFromFile("resources//dot.png");
 
-	mem->ps.initParticleSystem(500);
-
+	mem->ps.initParticleSystem(300);
 
 	//mem->musicPlayer.openFromFile("resources//rainForest.wav");
 	//mem->musicPlayer.setVolume(50);
@@ -110,9 +109,9 @@ extern "C" __declspec(dllexport) void onReload(GameMemory * mem, HeapMemory * he
 	gl2d::init();
 #pragma endregion
 
-
 	platformFunctions->console.log("reloaded...");
 	gl2d::setVsync(1);
+
 
 }
 
@@ -204,10 +203,9 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 #pragma endregion
 
-	/*
 
 	mem->firePart.onCreateCount = 2;
-	mem->firePart.subemitParticleTime = {};
+	mem->firePart.subemitParticleTime = {};		
 	mem->firePart.particleLifeTime = {0.9, 1.5};
 	mem->firePart.directionX = { -8,8 };
 	mem->firePart.directionY = { -4,-6 };
@@ -240,7 +238,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	mem->smokePart.rotation = { 0, 360 };
 	mem->smokePart.rotationSpeed = { 0, 10 };
 	mem->smokePart.rotationDrag = { 0, 100 };
-	mem->smokePart.createApearence.color1 = { 0.2, 0.1, 0.1, 0.5 };
+	mem->smokePart.createApearence.color1 = { 0.3, 0.1, 0.1, 0.5 };
 	mem->smokePart.createApearence.color2 = { 0.5, 0.2, 0.2, 0.6 };
 	mem->smokePart.createEndApearence.color1 = { 0.1,0.1,0.1,0.2 };
 	mem->smokePart.createEndApearence.size = { 2,5 };
@@ -264,14 +262,15 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	//windowSettings->h = 400;
 	//windowSettings->drawWithOpenGl = true;
 
+	mem->test = 0;
 
-	char color1 = 255-input->controllers[0].LT * 255;
-	char color2 = 255-input->controllers[0].RT * 255;
+	char color1 = 255-input->controllers[0].LT * 254;
+	char color2 = 255-input->controllers[0].RT * 254;
 
 	mem->renderer.renderRectangle({ 0,0, 600, 400 }, {}, 0, mem->background);
 	
 	//draw player
-	mem->renderer.renderRectangle({ mem->posX , mem->posY, 20, 20 }, { color2, color1, 25, 255 });
+	mem->renderer.renderRectangle({ mem->posX , mem->posY, 20, 20 }, { 255.f/color2, 255.f/color1, 255.f/25, 255.f/255 });
 
 
 	//move player
@@ -291,13 +290,12 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		{
 			mem->posX -= speed;
 		}
-		if (input->keyBoard[Button::D].held || input->anyController.Riight.held)
+		if (input->keyBoard[Button::D].held || input->anyController.Right.held)
 		{
 			mem->posX += speed;
 		}
 
 		
-
 		mem->posX += speed * input->anyController.LThumb.x;
 		mem->posY -= speed * input->anyController.LThumb.y;
 
@@ -320,18 +318,14 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		
 		
 		mem->ps.applyMovement(deltaTime);
-
 		mem->ps.draw(mem->renderer);
 
 
 		mem->renderer.flush();
 
-		*/
 
 
-mem->renderer.renderRectangle({ 10,10,100,100 }, Colors_Green);
-
-
-mem->renderer.flush();
+	//mem->renderer.renderRectangle({ 10,10,100,100 }, Colors_Green);
+	//mem->renderer.flush();
 
 }
