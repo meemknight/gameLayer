@@ -205,6 +205,8 @@ struct WindowSettings
 
 	//not implemented
 	bool fullScreen = false;
+	float fullScreenZoon = 1;
+
 };
 
 struct Console

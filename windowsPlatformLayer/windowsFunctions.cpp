@@ -310,6 +310,7 @@ void enableOpenGL(HWND hwnd, HGLRC* hRC)
 		hDC = GetDC(hwnd);
 
 		const int iPixelFormatAttribList[] = {
+			
 			WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
 			WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
 			WGL_DOUBLE_BUFFER_ARB, GL_TRUE,
@@ -331,10 +332,12 @@ void enableOpenGL(HWND hwnd, HGLRC* hRC)
 		int nPixelFormat = 0;
 		UINT iNumFormats = 0;
 
+		//https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_pixel_format.txt
 		wglChoosePixelFormatARB(hDC, iPixelFormatAttribList, NULL, 1, &nPixelFormat, (UINT*)&iNumFormats);
 
 		SetPixelFormat(hDC, nPixelFormat, &pfd);
 
+		//https://www.khronos.org/registry/OpenGL/extensions/ARB/WGL_ARB_create_context.txt
 		*hRC = wglCreateContextAttribsARB(hDC, 0, attributes);
 
 		wglMakeCurrent(hDC, *hRC);

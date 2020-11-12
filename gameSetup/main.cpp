@@ -71,8 +71,8 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 
 
 	//set the size of the window
-	windowSettings->w = 600;
-	windowSettings->h = 400;
+	windowSettings->w = 800;
+	windowSettings->h = 600;
 	windowSettings->drawWithOpenGl = true;
 	windowSettings->lockTo60fps = false;
 	gl2d::setVsync(1);
@@ -116,8 +116,8 @@ extern "C" __declspec(dllexport) void onReload(GameMemory * mem, HeapMemory * he
 }
 
 
-extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* mem,
-	HeapMemory * heapMemory, VolatileMemory *volatileMemory, GameWindowBuffer* windowBuffer, 
+extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * mem,
+	HeapMemory * heapMemory, VolatileMemory * volatileMemory, GameWindowBuffer * windowBuffer,
 	WindowSettings * windowSettings, PlatformFunctions * platformFunctions)
 {
 
@@ -130,7 +130,19 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	//glViewport(0, 0, windowBuffer->w, windowBuffer->h);
 	mem->renderer.updateWindowMetrics(windowBuffer->w, windowBuffer->h);
 
+	mem->renderer.currentCamera.zoom = windowSettings->fullScreenZoon;
+	//mem->renderer.currentCamera.zoom = 0.5;
+	//mem->renderer.currentCamera.target = { mem->posX, mem->posY };
+
+	float w = windowSettings->w;
+	float h = windowSettings->h;
+
 #pragma endregion
+
+	mem->renderer.currentCamera.follow({mem->posX, mem->posY}, 
+		deltaTime * 100, 30, windowSettings->w, windowSettings->h);
+
+	mem->ps.pixelateFactor = 2;
 
 	//do game logic
 	//all the global variabels will be stored in "mem"
@@ -203,7 +215,6 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 #pragma endregion
 
-
 	mem->firePart.onCreateCount = 2;
 	mem->firePart.subemitParticleTime = {};		
 	mem->firePart.particleLifeTime = {0.9, 1.5};
@@ -267,10 +278,10 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 	char color1 = 255-input->controllers[0].LT * 254;
 	char color2 = 255-input->controllers[0].RT * 254;
 
-	mem->renderer.renderRectangle({ 0,0, 600, 400 }, {}, 0, mem->background);
+	mem->renderer.renderRectangle({ 0,0, 1500, 800 }, {}, 0, mem->background);
 	
 	//draw player
-	mem->renderer.renderRectangle({ mem->posX , mem->posY, 20, 20 }, { 255.f/color2, 255.f/color1, 255.f/25, 255.f/255 });
+	mem->renderer.renderRectangle({ mem->posX , mem->posY, 20, 20 }, { 255.f / color2, 255.f / color1, 255.f / 25, 255.f / 255 }, {}, 43);
 
 
 	//move player
@@ -312,7 +323,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 
 		if (input->leftMouse.held)
 		{
-			mem->ps.emitParticleWave(&mem->firePart, {input->mouseX, input->mouseY});
+			mem->ps.emitParticleWave(&mem->firePart, {mem->posX, mem->posY});
 
 		}
 		
@@ -324,6 +335,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput* input, GameMemory* me
 		mem->renderer.flush();
 
 
+		console.log(std::to_string(windowBuffer->w).c_str());
 
 	//mem->renderer.renderRectangle({ 10,10,100,100 }, Colors_Green);
 	//mem->renderer.flush();

@@ -8,6 +8,7 @@
 #include "buildConfig.h"
 #include <Xinput.h>
 #include "Console.h"
+#include <algorithm>
 
 static bool running = 1;
 static bool active = 0;
@@ -109,6 +110,7 @@ void asynkButtonClear(Button &b)
 
 WINDOWPLACEMENT windowPlacementPrev = { sizeof(windowPlacementPrev) };
 static bool fullscreen = false;
+static float fullScreenZoon = 1;
 
 void setupFullscreen()
 {
@@ -139,26 +141,74 @@ void setupFullscreen()
 	monitorSettings.dmDriverExtra = 0;
 	bool found = 0;
 
+	//for (int i = 0; EnumDisplaySettings(monitorName, i, &monitorSettings); i++)
+	//{
+	//
+	//	const char* c = (monitorSettings.dmDisplayFixedOutput == DMDFO_DEFAULT) ? "DMDFO_DEFAULT" :
+	//		((monitorSettings.dmDisplayFixedOutput == DMDFO_STRETCH)? "DMDFO_STRETCH" : "DMDFO_CENTER");
+	//
+	//
+	//	std::cout << c << " " << monitorSettings.dmPelsWidth << " " << monitorSettings.dmPelsHeight << "\n";
+	//
+	//}
+
+	std::vector<std::pair<DEVMODE, float>> validMonitorSettings;
+	validMonitorSettings.reserve(10);
+
+	//https://en.wikipedia.org/wiki/Display_resolution
+
+	//16:9
+	glm::vec4 sizes16_9[] =
+	{
+		{3840, 2160, 8.294, 1},	//4K UHD
+		{2560, 1440, 3.686, 1},	//QHD
+		{2048, 1152, 2.359, 1},	//QWXGA
+		{1920, 1080, 2.074, 1},	//FHD
+		{1600, 900,  1.440, 1},	//HD+
+		{1536, 864,  1.327, 1},	//Other
+		{1366, 768,  1.049, 1},	//HD ~16:9
+		{1360, 768,  1.044, 1},	//HD ~16:9
+		{1280, 720,  0.922, 1},	//WXGA
+		{640, 360,   0.230, 1},	//nHD
+	};
+
+	for (int j = 0; j < sizeof(sizes16_9) / sizeof(sizes16_9[0]); j++) 
+	{
+		sizes16_9[j].w = sizes16_9[j].x / 1920.f;
+	
+	}
+
 	for (int i = 0; EnumDisplaySettings(monitorName, i, &monitorSettings); i++)
 	{
 
-		if (monitorSettings.dmDisplayFixedOutput == DMDFO_DEFAULT
-			&& monitorSettings.dmPanningWidth == 1920
-			&& monitorSettings.dmPanningHeight == 1080
-			)
+		for(int j=0;j<sizeof(sizes16_9)/sizeof(sizes16_9[0]);j++)
 		{
-			found = 1;
-			break;
+			if (monitorSettings.dmDisplayFixedOutput == DMDFO_DEFAULT
+				&& monitorSettings.dmPelsWidth == sizes16_9[j].x
+				&& monitorSettings.dmPelsHeight == sizes16_9[j].y)
+			{
+				validMonitorSettings.push_back({ monitorSettings, sizes16_9[j].w });
+			}
+		
 		}
 
+
 	}
 
+	std::sort(validMonitorSettings.begin(), validMonitorSettings.end(), 
+		[](const std::pair<DEVMODE, float> &a, std::pair<DEVMODE, float>&b) {return a.second > b.second; });
 
-	if (found)
+	int i = 0;
+	if(validMonitorSettings.size() > i)
 	{
-		ChangeDisplaySettings(&monitorSettings, CDS_FULLSCREEN);
+		std::cout << "Current mode: " << validMonitorSettings[i].first.dmPelsWidth <<
+			" " << validMonitorSettings[i].first.dmPelsHeight << "  zoom: " << validMonitorSettings[i].second << "\n";
+
+		ChangeDisplaySettings(&validMonitorSettings[i].first, CDS_FULLSCREEN);
+		fullScreenZoon = validMonitorSettings[i].second;
 	}
 
+	
 
 }
 
@@ -566,7 +616,11 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	wc.hInstance = h;
 	wc.lpfnWndProc = windProc;
 	wc.lpszClassName = "MainWindowClass";
-	wc.style = CS_HREDRAW | CS_VREDRAW;
+	wc.style = CS_HREDRAW | CS_VREDRAW 
+#if !INTERNAL_BUILD
+		| CS_OWNDC
+#endif
+		;
 
 	RegisterClass(&wc);
 
@@ -694,7 +748,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			dtSecondCounter++;
 			currentFrameCount = dtCounter;
 			dtCounter = 0;
-			std::cout << currentFrameCount << '\n';
+			//std::cout << currentFrameCount << '\n';
 		}
 
 #pragma endregion
@@ -891,21 +945,30 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		if (!consoleRunning) 
 		{
 #pragma region checkForChanges
-
-			if (((windowSettings.h != gameWindowBuffer.h)
-				|| (windowSettings.h != gameWindowBuffer.h)
-				) && windowSettings.h != 0
-				&& windowSettings.w != 0)
+			
+			//todo full screen
+			if(windowSettings.fullScreen)
 			{
-				setWindowSize(wind, windowSettings.w, windowSettings.h);
-				resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
-			}
-			else
+				
+			}else
 			{
-				windowSettings.h = gameWindowBuffer.h;
-				windowSettings.w = gameWindowBuffer.w;
-			}
+				if (((windowSettings.h != gameWindowBuffer.h)
+					|| (windowSettings.h != gameWindowBuffer.h)
+					) && windowSettings.h != 0
+					&& windowSettings.w != 0)
+				{
+					setWindowSize(wind, windowSettings.w, windowSettings.h);
+					resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
+				}
+				else
+				{
+					windowSettings.h = gameWindowBuffer.h;
+					windowSettings.w = gameWindowBuffer.w;
+				}
 
+			}
+			
+		
 
 #pragma endregion
 
@@ -1034,7 +1097,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			{
 				setupFullscreen();
 
-
 				SetWindowLong(wind, GWL_STYLE,
 					dwStyle & ~WS_OVERLAPPEDWINDOW);
 				SetWindowPos(wind, HWND_TOP,
@@ -1070,6 +1132,19 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
 		}
 	}
+
+	
+	if (windowSettings.fullScreen) 
+	{
+		windowSettings.h = gameWindowBuffer.h;
+		windowSettings.w = gameWindowBuffer.w;
+		windowSettings.fullScreenZoon = fullScreenZoon;
+	}else
+	{
+		windowSettings.fullScreenZoon = 1;
+		fullScreenZoon = 1;
+	}
+
 
 #pragma endregion
 

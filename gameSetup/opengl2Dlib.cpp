@@ -21,7 +21,7 @@ namespace gl2d
 	static Camera defaultCamera = cameraCreateDefault();
 
 	static const char* defaultVertexShader =
-		"#version 300 es\n"
+		"#version 430 \n"
 		"precision mediump float;\n"
 		"in vec2 quad_positions;\n"
 		"in vec4 quad_colors;\n"
@@ -36,7 +36,7 @@ namespace gl2d
 		"}\n";
 
 	static const char* defaultFragmentShader =
-		"#version 300 es\n"
+		"#version 430 \n"
 		"precision mediump float;\n"
 		"out vec4 color;\n"
 		"in vec4 v_color;\n"
@@ -48,7 +48,7 @@ namespace gl2d
 		"}\n";
 
 	static const char* defaultParticleVertexShader =
-		"#version 300 es\n"
+		"#version 430 \n"
 		"precision mediump float;\n"
 		"in vec2 quad_positions;\n"
 		"in vec4 quad_colors;\n"
@@ -63,7 +63,7 @@ namespace gl2d
 		"}\n";
 
 	static const char* defaultParcileFragmentShader =
-		R"(#version 300 es
+		R"(#version 430 
 precision mediump float;
 out vec4 color;
 in vec4 v_color;
@@ -95,6 +95,8 @@ void main()
 {
 	color = v_color * texture(u_sampler, v_texture);
 	
+	if(color.a <0.01)discard;
+	color.a = 1.f;
 	
 	color.rgb *= cFilter;
 	color.rgb = floor(color.rgb);
@@ -104,8 +106,6 @@ void main()
 
 	//color.rgb = hsvTorgb(color.rgb);
 
-	if(color.a <0.01)discard;
-	color.a = 1.f;
 
 })";
 
@@ -1582,12 +1582,12 @@ void main()
 			 0, zoom, position.y,
 			0, 0, 1,
 		};
-		return m; //todo could have problems
+		return m; //todo not tested
 	}
 
 	void Camera::follow(glm::vec2 pos, float speed, float max, float w, float h)
 	{
-		pos.x -= w / 2.F;
+		pos.x -= w / 2.f;
 		pos.y -= h / 2.f;
 
 		glm::vec2 delta = pos - position;
@@ -2098,17 +2098,21 @@ void main()
 		unsigned int w = r.windowW;
 		unsigned int h = r.windowH;
 
+		auto cam = r.currentCamera;
+
 		if (postProcessing)
 		{
+
+			r.flush();
+
 			if (fb.texture.GetSize() != glm::ivec2{ w / pixelateFactor,h / pixelateFactor })
 			{
 				fb.resize(w / pixelateFactor, h / pixelateFactor);
 
 			}
 
-			r.flush();
-
 			r.updateWindowMetrics(w / pixelateFactor, h / pixelateFactor);
+
 		}
 
 
@@ -2174,7 +2178,29 @@ void main()
 
 			if (postProcessing)
 			{
-				p = pos / float(pixelateFactor);
+				r.currentCamera = cam;
+
+				p = pos / pixelateFactor;
+
+				//p.x += 200;
+				//p.y += 200;
+
+				p.x -= r.currentCamera.position.x / pixelateFactor;
+				p.y -= r.currentCamera.position.y / pixelateFactor;
+				//
+				
+				r.currentCamera.position = {};
+				//r.currentCamera.position.x += w / (2.f );
+				//r.currentCamera.position.y += h / (2.f );
+				//
+				//r.currentCamera.position /= pixelateFactor/2.f;
+				//
+				//r.currentCamera.position.x -= w / (2.f);
+				//r.currentCamera.position.y -= h / (2.f);
+				
+				
+				//r.currentCamera.position += glm::vec2{w / (pixelateFactor * 2.f), h / (pixelateFactor*2.f)};
+				//r.currentCamera.position *= pixelateFactor;
 				//c.w = sqrt(c.w);
 				// c.w = 1;
 			}
@@ -2202,8 +2228,10 @@ void main()
 
 			fb.clear();
 			r.flushFBO(fb);
-
+			
 			r.updateWindowMetrics(w, h);
+			r.currentCamera.setDefault();
+
 
 			auto s = r.currentShader;
 
@@ -2216,6 +2244,7 @@ void main()
 
 		}
 
+		r.currentCamera = cam;
 
 	}
 
