@@ -62,8 +62,6 @@ void operator delete[](void* ptr)
 #endif // LINK_TO_GLOBAL_ALLOCATOR
 
 
-
-// todo rename
 const uint64_t GUARD_VALUE = 0xff'ff'ff'ff'ff'ff'ff'ff;
 
 struct FreeBlock
@@ -289,7 +287,6 @@ void* FreeListAllocator::allocate(size_t size)
 			if (current->next == nullptr || current->next >= this->end)
 			{
 				//that was the last block, no size
-				//todo remove notice
 				//std::cout << "no more memory\n";
 
 				if (returnZeroIfNoMoreMemory)
@@ -331,7 +328,6 @@ void FreeListAllocator::free(void* mem)
 	AllocatedBlock* allocatedBLockHeader = (AllocatedBlock*)headerBegin;
 
 #pragma region check validity
-	//todo make this a controllable macro
 
 	//todo add optional logging
 	assert(allocatedBLockHeader->guard == GUARD_VALUE); //invalid free or double free

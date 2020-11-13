@@ -385,29 +385,29 @@ namespace gl2d
 		ParticleSettings* deathRattle = nullptr;
 		ParticleSettings* subemitParticle = nullptr;
 
-		int onCreateCount;
+		int onCreateCount = 0;
 
-		glm::vec2 subemitParticleTime;
+		glm::vec2 subemitParticleTime = {};
 
-		glm::vec2 positionX;
-		glm::vec2 positionY;
+		glm::vec2 positionX = {};
+		glm::vec2 positionY = {};
 
-		glm::vec2 particleLifeTime; // move
-		glm::vec2 directionX;
-		glm::vec2 directionY;
-		glm::vec2 dragX;
-		glm::vec2 dragY;
+		glm::vec2 particleLifeTime = {}; // move
+		glm::vec2 directionX = {};
+		glm::vec2 directionY = {};
+		glm::vec2 dragX = {};
+		glm::vec2 dragY = {};
 
-		glm::vec2 rotation;
-		glm::vec2 rotationSpeed;
-		glm::vec2 rotationDrag;
+		glm::vec2 rotation = {};
+		glm::vec2 rotationSpeed = {};
+		glm::vec2 rotationDrag = {};
 
-		ParticleApearence createApearence;
-		ParticleApearence createEndApearence;
+		ParticleApearence createApearence = {};
+		ParticleApearence createEndApearence = {};
 
 		gl2d::Texture* texturePtr = 0;
 
-		int tranzitionType;
+		int tranzitionType = TRANZITION_TYPES::linear;
 	};
 
 

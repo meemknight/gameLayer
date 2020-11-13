@@ -105,7 +105,7 @@ void main()
 	//color.rgb = rgbTohsv(color.rgb);
 
 	//color.rgb = hsvTorgb(color.rgb);
-
+	
 
 })";
 
@@ -262,7 +262,6 @@ void main()
 		//		break;
 		//	}
 		//}
-		//todo check ?
 
 		if (wglGetProcAddress("wglSwapIntervalEXT") != nullptr)
 		{
@@ -1927,52 +1926,6 @@ void main()
 
 					this->emitParticleWave(deathRattle[i], { posX[i], posY[i] });
 
-#if 0
-
-					int createdParts = 0;
-					for (int j = 0; j < size; j++)
-					{
-
-						if (sizeXY[j] == 0 && i != j)
-						{
-							createdParts++;
-
-							duration[j] = rand(deathRattle[i]->particleLifeTime);
-							durationTotal[j] = duration[j];
-
-							//reset particle
-							posX[j] = posX[i] + rand(deathRattle[i]->positionX);
-							posY[j] = posY[i] + rand(deathRattle[i]->positionY);
-							directionX[j] = rand(deathRattle[i]->directionX);
-							directionY[j] = rand(deathRattle[i]->directionY);
-							rotation[j] = rand(deathRattle[i]->rotation);
-							sizeXY[j] = rand(deathRattle[i]->createApearence.size);
-							dragX[j] = rand(deathRattle[i]->dragX);
-							dragY[j] = rand(deathRattle[i]->dragY);
-							color[j].x = rand({ deathRattle[i]->createApearence.color1.x, deathRattle[i]->createApearence.color2.x });
-							color[j].y = rand({ deathRattle[i]->createApearence.color1.y, deathRattle[i]->createApearence.color2.y });
-							color[j].z = rand({ deathRattle[i]->createApearence.color1.z, deathRattle[i]->createApearence.color2.z });
-							color[j].w = rand({ deathRattle[i]->createApearence.color1.w, deathRattle[i]->createApearence.color2.w });
-							rotationSpeed[j] = rand(deathRattle[i]->rotationSpeed);
-							rotationDrag[j] = rand(deathRattle[i]->rotationDrag);
-							textures[j] = deathRattle[i]->texturePtr;
-							tranzitionType[j] = deathRattle[i]->tranzitionType;
-							deathRattle[j] = deathRattle[i]->deathRattle;
-							thisParticleSettings[j] = deathRattle[i];
-							emitTime[j] = rand(thisParticleSettings[j]->subemitParticleTime);
-							emitParticle[j] = thisParticleSettings[j]->subemitParticle;
-
-
-							if (createdParts > deathRattle[i]->onCreateCount)
-							{
-								break;
-							}
-						}
-
-					}
-
-#endif
-
 				}
 
 				deathRattle[i] = nullptr;
@@ -2077,6 +2030,39 @@ void main()
 		if (dragX)
 			delete[] dragX;
 
+		if (duration)
+			delete[] duration;
+
+		if (durationTotal)
+			delete[] durationTotal;
+
+		if (color)
+			delete[] color;
+
+		if (rotationSpeed)
+			delete[] rotationSpeed;
+
+		if (rotationDrag)
+			delete[] rotationDrag;
+
+		if (emitTime)
+			delete[] emitTime;
+
+		if (tranzitionType)
+			delete[] tranzitionType;
+
+		if (deathRattle)
+			delete[] deathRattle;
+
+		if (thisParticleSettings)
+			delete[] thisParticleSettings;
+
+		if (emitParticle)
+			delete[] emitParticle;
+
+		if (textures)
+			delete[] textures;
+
 		posX = 0;
 		posY = 0;
 		directionX = 0;
@@ -2085,6 +2071,18 @@ void main()
 		sizeXY = 0;
 		dragX = 0;
 		dragY = 0;
+		duration = 0;
+		durationTotal = 0;
+		color = 0;
+		rotationSpeed = 0;
+		rotationDrag = 0;
+		emitTime = 0;
+		tranzitionType = 0;
+		deathRattle = 0;
+		thisParticleSettings = 0;
+		emitParticle = 0;
+		textures = 0;
+
 
 	}
 

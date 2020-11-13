@@ -6,6 +6,40 @@ constexpr int magW = 3;
 constexpr int magH = 3;
 int Ypadding = 0;
 
+void resetConsole(GameWindowBuffer* window, Console* console)
+{
+	int lineCount = 1;
+	int i = 0; 
+
+	while(console->buffer[i].c)
+	{
+		
+		if(console->buffer[i].c == '\n' 
+			||
+			console->buffer[i].c == '\v'
+			)
+		{
+			lineCount++;
+		}
+	
+		i++;
+	}
+
+	int ySize = window->h;
+	int yCellCount = ySize / (8 * magH) - 3;
+
+	int diff = lineCount - yCellCount;
+
+	if(diff > 0)
+	{
+		Ypadding = -diff;
+	}else
+	{
+		Ypadding = 0;
+	}
+
+}
+
 void drawConsole(GameWindowBuffer* window, Console* console)
 {
 	window->clear(15,15,18);

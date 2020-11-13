@@ -299,7 +299,7 @@ void enableOpenGL(HWND hwnd, HGLRC* hRC)
 	pfd.dwFlags = PFD_DRAW_TO_WINDOW |
 		PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
 	pfd.iPixelType = PFD_TYPE_RGBA;
-	pfd.cColorBits = 32; //todo look into this (24)
+	pfd.cColorBits = 32;
 	pfd.cDepthBits = 16;
 	pfd.cStencilBits = 8;
 	pfd.iLayerType = PFD_MAIN_PLANE;
@@ -377,6 +377,7 @@ void enableOpenGL(HWND hwnd, HGLRC* hRC)
 
 	platformFunctions.console.blog(("Multi sample window: "s  + std::to_string(multiSample)).c_str());
 	platformFunctions.console.blog(("Samples count: "s + std::to_string(samples)).c_str());
+	platformFunctions.console.log("");
 
 }
 

@@ -333,6 +333,11 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		if (wp == VK_OEM_3 && altWasDown & isUp)
 		{
 			consoleRunning = !consoleRunning;
+
+			if (consoleRunning) 
+			{
+				resetConsole(&gameWindowBuffer, &platformFunctions.console);
+			}
 		}
 		
 #if INTERNAL_BUILD
@@ -500,7 +505,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	char* memBlock = (char*)allocateWithoutGuard(gameMemorySize + heapMemorySize + 8, (void*)gameMemoryBaseAdress);
 
 	gameMemory = (GameMemory*)memBlock;
-	heapMemory = (HeapMemory*)(&memBlock[sizeof(GameMemory)]); //todo align 8
+	heapMemory = (HeapMemory*)(&memBlock[sizeof(GameMemory)]);
 
 	heapMemory->allocator.init(heapMemory->memory, sizeof(heapMemory->memory));
 
@@ -832,6 +837,25 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			{
 				if (xinputData.controllerConnected[i])
 				{
+					auto tresshold = [](float& v, float min, float max, float setMin, float setMax)
+					{
+						if (v <= min) { v = setMin; }
+						if (v >= max) { v = setMax; }
+					};
+
+					auto tressholdNegAndPoz = [](float& v, float min, float max, float setMin, float setMax)
+					{
+						if(v > 0)
+						{
+							if (v <= min) { v = setMin; }
+							if (v >= max) { v = setMax; }
+						}else
+						{
+							if (v >= -min) { v = -setMin; }
+							if (v <= -max) {v = -setMax;}
+						}
+
+					};
 
 					asynkButtonClear(gameInput.controllers[i].A);
 					asynkButtonClear(gameInput.controllers[i].B);
@@ -899,32 +923,25 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 					gameInput.controllers[i].LT = xinputData.controllers->Gamepad.bLeftTrigger / 255.f;
 					gameInput.controllers[i].RT = xinputData.controllers->Gamepad.bRightTrigger / 255.f;
-					//todo tresshold here
+
+					tresshold(gameInput.controllers[i].LT, 0.2, 0.9, 0, 1);
+					tresshold(gameInput.controllers[i].RT, 0.2, 0.9, 0, 1);
+
 					
 					gameInput.controllers[i].LThumb.x = xinputData.controllers->Gamepad.sThumbLX / (float)0x7f'ff;
 					gameInput.controllers[i].LThumb.y = xinputData.controllers->Gamepad.sThumbLY / (float)0x7f'ff;
 					
+					tressholdNegAndPoz(gameInput.controllers[i].LThumb.x, 0.2, 0.9, 0, 1);
+					tressholdNegAndPoz(gameInput.controllers[i].LThumb.y, 0.2, 0.9, 0, 1);
+
+
 					gameInput.controllers[i].RThumb.x = xinputData.controllers->Gamepad.sThumbRX / (float)0x7f'ff;
 					gameInput.controllers[i].RThumb.y = xinputData.controllers->Gamepad.sThumbRY / (float)0x7f'ff;
 
-					//todo tresshold here
-					if (abs(gameInput.controllers[i].RThumb.x) < 0.2)
-					{
-						gameInput.controllers[i].RThumb.x = 0;
-					}
-					if (abs(gameInput.controllers[i].RThumb.y) < 0.2)
-					{
-						gameInput.controllers[i].RThumb.y = 0;
-					}
+					tressholdNegAndPoz(gameInput.controllers[i].RThumb.x, 0.2, 0.9, 0, 1);
+					tressholdNegAndPoz(gameInput.controllers[i].RThumb.y, 0.2, 0.9, 0, 1);
 
-					if (abs(gameInput.controllers[i].LThumb.x) < 0.2)
-					{
-						gameInput.controllers[i].LThumb.x = 0;
-					}
-					if (abs(gameInput.controllers[i].LThumb.y) < 0.2)
-					{
-						gameInput.controllers[i].LThumb.y = 0;
-					}
+
 
 					gameInput.anyController.merge(gameInput.controllers[i]);
 
@@ -975,7 +992,14 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 			volatileMemory->reset();
 
-			gameInput.deltaTime = deltaTime;
+			float clampedDeltaTime = deltaTime;
+
+			if(clampedDeltaTime < 1/10)
+			{
+				clampedDeltaTime = 1/10.f;
+			}
+
+			gameInput.deltaTime = clampedDeltaTime;
 
 			//playback recording
 #if INTERNAL_BUILD 

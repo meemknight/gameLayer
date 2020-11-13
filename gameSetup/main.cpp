@@ -18,6 +18,7 @@ BOOL WINAPI DllMain(
 }
 
 FreeListAllocator* allocator = nullptr;
+Console* console = nullptr;
 
 #pragma region allocator
 
@@ -58,7 +59,7 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 #pragma region necesary setup
 	allocator = &heapMemory->allocator;
 	new(mem) GameMemory; // *mem = GameMemory();
-	auto& console = platformFunctions->console;
+	console = &platformFunctions->console;
 
 	platformFunctions->makeContext();
 	glewExperimental = true;
@@ -66,6 +67,8 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	{
 		MessageBoxA(0, "glewInit", "Error from glew", MB_ICONERROR);
 	}
+
+	gl2d::setErrorFuncCallback([](const char* c) {console->elog(c); });
 	gl2d::init();
 #pragma endregion
 
@@ -85,6 +88,7 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 
 	mem->ps.initParticleSystem(300);
 
+
 	//mem->musicPlayer.openFromFile("resources//rainForest.wav");
 	//mem->musicPlayer.setVolume(50);
 	//mem->musicPlayer.play();
@@ -98,7 +102,7 @@ extern "C" __declspec(dllexport) void onReload(GameMemory * mem, HeapMemory * he
 {
 #pragma region necesary setup
 	allocator = &heapMemory->allocator;
-	auto& console = platformFunctions->console;
+	console = &platformFunctions->console;
 
 	platformFunctions->makeContext();
 	glewExperimental = true;
@@ -106,6 +110,8 @@ extern "C" __declspec(dllexport) void onReload(GameMemory * mem, HeapMemory * he
 	{
 		MessageBoxA(0, "glewInit", "Error from glew", MB_ICONERROR);
 	}
+
+	gl2d::setErrorFuncCallback([](const char* c) {console->elog(c); });
 	gl2d::init();
 #pragma endregion
 
@@ -124,7 +130,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 #pragma region per frame setup
 	allocator = &heapMemory->allocator;
 	float deltaTime = input->deltaTime;
-	auto& console = platformFunctions->console;
+	console = &platformFunctions->console;
 
 	glClear(GL_COLOR_BUFFER_BIT);
 	//glViewport(0, 0, windowBuffer->w, windowBuffer->h);
@@ -371,7 +377,7 @@ extern "C" __declspec(dllexport) void onClose(GameMemory * mem, HeapMemory * hea
 {
 #pragma region necesary setup
 	allocator = &heapMemory->allocator;
-	auto& console = platformFunctions->console;
+	console = &platformFunctions->console;
 
 
 #pragma endregion
