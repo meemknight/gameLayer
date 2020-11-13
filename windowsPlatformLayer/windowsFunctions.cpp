@@ -16,6 +16,7 @@ HWND globalWind;
 HGLRC globalHGLRC;
 
 void win32LoadDll(gameLogic_t** gameLogicPtr, onCreate_t** onCreatePtr, onReload_t** onReloadPtr,
+	onClose_t** onClosePtr,
 	const char *dllName)
 {
 #if INTERNAL_BUILD
@@ -57,6 +58,9 @@ void win32LoadDll(gameLogic_t** gameLogicPtr, onCreate_t** onCreatePtr, onReload
 
 	*onReloadPtr = (onReload_t*)GetProcAddress(dllHand, "onReload");
 	assert(*onReloadPtr);
+
+	*onClosePtr = (onReload_t*)GetProcAddress(dllHand, "onClose");
+	assert(*onClosePtr);
 
 	OutputDebugString("RELOADED DLL");
 }

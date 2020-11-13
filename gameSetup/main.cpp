@@ -71,8 +71,8 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 
 
 	//set the size of the window
-	windowSettings->w = 800;
-	windowSettings->h = 600;
+	windowSettings->w = 640;
+	windowSettings->h = 360;
 	windowSettings->drawWithOpenGl = true;
 	windowSettings->lockTo60fps = false;
 	gl2d::setVsync(1);
@@ -130,17 +130,25 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 	//glViewport(0, 0, windowBuffer->w, windowBuffer->h);
 	mem->renderer.updateWindowMetrics(windowBuffer->w, windowBuffer->h);
 
-	mem->renderer.currentCamera.zoom = windowSettings->fullScreenZoon;
+	if(windowSettings->fullScreen)
+	{
+		mem->renderer.currentCamera.zoom = windowSettings->fullScreenZoon;
+	}else
+	{
+		windowSettings->w = 640;
+		windowSettings->h = 360;
+		mem->renderer.currentCamera.zoom = 640.f / 1920.f;
+	}
 	//mem->renderer.currentCamera.zoom = 0.5;
 	//mem->renderer.currentCamera.target = { mem->posX, mem->posY };
 
-	float w = windowSettings->w;
-	float h = windowSettings->h;
+	float w = windowBuffer->w;
+	float h = windowBuffer->h;
 
 #pragma endregion
 
 	mem->renderer.currentCamera.follow({mem->posX, mem->posY}, 
-		deltaTime * 100, 30, windowSettings->w, windowSettings->h);
+		deltaTime * 100, 30, windowBuffer->w, windowBuffer->h);
 
 	mem->ps.pixelateFactor = 2;
 
@@ -306,6 +314,15 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 			mem->posX += speed;
 		}
 
+		if (input->keyBoard[Button::Q].held )
+		{
+			mem->renderer.currentCamera.rotation -= speed;
+		}
+		if (input->keyBoard[Button::E].held )
+		{
+			mem->renderer.currentCamera.rotation += speed;
+		}
+
 		
 		mem->posX += speed * input->anyController.LThumb.x;
 		mem->posY -= speed * input->anyController.LThumb.y;
@@ -323,7 +340,16 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 
 		if (input->leftMouse.held)
 		{
-			mem->ps.emitParticleWave(&mem->firePart, {mem->posX, mem->posY});
+			glm::vec2 p = {
+				mem->posX + (input->mouseX - w / 2.f) / mem->renderer.currentCamera.zoom,
+				mem->posY + (input->mouseY - h / 2.f) / mem->renderer.currentCamera.zoom
+			};
+
+			p = { input->mouseX , input->mouseY };
+
+			p = mem->renderer.currentCamera.convertPoint(p, w, h);
+
+			mem->ps.emitParticleWave(&mem->firePart, p);
 
 		}
 		
@@ -335,9 +361,22 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 		mem->renderer.flush();
 
 
-		console.log(std::to_string(windowBuffer->w).c_str());
-
 	//mem->renderer.renderRectangle({ 10,10,100,100 }, Colors_Green);
 	//mem->renderer.flush();
+
+}
+
+extern "C" __declspec(dllexport) void onClose(GameMemory * mem, HeapMemory * heapMemory,
+	WindowSettings * windowSettings, PlatformFunctions * platformFunctions)
+{
+#pragma region necesary setup
+	allocator = &heapMemory->allocator;
+	auto& console = platformFunctions->console;
+
+
+#pragma endregion
+
+
+
 
 }

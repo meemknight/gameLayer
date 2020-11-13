@@ -1618,6 +1618,54 @@ void main()
 
 	}
 
+	glm::vec2 Camera::convertPoint(const glm::vec2& p, float windowW, float windowH)
+	{
+		glm::vec2 r = p;
+
+
+		//Apply camera transformations
+		r.x += this->position.x ;
+		r.y += this->position.y ;
+		
+		{
+			glm::vec2 cameraCenter = { this->position.x + windowW / 2, - this->position.y - windowH / 2 };
+
+			r = rotateAroundPoint(r,
+				cameraCenter,
+				this->rotation);
+		}
+
+		{
+			glm::vec2 cameraCenter = { this->position.x + windowW / 2, this->position.y + windowH / 2 };
+
+			r = scaleAroundPoint(r,
+				cameraCenter,
+				1.f / zoom);
+		}
+
+		//if (this->rotation != 0)
+		//{
+		//	glm::vec2 cameraCenter;
+		//
+		//	cameraCenter.x = windowW / 2.0f;
+		//	cameraCenter.y = windowH / 2.0f;
+		//
+		//	r = rotateAroundPoint(r, cameraCenter, this->rotation);
+		//
+		//}
+
+		//{
+		//	glm::vec2 cameraCenter;
+		//	cameraCenter.x = windowW / 2.0f;
+		//	cameraCenter.y = -windowH / 2.0f;
+		//
+		//	r = scaleAroundPoint(r, cameraCenter, this->zoom);
+		//
+		//}
+
+		return r;
+	}
+
 	void FrameBuffer::create(unsigned int w, unsigned int h)
 	{
 		glGenFramebuffers(1, &fbo);

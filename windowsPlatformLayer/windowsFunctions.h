@@ -14,7 +14,8 @@
 #endif
 
 
-void win32LoadDll(gameLogic_t * *gameLogicPtr, onCreate_t * *onCreatePtr, onReload_t * *onReloadPtr, const char* dllName);
+void win32LoadDll(gameLogic_t * *gameLogicPtr, onCreate_t * *onCreatePtr, onReload_t * *onReloadPtr,
+	onClose_t * *onClosePtr, const char* dllName);
 void win32UnloadDll();
 
 FILETIME win32GetLastWriteFile(const char* name);

@@ -173,6 +173,8 @@ namespace gl2d
 		glm::mat3 getMatrix();
 
 		void follow(glm::vec2 pos, float speed, float max, float w, float h);
+	
+		glm::vec2 convertPoint(const glm::vec2 &p, float windowW, float windowH);
 	};
 
 

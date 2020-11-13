@@ -355,3 +355,8 @@ WindowSettings *windowSettings, PlatformFunctions *platformFunctions)
 typedef ONRELOAD(onReload_t);
 extern "C" __declspec(dllexport) ONRELOAD(onReload);
 
+#define ONCLOSE(x) void x(GameMemory* memory, HeapMemory *heapMemory, \
+WindowSettings *windowSettings, PlatformFunctions *platformFunctions)
+typedef ONCLOSE(onClose_t);
+extern "C" __declspec(dllexport) ONCLOSE(onClose);
+

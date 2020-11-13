@@ -110,7 +110,7 @@ void asynkButtonClear(Button &b)
 
 WINDOWPLACEMENT windowPlacementPrev = { sizeof(windowPlacementPrev) };
 static bool fullscreen = false;
-static float fullScreenZoon = 1;
+static float fullScreenZoom = 1;
 
 void setupFullscreen()
 {
@@ -201,11 +201,11 @@ void setupFullscreen()
 	int i = 0;
 	if(validMonitorSettings.size() > i)
 	{
-		std::cout << "Current mode: " << validMonitorSettings[i].first.dmPelsWidth <<
-			" " << validMonitorSettings[i].first.dmPelsHeight << "  zoom: " << validMonitorSettings[i].second << "\n";
+		//std::cout << "Current mode: " << validMonitorSettings[i].first.dmPelsWidth <<
+		//	" " << validMonitorSettings[i].first.dmPelsHeight << "  zoom: " << validMonitorSettings[i].second << "\n";
 
 		ChangeDisplaySettings(&validMonitorSettings[i].first, CDS_FULLSCREEN);
-		fullScreenZoon = validMonitorSettings[i].second;
+		fullScreenZoom = validMonitorSettings[i].second;
 	}
 
 	
@@ -517,10 +517,11 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	gameLogic_t* gameLogic_ptr;
 	onCreate_t* onCreate_ptr;
 	onReload_t* onReload_ptr;
+	onClose_t* onClose_ptr;
 
 	FILETIME lastFileTime = win32GetLastWriteFile(dllName);
 
-	win32LoadDll(&gameLogic_ptr, &onCreate_ptr, &onReload_ptr, dllName);
+	win32LoadDll(&gameLogic_ptr, &onCreate_ptr, &onReload_ptr, &onClose_ptr, dllName);
 
 #pragma endregion
 
@@ -538,7 +539,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	platformFunctions.makeContext = makeContext;
 
 #pragma endregion
-
 
 
 #pragma region fake window
@@ -953,7 +953,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			}else
 			{
 				if (((windowSettings.h != gameWindowBuffer.h)
-					|| (windowSettings.h != gameWindowBuffer.h)
+					|| (windowSettings.w != gameWindowBuffer.w)
 					) && windowSettings.h != 0
 					&& windowSettings.w != 0)
 				{
@@ -1072,7 +1072,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 			CloseHandle(file);
 
-			win32LoadDll(&gameLogic_ptr, &onCreate_ptr, &onReload_ptr, dllName);
+			win32LoadDll(&gameLogic_ptr, &onCreate_ptr, &onReload_ptr, &onClose_ptr, dllName);
 			onReload_ptr(gameMemory, heapMemory, &windowSettings, &platformFunctions);
 			setWindowSize(wind, windowSettings.w, windowSettings.h);
 			resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
@@ -1138,11 +1138,11 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	{
 		windowSettings.h = gameWindowBuffer.h;
 		windowSettings.w = gameWindowBuffer.w;
-		windowSettings.fullScreenZoon = fullScreenZoon;
+		windowSettings.fullScreenZoon = fullScreenZoom;
 	}else
 	{
 		windowSettings.fullScreenZoon = 1;
-		fullScreenZoon = 1;
+		fullScreenZoom = 1;
 	}
 
 
@@ -1150,6 +1150,10 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 
 	}
+
+
+	onClose_ptr(gameMemory, heapMemory, &windowSettings, &platformFunctions);
+
 
 	CloseWindow(wind);
 
