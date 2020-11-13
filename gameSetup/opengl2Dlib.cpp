@@ -96,8 +96,10 @@ void main()
 	color = v_color * texture(u_sampler, v_texture);
 	
 	if(color.a <0.01)discard;
-	color.a = 1.f;
-	
+	//color.a = 1.f;
+
+	color.a = pow(color.a, 0.2); 
+
 	color.rgb *= cFilter;
 	color.rgb = floor(color.rgb);
 	color.rgb /= cFilter;
@@ -1722,7 +1724,10 @@ void main()
 	void FrameBuffer::clear()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		//glClearColor(1, 1, 1, 0);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		//glClearColor(0, 0, 0, 0);
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 
@@ -2159,6 +2164,7 @@ void main()
 
 			r.updateWindowMetrics(w / pixelateFactor, h / pixelateFactor);
 
+
 		}
 
 
@@ -2271,10 +2277,11 @@ void main()
 
 		if (postProcessing)
 		{
-
 			fb.clear();
 			r.flushFBO(fb);
 			
+
+
 			r.updateWindowMetrics(w, h);
 			r.currentCamera.setDefault();
 

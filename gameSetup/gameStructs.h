@@ -301,7 +301,6 @@ struct PlatformFunctions
 {
 	Console console;
 
-	//todo add other functions here
 	writeEntireFile_t* writeEntireFile = 0;
 	readEntireFile_t* readEntirFile = 0;
 	makeContext_t* makeContext = 0;
