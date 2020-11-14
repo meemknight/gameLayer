@@ -4,6 +4,7 @@
 #include <string>
 #include <Windows.h>
 #include "opengl2Dlib.h"
+#include "Phisics.h"
 
 //here you add the memory of the game like so
 struct GameMemory
@@ -20,11 +21,14 @@ struct GameMemory
 
 	gl2d::Texture background;
 	gl2d::Texture dot;
+	gl2d::Texture characterTexture;
 
 	gl2d::ParticleSystem ps;
 
-	float posX = 0;
-	float posY = 0;
+
+	phisics::MapData mapData;
+	phisics::Entity player;
+
 
 	//sf::Music musicPlayer;
 

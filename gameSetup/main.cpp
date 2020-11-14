@@ -85,9 +85,26 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 
 	mem->background.loadFromFile("resources//background.png");
 	mem->dot.loadFromFile("resources//dot.png");
+	mem->characterTexture.loadFromFile("resources//character.png");
 
 	mem->ps.initParticleSystem(300);
 
+	const char* mapShape = 
+	"      X  X"
+	"      X  X"
+	" XXXX     "
+	"    X     "
+	"       X  "
+	" XX XXXX  "
+	"          "
+	" XX X X   "
+	"  X   X  X"
+	"  X X   XX";
+
+	mem->mapData.create(10, 10, mapShape);
+
+	mem->player.pos = {};
+	mem->player.dimensions = {60,60};
 
 	//mem->musicPlayer.openFromFile("resources//rainForest.wav");
 	//mem->musicPlayer.setVolume(50);
@@ -151,10 +168,10 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 	float w = windowBuffer->w;
 	float h = windowBuffer->h;
 
+	auto& renderer = mem->renderer;
 #pragma endregion
 
-	mem->renderer.currentCamera.follow({mem->posX, mem->posY}, 
-		deltaTime * 100, 30, windowBuffer->w, windowBuffer->h);
+
 
 	mem->ps.pixelateFactor = 2;
 
@@ -292,33 +309,39 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 	char color1 = 255-input->controllers[0].LT * 254;
 	char color2 = 255-input->controllers[0].RT * 254;
 
-	mem->renderer.renderRectangle({ 0,0, 1500, 800 }, {}, 0, mem->background);
+	renderer.renderRectangle({ 0,0, 1500, 800 }, {}, 0, mem->background);
 	
-	//draw player
-	mem->renderer.renderRectangle({ mem->posX , mem->posY, 20, 20 }, { 255.f / color2, 255.f / color1, 255.f / 25, 255.f / 255 }, {}, 43);
 
 
 	//move player
 
-	float speed = 340 * deltaTime;
+	float speed = 620 * deltaTime;
 		
+	glm::vec2 dir = {};
 
 		if(input->keyBoard[Button::W].held || input->anyController.Up.held)
 		{
-			mem->posY -= speed;
+			dir.y -= speed;
 		}
 		if (input->keyBoard[Button::S].held || input->anyController.Down.held)
 		{
-			mem->posY += speed;
+			dir.y += speed;
 		}
 		if (input->keyBoard[Button::A].held || input->anyController.Left.held)
 		{
-			mem->posX -= speed;
+			dir.x -= speed;
 		}
 		if (input->keyBoard[Button::D].held || input->anyController.Right.held)
 		{
-			mem->posX += speed;
+			dir.x += speed;
 		}
+
+		dir.x += speed * input->anyController.LThumb.x;
+		dir.y -= speed * input->anyController.LThumb.y;
+
+		//todo normalize dir;
+		mem->player.move(dir);
+		
 
 		if (input->keyBoard[Button::Q].held )
 		{
@@ -330,8 +353,6 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 		}
 
 		
-		mem->posX += speed * input->anyController.LThumb.x;
-		mem->posY -= speed * input->anyController.LThumb.y;
 
 
 		if (input->keyBoard[Button::Enter].released)
@@ -346,9 +367,10 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 
 		if (input->leftMouse.held)
 		{
+
 			glm::vec2 p = {
-				mem->posX + (input->mouseX - w / 2.f) / mem->renderer.currentCamera.zoom,
-				mem->posY + (input->mouseY - h / 2.f) / mem->renderer.currentCamera.zoom
+				mem->player.pos.x + (input->mouseX - w / 2.f) / mem->renderer.currentCamera.zoom,
+				mem->player.pos.y + (input->mouseY - h / 2.f) / mem->renderer.currentCamera.zoom
 			};
 
 			p = { input->mouseX , input->mouseY };
@@ -358,8 +380,35 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 			mem->ps.emitParticleWave(&mem->firePart, p);
 
 		}
+
+
+#pragma region drawMap
+		auto& mapData = mem->mapData;
+		for (int y = 0; y < mapData.h; y++)
+			for (int x = 0; x < mapData.w; x++) 
+			{
+				if(mapData.get(x,y).type == 'X')
+				{
+					auto s = mapData.BLOCK_SIZE;
+					renderer.renderRectangle({ x * s, y * s, s, s }, Colors_Green);
+				}
+			}
+
+#pragma endregion
+
+
+		mem->player.resolveConstrains(mem->mapData);
+
+		mem->player.updateMove();
+
+		mem->renderer.currentCamera.follow({ mem->player.pos },
+			deltaTime * 100, 30, windowBuffer->w, windowBuffer->h);
+
+		mem->player.draw(renderer, deltaTime, mem->characterTexture);
+
 		
-		
+
+
 		mem->ps.applyMovement(deltaTime);
 		mem->ps.draw(mem->renderer);
 

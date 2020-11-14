@@ -161,12 +161,14 @@
     <ClCompile Include="freeListAllocator.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="opengl2Dlib.cpp" />
+    <ClCompile Include="Phisics.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\windowsPlatformLayer\buildConfig.h" />
     <ClInclude Include="freeListAllocator.h" />
     <ClInclude Include="gameStructs.h" />
     <ClInclude Include="opengl2Dlib.h" />
+    <ClInclude Include="Phisics.h" />
     <ClInclude Include="utility.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
