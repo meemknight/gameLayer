@@ -1,16 +1,7 @@
 #pragma once
 #include "../windowsPlatformLayer/buildConfig.h"
 
-//todo windows assert
-#if ENABLE_ASSERT
 
-#define assert(x) if(!(x)){*(char*)0 = 0;}
-
-#else
-
-#define assert(x)
-
-#endif
 
 
 #define KB(x) ((x)*1024LL)
@@ -48,7 +39,7 @@ struct SerializedVariableInstance
 {
 	SerializedVariableInstance(SerializedVariabels& vars, int type, void* ptr, const char* name)
 	{
-		assert(vars.pos < vars.MAX_VAR_SIZE);
+		winAssertComment(vars.pos < vars.MAX_VAR_SIZE, "Serialized Variables limit reached");
 		vars.var[vars.pos] = { type, ptr, name };
 		vars.pos++;
 	};

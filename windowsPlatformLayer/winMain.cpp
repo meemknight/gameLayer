@@ -350,7 +350,7 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 			replayBufferData.recordingSlot = slot;
 
 			if(!saveGameState(slot, gameMemory, heapMemory))
-				assert(0);
+				winAssertComment(0, "Error saving game state");
 
 			char c[20] = {};
 			strcpy(c, "input0");
@@ -360,9 +360,9 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 
 			replayBufferData.recordingFileHand = CreateFile(c, GENERIC_READ | GENERIC_WRITE, 0, 0, CREATE_ALWAYS, 0, 0);
 			
-			assert(replayBufferData.recordingFileHand != 0
+			winAssertComment(replayBufferData.recordingFileHand != 0
 				&& replayBufferData.recordingFileHand != INVALID_HANDLE_VALUE
-			);
+			,"Error creating replay file");
 		
 		}
 		if(wp == 'S' && altWasDown)
@@ -410,7 +410,7 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 
 			replayBufferData.fileMappingPointer = MapViewOfFile(replayBufferData.fileMapping, FILE_MAP_ALL_ACCESS, 0, 0, 0);
 			
-			assert(replayBufferData.fileMappingPointer != 0);
+			winAssert(replayBufferData.fileMappingPointer != 0);
 
 			DWORD high = 0;
 			DWORD low = 0;
@@ -702,12 +702,12 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
+
 	while (running)
 	{
 
 #pragma region time
 
-		//todo
 		if (windowSettings.lockTo60fps)
 		{
 			if (timeBeginPeriod(1) == TIMERR_NOERROR)
@@ -741,7 +741,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		LARGE_INTEGER deltaTimeInteger;
 		deltaTimeInteger.QuadPart = time4.QuadPart - time3.QuadPart;
 
-		//todo clamp delta time
 		float deltaTime = (float)deltaTimeInteger.QuadPart / (float)performanceFrequency.QuadPart;
 		QueryPerformanceCounter(&time3);
 	
@@ -963,7 +962,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		{
 #pragma region checkForChanges
 			
-			//todo full screen
 			if(windowSettings.fullScreen)
 			{
 				
@@ -1063,7 +1061,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		}else
 		{
 
-			//todo repair
+			
 			RECT r;
 			GetClientRect(wind, &r);
 			int w = r.left;

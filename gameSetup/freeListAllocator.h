@@ -14,8 +14,17 @@
 ///set this to 1 if you want to link to new/delete
 ///also set the heap size,
 #define LINK_TO_GLOBAL_ALLOCATOR 0
+#define DEFAULT_ASSERT_FUNC 0
 #define HEAP_SIZE MB(10)
 
+
+#if DEFAULT_ASSERT_FUNC 
+#include <cassert>
+
+#define winAssert(x)			assert(x)
+#define winAssertComment(x, y)	assert(x)
+
+#endif
 
 struct FreeListAllocator
 {

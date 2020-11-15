@@ -6,7 +6,7 @@
 
 
 #include "freeListAllocator.h"
-#include <cassert>
+#include "utility.h"
 #include <cstdint>
 
 #if LINK_TO_GLOBAL_ALLOCATOR == 1
@@ -88,7 +88,7 @@ void FreeListAllocator::init(void* baseMemory, size_t memorySize)
 
 	static_assert(sizeof(FreeBlock) == sizeof(AllocatedBlock), "");
 
-	assert(memorySize > 100);
+	winAssertComment(memorySize > 100, "memory size must be greater than 100 bytes");
 
 	this->baseMemory = (char*)baseMemory;
 
@@ -110,10 +110,8 @@ void FreeListAllocator::init(void* baseMemory, size_t memorySize)
 
 void* FreeListAllocator::allocate(size_t size)
 {
-	//todo optional check
 
-
-	assert(baseMemory); //err allocator not initialized
+	winAssert(baseMemory, "Allocator not initialized"); //err allocator not initialized
 
 
 	FreeBlock* last = nullptr;
@@ -128,8 +126,6 @@ void* FreeListAllocator::allocate(size_t size)
 	while (true)
 	{
 
-		//todo handle case when allocate near end
-		//todo handle case when a very small block remains
 
 		if (aligned8Size <= ((FreeBlock*)current)->size) // this is a suitable block
 		{
@@ -191,7 +187,7 @@ void* FreeListAllocator::allocate(size_t size)
 						if (currentSize - aligned8Size < 0 || (currentSize - aligned8Size) % 8 != 0)
 						{
 							//heap corrupted
-							assert(0);
+							winAssert(0, "heap corupted");
 						}
 
 						aligned8Size += (currentSize - aligned8Size);
@@ -236,7 +232,7 @@ void* FreeListAllocator::allocate(size_t size)
 						if (currentSize - aligned8Size < 0 || (currentSize - aligned8Size) % 8 != 0)
 						{
 							//heap corrupted
-							assert(0);
+							winAssert(0, "heap corupted");
 						}
 
 						aligned8Size += (currentSize - aligned8Size);
@@ -295,7 +291,7 @@ void* FreeListAllocator::allocate(size_t size)
 				}
 				else
 				{
-					assert(0);
+					winAssertComment(0, "Allocator out of memory");
 				}
 
 			}
@@ -311,7 +307,7 @@ void* FreeListAllocator::allocate(size_t size)
 
 	}
 
-	assert(0);
+	winAssert(0);
 	return nullptr;
 }
 
@@ -329,8 +325,7 @@ void FreeListAllocator::free(void* mem)
 
 #pragma region check validity
 
-	//todo add optional logging
-	assert(allocatedBLockHeader->guard == GUARD_VALUE); //invalid free or double free
+	winAssertComment(allocatedBLockHeader->guard == GUARD_VALUE, "invalid free or double free"); //invalid free or double free
 	allocatedBLockHeader->guard = 0;
 #pragma endregion
 
@@ -355,7 +350,7 @@ void FreeListAllocator::free(void* mem)
 		else if ((size_t)headerBegin + sizeof(AllocatedBlock) + sizeOfTheFreedBlock > (size_t)this->baseMemory)
 		{
 			//heap corupted
-			assert(0);
+			winAssert(0, "heap corupted");
 		}
 		else
 		{	//this doesn't merge with the next free block so just link them
@@ -403,7 +398,7 @@ void FreeListAllocator::free(void* mem)
 				else if ((size_t)theBlockBefore + sizeof(FreeBlock) + theBlockBefore->size > (size_t)headerBegin)
 				{
 					//error heap corupted
-					assert(0);
+					winAssert(0, "heap corupted");
 				}
 				else
 				{
@@ -430,7 +425,7 @@ void FreeListAllocator::free(void* mem)
 					else if ((size_t)newCurent + sizeof(FreeBlock) + newCurent->size > (size_t)theBlockAfter)
 					{
 						//err
-						assert(0);
+						winAssert(0, "heap corupted");
 					}
 					else
 					{
@@ -451,7 +446,8 @@ void FreeListAllocator::free(void* mem)
 			if (current == nullptr || current >= this->end)
 			{
 				//heap corupted or freed an invalid value
-				assert(0);
+				winAssert(0, "heap corupted or an invalid free");
+
 			}
 		}
 	}

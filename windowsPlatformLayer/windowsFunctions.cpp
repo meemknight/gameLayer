@@ -48,19 +48,19 @@ void win32LoadDll(gameLogic_t** gameLogicPtr, onCreate_t** onCreatePtr, onReload
 	dllHand = LoadLibrary(dllName);
 #endif
 
-	assert(dllHand);
+	winAssert(dllHand);
 
 	*gameLogicPtr = (gameLogic_t*)GetProcAddress(dllHand, "gameLogic");
-	assert(*gameLogicPtr);
+	winAssert(*gameLogicPtr);
 
 	*onCreatePtr = (onCreate_t*)GetProcAddress(dllHand, "onCreate");
-	assert(*onCreatePtr);
+	winAssert(*onCreatePtr);
 
 	*onReloadPtr = (onReload_t*)GetProcAddress(dllHand, "onReload");
-	assert(*onReloadPtr);
+	winAssert(*onReloadPtr);
 
 	*onClosePtr = (onReload_t*)GetProcAddress(dllHand, "onClose");
-	assert(*onClosePtr);
+	winAssert(*onClosePtr);
 
 	OutputDebugString("RELOADED DLL");
 }
@@ -109,7 +109,7 @@ bool writeEntireFile(const char *name, void* buffer, size_t size)
 		rez = 0;
 	}
 
-	assert(size == sizeWritten);
+	winAssertComment(size == sizeWritten, "File not written properly");
 
 	CloseHandle(file);
 

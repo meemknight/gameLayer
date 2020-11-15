@@ -1280,7 +1280,6 @@ void main()
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-		
 
 		this->id = id;
 	}
@@ -1704,7 +1703,6 @@ void main()
 
 	}
 
-	//todo vlod: will probasbly also clear the fbo
 	void FrameBuffer::resize(unsigned int w, unsigned int h)
 	{
 		glBindTexture(GL_TEXTURE_2D, texture.id);
