@@ -340,7 +340,6 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 		dir.y -= speed * input->anyController.LThumb.y;
 
 		//todo normalize dir;
-		mem->player.move(dir);
 		
 
 		if (input->keyBoard[Button::Q].held )
@@ -397,15 +396,17 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 #pragma endregion
 
 
+
+		mem->player.move(dir);
+
+
 		mem->player.resolveConstrains(mem->mapData);
 
 		mem->player.updateMove();
 
-		mem->renderer.currentCamera.follow({ mem->player.pos },
-			deltaTime * 100, 30, windowBuffer->w, windowBuffer->h);
+		mem->renderer.currentCamera.follow({ mem->player.pos }, deltaTime * 100, 30, windowBuffer->w, windowBuffer->h);
 
 		mem->player.draw(renderer, deltaTime, mem->characterTexture);
-
 		
 
 
