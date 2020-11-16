@@ -7,14 +7,14 @@
 #pragma once
 #include <mutex>
 
-#define KB(x) (x) * 1024l
-#define MB(x) KB((x)) * 1024l
-#define GB(x) MB((x)) * 1024l
+#define KB(x) (x) * 1024ull
+#define MB(x) KB((x)) * 1024ull
+#define GB(x) MB((x)) * 1024ull
 
 ///set this to 1 if you want to link to new/delete
 ///also set the heap size,
 #define LINK_TO_GLOBAL_ALLOCATOR 0
-#define DEFAULT_ASSERT_FUNC 0
+#define DEFAULT_ASSERT_FUNC 1
 #define HEAP_SIZE MB(10)
 
 
@@ -45,6 +45,12 @@ struct FreeListAllocator
 	void* threadSafeAllocate(size_t size);
 
 	void threadSafeFree(void* mem);
+
+	//available memory is the free memory
+	//biggest block is how large is the biggest free memory block
+	//you can allocate less than the largest biggest free memory because 16 bytes are reserved per block
+	void calculateMemoryMetrics(size_t& availableMemory, size_t& biggestBlock, int& freeBlocks);
+
 
 	//if this is false it will crash if it is out of memory
 	//if this is true it will return 0 when there is no more memory

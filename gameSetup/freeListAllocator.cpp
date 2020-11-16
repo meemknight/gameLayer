@@ -6,7 +6,6 @@
 
 
 #include "freeListAllocator.h"
-#include "utility.h"
 #include <cstdint>
 
 #if LINK_TO_GLOBAL_ALLOCATOR == 1
@@ -31,7 +30,7 @@ void* operator new  (std::size_t count)
 {
 	auto a = allocator.allocate(count);
 
-	std::cout << "Allocated " << count << " at " << a << '\n';
+	//std::cout << "Allocated " << count << " at " << a << '\n';
 
 	return a;
 }
@@ -40,21 +39,21 @@ void* operator new[](std::size_t count)
 {
 	auto a = allocator.allocate(count);
 
-	std::cout << "Allocated " << count << " at " << a << '\n';
+	//std::cout << "Allocated " << count << " at " << a << '\n';
 
 	return a;
 }
 
 void operator delete  (void* ptr)
 {
-	std::cout << "Deallocated at: " << ptr << "\n";
+	//std::cout << "Deallocated at: " << ptr << "\n";
 
 	allocator.free(ptr);
 }
 
 void operator delete[](void* ptr)
 {
-	std::cout << "Deallocated at: " << ptr << "\n";
+	//std::cout << "Deallocated at: " << ptr << "\n";
 
 	allocator.free(ptr);
 }
@@ -112,6 +111,7 @@ void* FreeListAllocator::allocate(size_t size)
 {
 
 	winAssert(baseMemory, "Allocator not initialized"); //err allocator not initialized
+
 
 
 	FreeBlock* last = nullptr;
@@ -228,6 +228,7 @@ void* FreeListAllocator::allocate(size_t size)
 
 					if (currentSize - aligned8Size < 24)
 					{
+
 						//too small block remaining
 						if (currentSize - aligned8Size < 0 || (currentSize - aligned8Size) % 8 != 0)
 						{
@@ -326,7 +327,7 @@ void FreeListAllocator::free(void* mem)
 #pragma region check validity
 
 	winAssertComment(allocatedBLockHeader->guard == GUARD_VALUE, "invalid free or double free"); //invalid free or double free
-	allocatedBLockHeader->guard = 0;
+
 #pragma endregion
 
 	size_t sizeOfTheFreedBlock = allocatedBLockHeader->size;
@@ -473,6 +474,48 @@ void FreeListAllocator::threadSafeFree(void* mem)
 	this->free(mem);
 
 	mu.unlock();
+}
+
+void FreeListAllocator::calculateMemoryMetrics(size_t& availableMemory, size_t& biggestBlock, int& freeBlocks)
+{
+
+	availableMemory = 0;
+	biggestBlock = 0;
+	freeBlocks = 0;
+
+	if (!baseMemory)
+	{
+		return;
+	}
+
+
+	FreeBlock* last = nullptr;
+	FreeBlock* current = (FreeBlock*)baseMemory;
+
+	while (true)
+	{
+		freeBlocks++;
+		availableMemory += current->size;
+		biggestBlock = std::max(biggestBlock, current->size);
+
+		if (current->next == nullptr || current->next >= this->end)
+		{
+			//that was the last block
+
+			break;
+
+		}
+		else
+		{
+			last = current;
+			current = (FreeBlock*)current->next;
+		}
+
+
+	}
+
+
+
 }
 
 

@@ -1,8 +1,11 @@
 #pragma once
 
-#define INTERNAL_BUILD 1 //this includes things like debugg checking replay and hot code reloading
+#define INTERNAL_BUILD 1	//this includes things like debugg checking replay and hot code reloading
+							//when this is 0 the code will build for shipping mode, it will disable
+							//debugging tools like input record, custom memory allocation adress space
+							//and the option to ignore an assert
 
-#define ENABLE_CONSOLE 1
+#define ENABLE_CONSOLE 1	//this is the default windows console
 
 #define ALLOW_ONLY_ONE_INSTANCE 1
 
@@ -10,11 +13,61 @@
 
 #include <signal.h>
 #include <Windows.h>
-#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 
-inline void assertFunc(
+inline void assertFuncProduction(
+	const char* expression,
+	const char* file_name,
+	unsigned const line_number,
+	const char* comment = "---")
+{
+
+	char c[1024] = {};
+
+	sprintf(c,
+		"Assertion failed\n\n"
+		"File:\n"
+		"%s\n\n"
+		"Line:\n"
+		"%u\n\n"
+		"Expresion:\n"
+		"%s\n\n"
+		"Comment:\n"
+		"%s"
+		"\n\nPlease report this error to the developer.",
+		file_name,
+		line_number,
+		expression,
+		comment
+	);
+
+	int const action = MessageBox(0, c, "Platform Layer", MB_TASKMODAL
+		| MB_ICONHAND | MB_OK | MB_SETFOREGROUND);
+
+	switch (action)
+	{
+		case IDOK: // Abort the program:
+		{
+			raise(SIGABRT);
+
+			// We won't usually get here, but it's possible that a user-registered
+			// abort handler returns, so exit the program immediately.  Note that
+			// even though we are "aborting," we do not call abort() because we do
+			// not want to invoke Watson (the user has already had an opportunity
+			// to debug the error and chose not to).
+			_exit(3);
+		}
+		default:
+		{
+			_exit(3);
+		}
+	}
+
+}
+
+
+inline void assertFuncInternal(
 	const char* expression,
 	const char* file_name,
 	unsigned const line_number,
@@ -72,12 +125,28 @@ inline void assertFunc(
 
 }
 
+#if INTERNAL_BUILD == 1
+
 #define winAssert(expression) (void)(											\
 			(!!(expression)) ||												\
-			(assertFunc(#expression, __FILE__, (unsigned)(__LINE__)), 0)	\
+			(assertFuncInternal(#expression, __FILE__, (unsigned)(__LINE__)), 0)	\
 		)
 
 #define winAssertComment(expression, comment) (void)(								\
 			(!!(expression)) ||														\
-			(assertFunc(#expression, __FILE__, (unsigned)(__LINE__)), 0, comment)	\
+			(assertFuncInternal(#expression, __FILE__, (unsigned)(__LINE__)), 0, comment)	\
 		)
+
+#else
+
+#define winAssert(expression) (void)(											\
+			(!!(expression)) ||												\
+			(assertFuncProduction(#expression, __FILE__, (unsigned)(__LINE__)), 0)	\
+		)
+
+#define winAssertComment(expression, comment) (void)(								\
+			(!!(expression)) ||														\
+			(assertFuncProduction(#expression, __FILE__, (unsigned)(__LINE__)), 0, comment)	\
+		)
+
+#endif

@@ -438,6 +438,23 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 	return rez;
 }
 
+#pragma region signal
+
+void SignalHandler(int signal)
+{
+	if (signal == SIGABRT)
+	{
+
+		
+
+		_exit(3);
+	}
+	
+}
+
+#pragma endregion
+
+
 int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 {
 
@@ -458,6 +475,12 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	freopen("conout$", "w", stderr);
 	std::cout.sync_with_stdio();
 #endif
+
+#pragma region signal
+
+	signal(SIGABRT, SignalHandler);
+
+#pragma endregion
 
 
 #pragma region dllName
@@ -684,6 +707,8 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 #pragma endregion
 
 	ShowWindow(wind, SW_NORMAL);
+
+	winAssert(0);
 
 #pragma region time
 
