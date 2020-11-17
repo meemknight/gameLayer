@@ -171,7 +171,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 	auto& renderer = mem->renderer;
 #pragma endregion
 
-
+	platformFunctions->keepPlayingMusic("resources//jungle.wav", 0.1);
 
 	mem->ps.pixelateFactor = 2;
 

@@ -5,6 +5,7 @@
 #include <Windows.h>
 #include "opengl2Dlib.h"
 #include "Phisics.h"
+#include "../windowsPlatformLayer/Audio.h"
 
 //here you add the memory of the game like so
 struct GameMemory
@@ -301,6 +302,19 @@ READENTIREFILE(readEntireFile);
 typedef MAKECONTEXT(makeContext_t);
 MAKECONTEXT(makeContext);
 
+#define WINSETMASTERVOLUME(x) void x(float volume)
+typedef WINSETMASTERVOLUME(winSetMasterVolume_t);
+extern "C" WINSETMASTERVOLUME(winSetMasterVolume);
+
+#define WINPLAYSOUND(x) void x(const char* name, float volume)
+typedef WINPLAYSOUND(winPlaySound_t);
+extern "C" WINPLAYSOUND(winPlaySound);
+
+#define WINKEEPPLAYINGMUSIC(x) void x(const char* name, float volume)
+typedef WINKEEPPLAYINGMUSIC(winKeepPlayingMusic_t);
+extern "C" WINKEEPPLAYINGMUSIC(winKeepPlayingMusic);
+
+
 struct PlatformFunctions
 {
 	Console console;
@@ -308,6 +322,10 @@ struct PlatformFunctions
 	writeEntireFile_t* writeEntireFile = 0;
 	readEntireFile_t* readEntirFile = 0;
 	makeContext_t* makeContext = 0;
+	winSetMasterVolume_t* setMasterVolume = 0;
+	winPlaySound_t* playSound = 0;
+	winKeepPlayingMusic_t* keepPlayingMusic = 0;
+
 };
 
 struct GameWindowBuffer
@@ -362,4 +380,3 @@ extern "C" __declspec(dllexport) ONRELOAD(onReload);
 WindowSettings *windowSettings, PlatformFunctions *platformFunctions)
 typedef ONCLOSE(onClose_t);
 extern "C" __declspec(dllexport) ONCLOSE(onClose);
-

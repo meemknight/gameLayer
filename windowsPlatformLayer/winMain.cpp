@@ -35,7 +35,31 @@ static bool consoleRunning = false;
 extern HWND globalWind;
 extern HGLRC globalHGLRC;
 
+Audio audio = {};
+
 #pragma endregion
+
+#pragma region audio functions
+
+void winSetMasterVolume(float volume) 
+{
+	audio.setMasterVolume(volume);
+}
+
+
+void winPlaySound(const char* name, float volume) 
+{
+	audio.playSound(name, volume);
+}
+
+
+void winKeepPlayingMusic(const char* name, float volume)
+{
+	audio.keepPlayingMusic(name, volume);
+}
+
+#pragma endregion
+
 
 extern "C"
 {
@@ -707,7 +731,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma region enable audio
 
-	Audio audio;
 	audio.initAudioDrivers();
 
 #pragma endregion
@@ -996,8 +1019,10 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma region music
 
-			audio.keepPlayingMusic("resources//jungle.wav", 0.1);
 			audio.updateAudioStream();
+			platformFunctions.setMasterVolume = &winSetMasterVolume;
+			platformFunctions.playSound = &winPlaySound;
+			platformFunctions.keepPlayingMusic = &winKeepPlayingMusic;
 
 #pragma endregion
 
