@@ -460,7 +460,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #if ALLOW_ONLY_ONE_INSTANCE 
 //global mutex that lets only one instance of this app run
-	CreateMutex(NULL, TRUE, "gameLayerMutex");
+	CreateMutex(NULL, TRUE, "Global\\gameLayerMutex");
 	if (GetLastError() == ERROR_ALREADY_EXISTS)
 	{
 		return 0;

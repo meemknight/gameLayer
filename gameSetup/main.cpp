@@ -24,7 +24,7 @@ Console* console = nullptr;
 
 void* operator new  (std::size_t count)
 {
-	auto a = allocator->allocate(count);
+	auto a = allocator->threadSafeAllocate(count);
 
 
 	return a;
@@ -32,7 +32,7 @@ void* operator new  (std::size_t count)
 
 void* operator new[](std::size_t count)
 {
-	auto a = allocator->allocate(count);
+	auto a = allocator->threadSafeAllocate(count);
 
 
 	return a;
@@ -41,13 +41,13 @@ void* operator new[](std::size_t count)
 void operator delete  (void* ptr)
 {
 
-	allocator->free(ptr);
+	allocator->threadSafeFree(ptr);
 }
 
 void operator delete[](void* ptr)
 {
 
-	allocator->free(ptr);
+	allocator->threadSafeFree(ptr);
 }
 
 #pragma endregion

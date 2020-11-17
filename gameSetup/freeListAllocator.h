@@ -1,11 +1,15 @@
 //////////////////////////////////////////////////
-//freeListAllocator.h				beta 0.1
+//freeListAllocator.h				beta 0.2
 //Copyright(c) 2020 Luta Vlad
 //https://github.com/meemknight/freeListAllocator
 //////////////////////////////////////////////////
 
 #pragma once
+#include <Windows.h>
 #include <mutex>
+
+#undef min
+#undef max
 
 #define KB(x) (x) * 1024ull
 #define MB(x) KB((x)) * 1024ull
@@ -25,6 +29,23 @@
 #define winAssertComment(x, y)	assert(x)
 
 #endif
+
+
+struct FreeListAllocatorMutex
+{
+
+	FreeListAllocatorMutex();
+
+	void lock();
+	void unlock();
+
+	LONG counter;
+	HANDLE semaphore;
+
+	~FreeListAllocatorMutex();
+
+};
+
 
 struct FreeListAllocator
 {
@@ -61,7 +82,7 @@ private:
 
 	void* end = 0;
 
-	std::mutex mu;
+	FreeListAllocatorMutex mu;
 
 	size_t getEnd()
 	{

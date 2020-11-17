@@ -1,5 +1,5 @@
 //////////////////////////////////////////////////
-//freeListAllocator.h				beta 0.1
+//freeListAllocator.h				beta 0.2
 //Copyright(c) 2020 Luta Vlad
 //https://github.com/meemknight/freeListAllocator
 //////////////////////////////////////////////////
@@ -7,6 +7,11 @@
 
 #include "freeListAllocator.h"
 #include <cstdint>
+
+
+#include <intrin.h>
+#pragma intrinsic (_InterlockedIncrement)
+#pragma intrinsic (_InterlockedDecrement)
 
 #if LINK_TO_GLOBAL_ALLOCATOR == 1
 
@@ -619,3 +624,35 @@ bool FreeListAllocatorWinSpecific::extendAllocatedMemory(size_t size)
 }
 
 #endif
+
+//https://preshing.com/20120226/roll-your-own-lightweight-mutex/
+FreeListAllocatorMutex::FreeListAllocatorMutex()
+{
+	counter = 0;
+	semaphore = CreateSemaphore(NULL, 0, 1, NULL);
+}
+
+void FreeListAllocatorMutex::lock()
+{
+
+	if (_InterlockedIncrement(&counter) > 1) // x86/64 guarantees acquire semantics
+	{
+		WaitForSingleObject(semaphore, INFINITE);
+	}
+
+}
+
+void FreeListAllocatorMutex::unlock()
+{
+	if (_InterlockedDecrement(&counter) > 0) // x86/64 guarantees release semantics
+	{
+		ReleaseSemaphore(semaphore, 1, NULL);
+	}
+}
+
+FreeListAllocatorMutex::~FreeListAllocatorMutex()
+{
+	CloseHandle(semaphore);
+	counter = 0;
+	semaphore = 0;
+}

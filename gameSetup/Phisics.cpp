@@ -78,9 +78,10 @@ namespace phisics
 
 	end:
 
+		//clamp the box if needed
 		//if (pos.x < 0) { pos.x = 0; }
 		//if (pos.x + dimensions.x > (mapData.w) * BLOCK_SIZE) { pos.x = ((mapData.w) * BLOCK_SIZE) - dimensions.x; }
-		__noop();
+		void;
 
 	}
 
