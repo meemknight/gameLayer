@@ -791,7 +791,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
-
 #pragma region process messages & input
 		
 		gameInput.windowActive = active;

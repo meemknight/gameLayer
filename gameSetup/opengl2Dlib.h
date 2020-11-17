@@ -377,6 +377,8 @@ namespace gl2d
 		abruptCurbe,
 		wave,
 		wave2,
+		delay,
+		delay2
 	};
 
 

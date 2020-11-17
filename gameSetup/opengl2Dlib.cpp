@@ -2198,6 +2198,12 @@ void main()
 			case gl2d::TRANZITION_TYPES::wave2:
 				lifePerc = std::cos(lifePerc * 5 * 3.141592) * std::sqrt(lifePerc) * 0.9f + 0.1f;
 				break;
+			case gl2d::TRANZITION_TYPES::delay:
+				lifePerc = (std::cos(lifePerc * 3.141592 * 2) * std::sin(lifePerc * lifePerc)) / 2.f;
+				break;
+			case gl2d::TRANZITION_TYPES::delay2:
+				lifePerc = (std::atan(2 * lifePerc * lifePerc * lifePerc * 3.141592)) / 2.f;
+				break;
 			default:
 				break;
 			}
