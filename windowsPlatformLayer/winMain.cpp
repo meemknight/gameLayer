@@ -9,6 +9,9 @@
 #include <Xinput.h>
 #include "Console.h"
 #include <algorithm>
+#include "Audio.h"
+
+#pragma region globals
 
 static bool running = 1;
 static bool active = 0;
@@ -18,7 +21,7 @@ static GameWindowBuffer fpsCounterBuffer = {};
 
 static GameMemory* gameMemory = nullptr;
 static HeapMemory* heapMemory = nullptr;
-	   PlatformFunctions platformFunctions;
+PlatformFunctions platformFunctions;
 static char dllName[260];
 static GameInput gameInput = {};
 static LARGE_INTEGER performanceFrequency;
@@ -31,6 +34,8 @@ static bool consoleRunning = false;
 
 extern HWND globalWind;
 extern HGLRC globalHGLRC;
+
+#pragma endregion
 
 extern "C"
 {
@@ -454,7 +459,6 @@ void SignalHandler(int signal)
 
 #pragma endregion
 
-
 int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 {
 
@@ -467,7 +471,8 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	}
 #endif
 
-	//console
+#pragma region console
+	
 #if ENABLE_CONSOLE
 	AllocConsole();
 	freopen("conin$", "r", stdin);
@@ -476,12 +481,13 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	std::cout.sync_with_stdio();
 #endif
 
+#pragma endregion
+
 #pragma region signal
 
 	signal(SIGABRT, SignalHandler);
 
 #pragma endregion
-
 
 #pragma region dllName
 
@@ -567,7 +573,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	platformFunctions.makeContext = makeContext;
 
 #pragma endregion
-
 
 #pragma region fake window
 	{
@@ -700,6 +705,13 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	//}
 #pragma endregion
 
+#pragma region enable audio
+
+	Audio audio;
+	audio.initAudioDrivers();
+
+#pragma endregion
+
 #pragma region call game init
 	onCreate_ptr(gameMemory, heapMemory, &windowSettings, &platformFunctions);
 	setWindowSize(wind, windowSettings.w, windowSettings.h);
@@ -707,8 +719,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 #pragma endregion
 
 	ShowWindow(wind, SW_NORMAL);
-
-	winAssert(0);
 
 #pragma region time
 
@@ -726,7 +736,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	QueryPerformanceCounter(&time3);
 
 #pragma endregion
-
 
 	while (running)
 	{
@@ -985,6 +994,15 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 		if (!consoleRunning) 
 		{
+
+#pragma region music
+
+			audio.keepPlayingMusic("resources//jungle.wav", 0.1);
+			audio.updateAudioStream();
+
+#pragma endregion
+
+
 #pragma region checkForChanges
 			
 			if(windowSettings.fullScreen)
@@ -1013,7 +1031,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 #pragma endregion
 
 
-			volatileMemory->reset();
+#pragma region clamp Delta time
 
 			float clampedDeltaTime = deltaTime;
 
@@ -1021,10 +1039,13 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			{
 				clampedDeltaTime = 1/10.f;
 			}
-
+			
 			gameInput.deltaTime = clampedDeltaTime;
 
-			//playback recording
+#pragma endregion
+
+#pragma region playback recording
+
 #if INTERNAL_BUILD 
 			if (replayBufferData.recordingState == PLAYING)
 			{
@@ -1051,13 +1072,26 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			}
 #endif
 
+#pragma endregion
+
+#pragma region game logic
+
+			volatileMemory->reset();
+
 			//execute game logic
 			gameLogic_ptr(&gameInput, gameMemory, heapMemory, volatileMemory, &gameWindowBuffer,
 				&windowSettings, &platformFunctions);
 
+#pragma endregion
+
+
 		}else // run the console
 		{
+#pragma region draw console
+
 			drawConsole(&gameWindowBuffer, &platformFunctions.console);
+
+#pragma endregion
 		}
 
 
@@ -1101,7 +1135,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
-	//check if game code changed	
+#pragma region check if game code changed	
 #if INTERNAL_BUILD 
 		FILETIME fileTime2 = {};
 		fileTime2 = win32GetLastWriteFile(dllName);
@@ -1125,6 +1159,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
 		}
 #endif
+#pragma endregion
 
 #pragma region fullScreen
 
@@ -1195,14 +1230,16 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma endregion
 
-
 	}
 
+#pragma region close game
 
 	onClose_ptr(gameMemory, heapMemory, &windowSettings, &platformFunctions);
 
-
 	CloseWindow(wind);
+
+#pragma endregion
+
 
 	return 0;
 }

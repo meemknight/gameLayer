@@ -7,6 +7,7 @@
 #pragma once
 #include <Windows.h>
 #include <mutex>
+#include "../windowsPlatformLayer/buildConfig.h"
 
 #undef min
 #undef max
@@ -18,7 +19,7 @@
 ///set this to 1 if you want to link to new/delete
 ///also set the heap size,
 #define LINK_TO_GLOBAL_ALLOCATOR 0
-#define DEFAULT_ASSERT_FUNC 1
+#define DEFAULT_ASSERT_FUNC 0
 #define HEAP_SIZE MB(10)
 
 
