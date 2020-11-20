@@ -503,7 +503,26 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	freopen("conout$", "w", stdout);
 	freopen("conout$", "w", stderr);
 	std::cout.sync_with_stdio();
+
 #endif
+
+	platformFunctions.console.glog("- Platform layer console -");
+	platformFunctions.console.glog("----- Luta Vlad (c) ------");
+	platformFunctions.console.glog("press ALT + ~ or ` to exit");
+	platformFunctions.console.writeText("\n");
+#pragma endregion
+
+#pragma region set platform functions pointers
+
+	platformFunctions.readEntirFile = readEntireFile;
+	platformFunctions.writeEntireFile = writeEntireFile;
+	platformFunctions.makeContext = makeContext;
+
+#pragma endregion
+
+#pragma region enable audio
+
+	audio.initAudioDrivers();
 
 #pragma endregion
 
@@ -580,21 +599,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	FILETIME lastFileTime = win32GetLastWriteFile(dllName);
 
 	win32LoadDll(&gameLogic_ptr, &onCreate_ptr, &onReload_ptr, &onClose_ptr, dllName);
-
-#pragma endregion
-
-#pragma region print to console
-	platformFunctions.console.glog("- Platform layer console -");
-	platformFunctions.console.glog("----- Luta Vlad (c) ------");
-	platformFunctions.console.glog("press ALT + ~ or ` to exit");
-	platformFunctions.console.writeText("\n");
-#pragma endregion
-
-#pragma region set platform functions pointers
-
-	platformFunctions.readEntirFile = readEntireFile;
-	platformFunctions.writeEntireFile = writeEntireFile;
-	platformFunctions.makeContext = makeContext;
 
 #pragma endregion
 
@@ -727,12 +731,6 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	//{
 	//	MessageBoxA(0, "glewInit", "Error from glew", MB_ICONERROR);
 	//}
-#pragma endregion
-
-#pragma region enable audio
-
-	audio.initAudioDrivers();
-
 #pragma endregion
 
 #pragma region call game init

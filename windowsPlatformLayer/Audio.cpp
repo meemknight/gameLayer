@@ -1,4 +1,8 @@
 #include "Audio.h"
+#include "windowsFunctions.h"
+#undef PlaySound
+
+extern PlatformFunctions platformFunctions;
 
 Audio::Audio()
 {
@@ -34,8 +38,14 @@ void Audio::playSound(const char* name, float volume)
 			sounds.push_back(s);
 			auto& m = sounds[sounds.size() - 1];
 
-		}
+		}else
+		{
+			std::string errMessage = "Error loading Sound: ";
+			errMessage += name;
 
+			platformFunctions.console.elog(errMessage.c_str());
+
+		}
 
 
 	}

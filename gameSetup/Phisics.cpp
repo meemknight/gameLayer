@@ -111,9 +111,8 @@ namespace phisics
 	void Entity::draw(gl2d::Renderer2D& renderer, float deltaTime, gl2d::Texture characterSprite)
 	{
 
-
-		renderer.renderRectangle({ pos, dimensions }, {}, 0, characterSprite);
-
+		//renderer.renderRectangle({ pos, dimensions }, {}, 0, characterSprite);
+		renderer.renderRectangle({ pos, dimensions }, Colors_Turqoise);
 
 	}
 

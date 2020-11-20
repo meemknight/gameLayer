@@ -171,7 +171,17 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 	auto& renderer = mem->renderer;
 #pragma endregion
 
-	platformFunctions->keepPlayingMusic("resources//jungle.wav", 0.1);
+	//platformFunctions->keepPlayingMusic("resources//jungle.wav", 0.1);
+
+	if(input->keyBoard[Button::NR1].pressed)
+	{
+		platformFunctions->playSound("resources/weird.wav", 0.1);
+	}
+
+	if(input->keyBoard[Button::NR2].held)
+	{
+		platformFunctions->keepPlayingMusic("resources/jungle.wav", 0.08);
+	}
 
 	mem->ps.pixelateFactor = 2;
 
@@ -399,7 +409,6 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 
 		mem->player.move(dir);
 
-
 		mem->player.resolveConstrains(mem->mapData);
 
 		mem->player.updateMove();
@@ -408,7 +417,6 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 
 		mem->player.draw(renderer, deltaTime, mem->characterTexture);
 		
-
 
 		mem->ps.applyMovement(deltaTime);
 		mem->ps.draw(mem->renderer);

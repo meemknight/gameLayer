@@ -29,7 +29,6 @@ FreeListAllocator allocator(memBlock, sizeof(memBlock));
 
 
 //todo (vlod): Add c++17 overloads
-//todo add own assert
 
 void* operator new  (std::size_t count)
 {
