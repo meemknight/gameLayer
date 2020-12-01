@@ -52,7 +52,6 @@ void operator delete[](void* ptr)
 
 #pragma endregion
 
-
 extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * heapMemory,
 	WindowSettings *windowSettings, PlatformFunctions * platformFunctions)
 {
@@ -78,7 +77,7 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	windowSettings->h = 360;
 	windowSettings->drawWithOpenGl = true;
 	windowSettings->lockTo60fps = false;
-	gl2d::setVsync(1);
+	//gl2d::setVsync(1);
 
 
 	mem->renderer.create();
@@ -87,7 +86,7 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	mem->dot.loadFromFile("resources//dot.png");
 	mem->characterTexture.loadFromFile("resources//character.png");
 
-	mem->ps.initParticleSystem(300);
+	mem->ps.initParticleSystem(5000);
 
 	const char* mapShape = 
 	"      X  X"
@@ -256,7 +255,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 
 #pragma endregion
 
-	mem->firePart.onCreateCount = 2;
+	mem->firePart.onCreateCount = 50;
 	mem->firePart.subemitParticleTime = {};		
 	mem->firePart.particleLifeTime = {0.9, 1.5};
 	mem->firePart.directionX = { -8,8 };
@@ -418,7 +417,16 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 		mem->player.draw(renderer, deltaTime, mem->characterTexture);
 		
 
+		auto beginTime = __rdtsc();
 		mem->ps.applyMovement(deltaTime);
+		auto endTime = __rdtsc();
+
+
+		auto clocks = endTime - beginTime;
+
+		console->log(std::to_string(clocks).c_str());
+
+
 		mem->ps.draw(mem->renderer);
 
 

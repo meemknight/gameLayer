@@ -167,7 +167,7 @@ struct HeapMemory
 
 struct VolatileMemory
 {
-	static const size_t maxSize = KB(10);
+	static const size_t maxSize = KB(20);
 
 	char memory[maxSize];
 	char* stackTop = 0;

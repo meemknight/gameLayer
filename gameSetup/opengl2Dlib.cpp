@@ -1774,6 +1774,10 @@ void main()
 
 	void ParticleSystem::initParticleSystem(int size)
 	{
+		//simdize size
+		size += 4 - (size % 4);
+
+
 		this->size = size;
 
 #pragma region allocations
@@ -1954,55 +1958,127 @@ void main()
 
 		}
 
+		__m128 _deltaTime = _mm_set1_ps(deltaTime);
 
 #pragma region applyDrag
 
+	#define GL2D_SIMD 1
+		
+
+	#if GL2D_SIMD == 0
 		for (int i = 0; i < size; i++)
 		{
-			if (duration[i] > 0)
+			//if (duration[i] > 0)
 				directionX[i] += deltaTime * dragX[i];
+		}
+
+		for (int i = 0; i < size; i++)
+		{
+			//if (duration[i] > 0)
+			directionY[i] += deltaTime * dragY[i];
 
 		}
 
 		for (int i = 0; i < size; i++)
 		{
-			if (duration[i] > 0)
-				directionY[i] += deltaTime * dragY[i];
 
+			//if (duration[i] > 0)
+			rotationSpeed[i] += deltaTime * rotationDrag[i];
+		}
+	#else
+
+		for (int i = 0; i < size; i+=4)
+		{
+			//directionX[i] += deltaTime * dragX[i];
+			
+			__m128 *dir = (__m128 *) &(directionX[i]);
+			__m128 *drag = (__m128 *) &(dragX[i]);
+
+			*dir = _mm_fmadd_ps(_deltaTime, *drag, *dir);
+		}
+
+		for (int i = 0; i < size; i += 4)
+		{
+			//directionY[i] += deltaTime * dragY[i];
+
+			__m128 *dir = (__m128 *) & (directionY[i]);
+			__m128 *drag = (__m128 *) & (dragY[i]);
+
+			*dir = _mm_fmadd_ps(_deltaTime, *drag, *dir);
 		}
 
 		for (int i = 0; i < size; i++)
 		{
+			//rotationSpeed[i] += deltaTime * rotationDrag[i];
 
-			if (duration[i] > 0)
-				rotationSpeed[i] += deltaTime * rotationDrag[i];
+			__m128 *dir = (__m128 *) & (rotationSpeed[i]);
+			__m128 *drag = (__m128 *) & (rotationDrag[i]);
 
+			*dir = _mm_fmadd_ps(_deltaTime, *drag, *dir);
 		}
+	#endif
+
+
+
 #pragma endregion
 
 
 #pragma region apply movement
 
+		//todo simd
+
+	#if GL2D_SIMD == 0
 		for (int i = 0; i < size; i++)
 		{
-			if (duration[i] > 0)
+			//if (duration[i] > 0)
 				posX[i] += deltaTime * directionX[i];
 
 		}
+	
 
 		for (int i = 0; i < size; i++)
 		{
-			if (duration[i] > 0)
+			//if (duration[i] > 0)
 				posY[i] += deltaTime * directionY[i];
 
 		}
 
 		for (int i = 0; i < size; i++)
 		{
-			if (duration[i] > 0)
+			//if (duration[i] > 0)
 				rotation[i] += deltaTime * rotationSpeed[i];
 
 		}
+	#else 
+		for (int i = 0; i < size; i+=4)
+		{
+			//posX[i] += deltaTime * directionX[i];
+			__m128 *dir = (__m128 *) & (posX[i]);
+			__m128 *drag = (__m128 *) & (directionX[i]);
+
+			*dir = _mm_fmadd_ps(_deltaTime, *drag, *dir);
+		}
+
+
+		for (int i = 0; i < size; i++)
+		{
+			//posY[i] += deltaTime * directionY[i];
+			__m128 *dir = (__m128 *) & (posY[i]);
+			__m128 *drag = (__m128 *) & (directionY[i]);
+
+			*dir = _mm_fmadd_ps(_deltaTime, *drag, *dir);
+		}
+
+		for (int i = 0; i < size; i++)
+		{
+			//rotation[i] += deltaTime * rotationSpeed[i];
+			__m128 *dir = (__m128 *) & (rotation[i]);
+			__m128 *drag = (__m128 *) & (rotationSpeed[i]);
+
+			*dir = _mm_fmadd_ps(_deltaTime, *drag, *dir);
+		}
+
+	#endif
 
 #pragma endregion
 

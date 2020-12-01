@@ -35,6 +35,8 @@ static bool consoleRunning = false;
 extern HWND globalWind;
 extern HGLRC globalHGLRC;
 
+const char* windowName = "Geam";
+
 Audio audio = {};
 
 #pragma endregion
@@ -696,7 +698,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		0
 		,
 		wc.lpszClassName,
-		"Geam",
+		windowName,
 		WS_OVERLAPPEDWINDOW,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
@@ -808,6 +810,11 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			currentFrameCount = dtCounter;
 			dtCounter = 0;
 			//std::cout << currentFrameCount << '\n';
+
+			SetWindowText(wind, (std::string(windowName) + " - " + std::to_string(currentFrameCount)
+				+ "fps"
+				).c_str());
+
 		}
 
 #pragma endregion
