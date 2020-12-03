@@ -27,11 +27,11 @@
     <ClCompile Include="freeListAllocator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="opengl2Dlib.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Phisics.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\gitSubmodule\gl2d\opengl2DLib\opengl2Dlib.cpp">
+      <Filter>Source Files\shared</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -47,10 +47,10 @@
     <ClInclude Include="freeListAllocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="opengl2Dlib.h">
+    <ClInclude Include="Phisics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Phisics.h">
+    <ClInclude Include="..\gitSubmodule\gl2d\opengl2DLib\opengl2Dlib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

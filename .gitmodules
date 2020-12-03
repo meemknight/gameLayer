@@ -1,0 +1,3 @@
+[submodule "gitSubmodule/gl2d"]
+	path = gitSubmodule/gl2d
+	url = https://github.com/meemknight/gl2d
