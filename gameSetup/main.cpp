@@ -77,7 +77,7 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	windowSettings->h = 360;
 	windowSettings->drawWithOpenGl = true;
 	windowSettings->lockTo60fps = false;
-	//gl2d::setVsync(1);
+	gl2d::setVsync(1);
 
 
 	mem->renderer.create();

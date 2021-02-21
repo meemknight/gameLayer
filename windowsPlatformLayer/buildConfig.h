@@ -11,6 +11,10 @@
 
 #define NOT_RECORD_DELTATIME 0
 
+#define USE_GPU_ENGINE 1
+
+
+//todo move
 #include <signal.h>
 #include <Windows.h>
 #include <string.h>
@@ -134,7 +138,7 @@ inline void assertFuncInternal(
 
 #define winAssertComment(expression, comment) (void)(								\
 			(!!(expression)) ||														\
-			(assertFuncInternal(#expression, __FILE__, (unsigned)(__LINE__)), 0, comment)	\
+			(assertFuncInternal(#expression, __FILE__, (unsigned)(__LINE__), comment), 1)	\
 		)
 
 #else
@@ -146,7 +150,8 @@ inline void assertFuncInternal(
 
 #define winAssertComment(expression, comment) (void)(								\
 			(!!(expression)) ||														\
-			(assertFuncProduction(#expression, __FILE__, (unsigned)(__LINE__)), 0, comment)	\
+			(assertFuncProduction(#expression, __FILE__, (unsigned)(__LINE__), comment), 1)	\
+
 		)
 
 #endif

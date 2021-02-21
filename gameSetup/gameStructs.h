@@ -184,7 +184,7 @@ struct VolatileMemory
 		stackTop += size;
 
 		winAssertComment(stackTop < memory + maxSize, "Volatile memory limit reached");
-
+		
 		return beginBlock;
 	}
 

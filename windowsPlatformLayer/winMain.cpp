@@ -22,7 +22,7 @@ static GameWindowBuffer fpsCounterBuffer = {};
 static GameMemory* gameMemory = nullptr;
 static HeapMemory* heapMemory = nullptr;
 PlatformFunctions platformFunctions;
-static char dllName[260];
+static char dllName[260];	//todo refactor
 static GameInput gameInput = {};
 static LARGE_INTEGER performanceFrequency;
 static WindowSettings windowSettings;
@@ -40,6 +40,15 @@ const char* windowName = "Geam";
 Audio audio = {};
 
 #pragma endregion
+
+#pragma region gpu
+extern "C"
+{
+	__declspec(dllexport) unsigned long NvOptimusEnablement = USE_GPU_ENGINE;
+	__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = USE_GPU_ENGINE;
+}
+#pragma endregion
+
 
 #pragma region audio functions
 
@@ -645,13 +654,10 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		pfd.dwFlags = PFD_DOUBLEBUFFER | PFD_SUPPORT_OPENGL | PFD_DRAW_TO_WINDOW;
 		pfd.iPixelType = PFD_TYPE_RGBA;
 		pfd.cColorBits = 32;
-		pfd.cAlphaBits = 8;
 		pfd.cDepthBits = 32;
 		pfd.iLayerType = PFD_MAIN_PLANE;
 
 		int nPixelFormat = ChoosePixelFormat(hdc, &pfd);
-
-		DescribePixelFormat(hdc, nPixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pfd);
 
 		SetPixelFormat(hdc, nPixelFormat, &pfd);
 
@@ -987,8 +993,8 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 					gameInput.controllers[i].LT = xinputData.controllers->Gamepad.bLeftTrigger / 255.f;
 					gameInput.controllers[i].RT = xinputData.controllers->Gamepad.bRightTrigger / 255.f;
 
-					tresshold(gameInput.controllers[i].LT, 0.2, 0.9, 0, 1);
-					tresshold(gameInput.controllers[i].RT, 0.2, 0.9, 0, 1);
+					tresshold(gameInput.controllers[i].LT, 0.2f, 0.9f, 0.f, 1.f);
+					tresshold(gameInput.controllers[i].RT, 0.2f, 0.9f, 0.f, 1.f);
 
 					
 					gameInput.controllers[i].LThumb.x = xinputData.controllers->Gamepad.sThumbLX / (float)0x7f'ff;
