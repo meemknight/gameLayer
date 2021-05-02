@@ -2,7 +2,7 @@
 #include "glm/vec2.hpp"
 #include "glm/vec4.hpp"
 #include <algorithm>
-#include "opengl2Dlib.h"
+#include "gl2d.h"
 
 #undef min
 #undef max

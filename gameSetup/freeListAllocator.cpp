@@ -29,8 +29,9 @@ FreeListAllocator allocator(memBlock, sizeof(memBlock));
 
 
 //todo (vlod): Add c++17 overloads
+//todo add own assert
 
-void* operator new  (std::size_t count)
+void *operator new  (std::size_t count)
 {
 	auto a = allocator.allocate(count);
 
@@ -39,7 +40,7 @@ void* operator new  (std::size_t count)
 	return a;
 }
 
-void* operator new[](std::size_t count)
+void *operator new[](std::size_t count)
 {
 	auto a = allocator.allocate(count);
 
@@ -48,14 +49,14 @@ void* operator new[](std::size_t count)
 	return a;
 }
 
-void operator delete  (void* ptr)
+void operator delete  (void *ptr)
 {
 	//std::cout << "Deallocated at: " << ptr << "\n";
 
 	allocator.free(ptr);
 }
 
-void operator delete[](void* ptr)
+void operator delete[](void *ptr)
 {
 	//std::cout << "Deallocated at: " << ptr << "\n";
 
@@ -71,7 +72,7 @@ struct FreeBlock
 {
 	union
 	{
-		char* next;
+		char *next;
 		std::uint64_t dummy_;
 	};
 	std::uint64_t size;
@@ -85,15 +86,15 @@ struct AllocatedBlock
 };
 
 
-void FreeListAllocator::init(void* baseMemory, size_t memorySize)
+void FreeListAllocator::init(void *baseMemory, size_t memorySize)
 {
-	end = (void*)((size_t)baseMemory + memorySize);
+	end = (void *)((size_t)baseMemory + memorySize);
 
 	static_assert(sizeof(FreeBlock) == sizeof(AllocatedBlock), "");
 
 	winAssertComment(memorySize > 100, "memory size must be greater than 100 bytes");
 
-	this->baseMemory = (char*)baseMemory;
+	this->baseMemory = (char *)baseMemory;
 
 	//move base memory to a 8 byte aligned
 
@@ -105,21 +106,21 @@ void FreeListAllocator::init(void* baseMemory, size_t memorySize)
 		memorySize -= 8 - (pos % 8);
 	}
 
-	((FreeBlock*)this->baseMemory)->next = nullptr;
-	((FreeBlock*)this->baseMemory)->size = memorySize - sizeof(FreeBlock);
+	((FreeBlock *)this->baseMemory)->next = nullptr;
+	((FreeBlock *)this->baseMemory)->size = memorySize - sizeof(FreeBlock);
 
 
 }
 
-void* FreeListAllocator::allocate(size_t size)
+void *FreeListAllocator::allocate(size_t size)
 {
 
 	winAssert(baseMemory, "Allocator not initialized"); //err allocator not initialized
 
 
 
-	FreeBlock* last = nullptr;
-	FreeBlock* current = (FreeBlock*)baseMemory;
+	FreeBlock *last = nullptr;
+	FreeBlock *current = (FreeBlock *)baseMemory;
 
 	int aligned8Size = size;
 	if (aligned8Size % 8 != 0)
@@ -131,41 +132,41 @@ void* FreeListAllocator::allocate(size_t size)
 	{
 
 
-		if (aligned8Size <= ((FreeBlock*)current)->size) // this is a suitable block
+		if (aligned8Size <= ((FreeBlock *)current)->size) // this is a suitable block
 		{
 			//add block here
 
 
-			FreeBlock* next = (FreeBlock*)current->next;
+			FreeBlock *next = (FreeBlock *)current->next;
 
 			if (next == nullptr || next >= this->end) //this is the last block
 			{
 				if (last == nullptr || last >= this->end) //this is also the first block so move the base pointer
 				{
-					void* toReturn = (char*)current + sizeof(AllocatedBlock);
-					((AllocatedBlock*)current)->size = aligned8Size;	//size of the new allocated block
-					((AllocatedBlock*)current)->guard = GUARD_VALUE;
+					void *toReturn = (char *)current + sizeof(AllocatedBlock);
+					((AllocatedBlock *)current)->size = aligned8Size;	//size of the new allocated block
+					((AllocatedBlock *)current)->guard = GUARD_VALUE;
 
-					FreeBlock* nextFreeBlock = (FreeBlock*)((char*)toReturn + aligned8Size);
+					FreeBlock *nextFreeBlock = (FreeBlock *)((char *)toReturn + aligned8Size);
 					//next free block is the base memory now
 
-					baseMemory = (char*)nextFreeBlock;
-					((FreeBlock*)baseMemory)->next = nullptr; //this is the last block
+					baseMemory = (char *)nextFreeBlock;
+					((FreeBlock *)baseMemory)->next = nullptr; //this is the last block
 
 					size_t size = this->getEnd() - (size_t)nextFreeBlock - (size_t)sizeof(FreeBlock); //set the size of the new last block
-					((FreeBlock*)baseMemory)->size = size;
+					((FreeBlock *)baseMemory)->size = size;
 
 					return toReturn;
 				}
 				else //this is not the first block so change the last block pointer
 				{
-					void* toReturn = (char*)current + sizeof(AllocatedBlock);
-					((AllocatedBlock*)current)->size = aligned8Size;	//size of the new allcoated block
-					((AllocatedBlock*)current)->guard = GUARD_VALUE;
+					void *toReturn = (char *)current + sizeof(AllocatedBlock);
+					((AllocatedBlock *)current)->size = aligned8Size;	//size of the new allcoated block
+					((AllocatedBlock *)current)->guard = GUARD_VALUE;
 
-					FreeBlock* nextFreeBlock = (FreeBlock*)((char*)toReturn + aligned8Size);
+					FreeBlock *nextFreeBlock = (FreeBlock *)((char *)toReturn + aligned8Size);
 
-					last->next = (char*)nextFreeBlock; //last is relinked
+					last->next = (char *)nextFreeBlock; //last is relinked
 					nextFreeBlock->next = nullptr; //this is the last block
 
 					size_t size = this->getEnd() - (size_t)nextFreeBlock - (size_t)sizeof(FreeBlock); //set the size of the new last block
@@ -180,9 +181,9 @@ void* FreeListAllocator::allocate(size_t size)
 
 				if (last == nullptr || last >= this->end) // this is the first free block but not the last 
 				{
-					size_t currentSize = ((FreeBlock*)current)->size;
+					size_t currentSize = ((FreeBlock *)current)->size;
 
-					void* toReturn = (char*)current + sizeof(AllocatedBlock);
+					void *toReturn = (char *)current + sizeof(AllocatedBlock);
 
 					if (currentSize - aligned8Size < 24)
 					{
@@ -196,13 +197,13 @@ void* FreeListAllocator::allocate(size_t size)
 
 						aligned8Size += (currentSize - aligned8Size);
 
-						((AllocatedBlock*)current)->size = aligned8Size;	//size of the new allocated block
-						((AllocatedBlock*)current)->guard = GUARD_VALUE;
+						((AllocatedBlock *)current)->size = aligned8Size;	//size of the new allocated block
+						((AllocatedBlock *)current)->guard = GUARD_VALUE;
 
-						FreeBlock* nextFreeBlock = next;
+						FreeBlock *nextFreeBlock = next;
 						//next free block is the next block
 
-						baseMemory = (char*)nextFreeBlock;
+						baseMemory = (char *)nextFreeBlock;
 
 						return toReturn;
 
@@ -210,13 +211,13 @@ void* FreeListAllocator::allocate(size_t size)
 					else
 					{
 						//add a new block
-						FreeBlock* newCreatedBlock = (FreeBlock*)((char*)toReturn + aligned8Size);
+						FreeBlock *newCreatedBlock = (FreeBlock *)((char *)toReturn + aligned8Size);
 						newCreatedBlock->size = currentSize - aligned8Size - sizeof(AllocatedBlock);
-						newCreatedBlock->next = (char*)next;
+						newCreatedBlock->next = (char *)next;
 
-						((AllocatedBlock*)current)->size = aligned8Size;	//size of the new allocated block
-						((AllocatedBlock*)current)->guard = GUARD_VALUE;
-						baseMemory = (char*)newCreatedBlock;
+						((AllocatedBlock *)current)->size = aligned8Size;	//size of the new allocated block
+						((AllocatedBlock *)current)->guard = GUARD_VALUE;
+						baseMemory = (char *)newCreatedBlock;
 
 						return toReturn;
 					}
@@ -227,8 +228,8 @@ void* FreeListAllocator::allocate(size_t size)
 				else // this is not the first free block and not the last 
 				{	//todo fix here
 
-					void* toReturn = (char*)current + sizeof(AllocatedBlock);
-					size_t currentSize = ((FreeBlock*)current)->size;
+					void *toReturn = (char *)current + sizeof(AllocatedBlock);
+					size_t currentSize = ((FreeBlock *)current)->size;
 
 					if (currentSize - aligned8Size < 24)
 					{
@@ -242,12 +243,12 @@ void* FreeListAllocator::allocate(size_t size)
 
 						aligned8Size += (currentSize - aligned8Size);
 
-						((AllocatedBlock*)current)->size = aligned8Size;	//size of the new allcoated block
-						((AllocatedBlock*)current)->guard = GUARD_VALUE;
+						((AllocatedBlock *)current)->size = aligned8Size;	//size of the new allcoated block
+						((AllocatedBlock *)current)->guard = GUARD_VALUE;
 
 						//FreeBlock* nextFreeBlock = (FreeBlock*)((char*)toReturn + aligned8Size);
 
-						last->next = (char*)next; //last is relinked
+						last->next = (char *)next; //last is relinked
 						//nextFreeBlock->next = (char*)next; //this is not the last block
 
 						//size_t size = this->getEnd() - (size_t)nextFreeBlock - (size_t)sizeof(FreeBlock); //set the size of the new last block
@@ -259,16 +260,16 @@ void* FreeListAllocator::allocate(size_t size)
 					else
 					{
 						//add a new block
-						FreeBlock* newCreatedBlock = (FreeBlock*)((char*)toReturn + aligned8Size);
+						FreeBlock *newCreatedBlock = (FreeBlock *)((char *)toReturn + aligned8Size);
 						newCreatedBlock->size = currentSize - aligned8Size - sizeof(AllocatedBlock);
-						newCreatedBlock->next = (char*)next;
+						newCreatedBlock->next = (char *)next;
 
-						((AllocatedBlock*)current)->size = aligned8Size;	//size of the new allcoated block
-						((AllocatedBlock*)current)->guard = GUARD_VALUE;
+						((AllocatedBlock *)current)->size = aligned8Size;	//size of the new allcoated block
+						((AllocatedBlock *)current)->guard = GUARD_VALUE;
 
 						//FreeBlock* nextFreeBlock = (FreeBlock*)((char*)toReturn + aligned8Size);
 
-						last->next = (char*)newCreatedBlock; //last is relinked
+						last->next = (char *)newCreatedBlock; //last is relinked
 						//nextFreeBlock->next = (char*)next; //this is not the last block
 
 						//size_t size = this->getEnd() - (size_t)nextFreeBlock - (size_t)sizeof(FreeBlock); //set the size of the new last block
@@ -303,7 +304,7 @@ void* FreeListAllocator::allocate(size_t size)
 			else
 			{
 				last = current;
-				current = (FreeBlock*)current->next;
+				current = (FreeBlock *)current->next;
 
 			}
 
@@ -316,17 +317,18 @@ void* FreeListAllocator::allocate(size_t size)
 	return nullptr;
 }
 
-void FreeListAllocator::free(void* mem)
+void FreeListAllocator::free(void *mem)
 {
+	if (mem == nullptr) { return; }
 
-	char* memoryBegin = (char*)mem;
+	char *memoryBegin = (char *)mem;
 
 	//mem is the beginning of the valid memory, \
 	the header is then 16 bytes lower
 
-	void* headerBegin = memoryBegin - sizeof(AllocatedBlock);
+	void *headerBegin = memoryBegin - sizeof(AllocatedBlock);
 
-	AllocatedBlock* allocatedBLockHeader = (AllocatedBlock*)headerBegin;
+	AllocatedBlock *allocatedBLockHeader = (AllocatedBlock *)headerBegin;
 
 #pragma region check validity
 
@@ -345,11 +347,11 @@ void FreeListAllocator::free(void* mem)
 		{
 			//this merges with the current first free block so merge them
 
-			FreeBlock* firstFreeBlock = (FreeBlock*)allocatedBLockHeader;
-			firstFreeBlock->next = ((FreeBlock*)this->baseMemory)->next;
-			firstFreeBlock->size = sizeOfTheFreedBlock + sizeof(FreeBlock) + ((FreeBlock*)this->baseMemory)->size;
+			FreeBlock *firstFreeBlock = (FreeBlock *)allocatedBLockHeader;
+			firstFreeBlock->next = ((FreeBlock *)this->baseMemory)->next;
+			firstFreeBlock->size = sizeOfTheFreedBlock + sizeof(FreeBlock) + ((FreeBlock *)this->baseMemory)->size;
 
-			this->baseMemory = (char*)firstFreeBlock;
+			this->baseMemory = (char *)firstFreeBlock;
 
 		}
 		else if ((size_t)headerBegin + sizeof(AllocatedBlock) + sizeOfTheFreedBlock > (size_t)this->baseMemory)
@@ -359,12 +361,12 @@ void FreeListAllocator::free(void* mem)
 		}
 		else
 		{	//this doesn't merge with the next free block so just link them
-			FreeBlock* firstFreeBlock = (FreeBlock*)allocatedBLockHeader;
+			FreeBlock *firstFreeBlock = (FreeBlock *)allocatedBLockHeader;
 
 			firstFreeBlock->next = this->baseMemory;
 			firstFreeBlock->size = sizeOfTheFreedBlock;
 
-			this->baseMemory = (char*)firstFreeBlock;
+			this->baseMemory = (char *)firstFreeBlock;
 		}
 
 
@@ -374,8 +376,8 @@ void FreeListAllocator::free(void* mem)
 		//the freed block is somewhere in the middle
 		//first search for the blocks before and after it
 
-		FreeBlock* current = (FreeBlock*)baseMemory;
-		FreeBlock* next = (FreeBlock*)current->next;
+		FreeBlock *current = (FreeBlock *)baseMemory;
+		FreeBlock *next = (FreeBlock *)current->next;
 
 		while (true)
 		{
@@ -386,12 +388,12 @@ void FreeListAllocator::free(void* mem)
 				)
 			{
 				//the block is between 2 blocks
-				FreeBlock* theBlockBefore = current;
-				FreeBlock* theBlockAfter = (FreeBlock*)current->next;
+				FreeBlock *theBlockBefore = current;
+				FreeBlock *theBlockAfter = (FreeBlock *)current->next;
 
 				//merge with the block before
 
-				FreeBlock* newCurent = nullptr;
+				FreeBlock *newCurent = nullptr;
 				//check if merged
 				if ((size_t)theBlockBefore + sizeof(FreeBlock) + theBlockBefore->size == (size_t)headerBegin)
 				{
@@ -408,8 +410,8 @@ void FreeListAllocator::free(void* mem)
 				else
 				{
 					//just link, no merge
-					theBlockBefore->next = (char*)headerBegin;
-					FreeBlock* thisBlock = (FreeBlock*)headerBegin;
+					theBlockBefore->next = (char *)headerBegin;
+					FreeBlock *thisBlock = (FreeBlock *)headerBegin;
 					thisBlock->next = nullptr;
 					thisBlock->size = sizeOfTheFreedBlock;
 
@@ -435,7 +437,7 @@ void FreeListAllocator::free(void* mem)
 					else
 					{
 						//just link
-						newCurent->next = (char*)theBlockAfter;
+						newCurent->next = (char *)theBlockAfter;
 
 					}
 
@@ -445,8 +447,8 @@ void FreeListAllocator::free(void* mem)
 				break;
 			}
 
-			current = (FreeBlock*)current->next;
-			next = (FreeBlock*)current->next;
+			current = (FreeBlock *)current->next;
+			next = (FreeBlock *)current->next;
 
 			if (current == nullptr || current >= this->end)
 			{
@@ -460,7 +462,7 @@ void FreeListAllocator::free(void* mem)
 }
 
 
-void* FreeListAllocator::threadSafeAllocate(size_t size)
+void *FreeListAllocator::threadSafeAllocate(size_t size)
 {
 	mu.lock();
 
@@ -471,8 +473,10 @@ void* FreeListAllocator::threadSafeAllocate(size_t size)
 	return a;
 }
 
-void FreeListAllocator::threadSafeFree(void* mem)
+void FreeListAllocator::threadSafeFree(void *mem)
 {
+	if (mem == nullptr) { return; }
+
 	mu.lock();
 
 	this->free(mem);
@@ -480,7 +484,7 @@ void FreeListAllocator::threadSafeFree(void* mem)
 	mu.unlock();
 }
 
-void FreeListAllocator::calculateMemoryMetrics(size_t& availableMemory, size_t& biggestBlock, int& freeBlocks)
+void FreeListAllocator::calculateMemoryMetrics(size_t &availableMemory, size_t &biggestBlock, int &freeBlocks)
 {
 
 	availableMemory = 0;
@@ -493,8 +497,8 @@ void FreeListAllocator::calculateMemoryMetrics(size_t& availableMemory, size_t& 
 	}
 
 
-	FreeBlock* last = nullptr;
-	FreeBlock* current = (FreeBlock*)baseMemory;
+	FreeBlock *last = nullptr;
+	FreeBlock *current = (FreeBlock *)baseMemory;
 
 	while (true)
 	{
@@ -512,7 +516,7 @@ void FreeListAllocator::calculateMemoryMetrics(size_t& availableMemory, size_t& 
 		else
 		{
 			last = current;
-			current = (FreeBlock*)current->next;
+			current = (FreeBlock *)current->next;
 		}
 
 
@@ -534,7 +538,7 @@ void FreeListAllocatorWinSpecific::init(size_t memorySize)
 	auto base = VirtualAlloc(nullptr, memorySize, MEM_RESERVE, PAGE_READWRITE);
 
 	beginOfAllocatedSpace = base;
-	endOfReservedSpace = (char*)base + memorySize;
+	endOfReservedSpace = (char *)base + memorySize;
 	endOfAllocatedSpace = base;
 
 	assert(extendAllocatedMemory(KB(1)));
@@ -544,9 +548,9 @@ void FreeListAllocatorWinSpecific::init(size_t memorySize)
 
 }
 
-inline void* FreeListAllocatorWinSpecific::allocate(size_t size)
+inline void *FreeListAllocatorWinSpecific::allocate(size_t size)
 {
-	void* rez = 0;
+	void *rez = 0;
 
 	while (true)
 	{
@@ -566,14 +570,14 @@ inline void* FreeListAllocatorWinSpecific::allocate(size_t size)
 
 }
 
-inline void FreeListAllocatorWinSpecific::free(void* mem)
+inline void FreeListAllocatorWinSpecific::free(void *mem)
 {
 	allocator.free(mem);
 }
 
-inline void* FreeListAllocatorWinSpecific::threadSafeAllocate(size_t size)
+inline void *FreeListAllocatorWinSpecific::threadSafeAllocate(size_t size)
 {
-	void* rez = 0;
+	void *rez = 0;
 
 	while (true)
 	{
@@ -593,19 +597,19 @@ inline void* FreeListAllocatorWinSpecific::threadSafeAllocate(size_t size)
 
 }
 
-inline void FreeListAllocatorWinSpecific::threadSafeFree(void* mem)
+inline void FreeListAllocatorWinSpecific::threadSafeFree(void *mem)
 {
 	allocator.threadSafeFree(mem);
 }
 
 bool FreeListAllocatorWinSpecific::extendAllocatedMemory(size_t size)
 {
-	if ((char*)endOfAllocatedSpace + size > endOfReservedSpace)
+	if ((char *)endOfAllocatedSpace + size > endOfReservedSpace)
 	{
 		return false;
 	}
 
-	size_t sizeToAllcoate = ((char*)endOfAllocatedSpace - (char*)beginOfAllocatedSpace) + size;
+	size_t sizeToAllcoate = ((char *)endOfAllocatedSpace - (char *)beginOfAllocatedSpace) + size;
 
 	auto rez = VirtualAlloc(beginOfAllocatedSpace, sizeToAllcoate,
 		MEM_COMMIT, PAGE_READWRITE);
@@ -616,7 +620,7 @@ bool FreeListAllocatorWinSpecific::extendAllocatedMemory(size_t size)
 		return false;
 	}
 
-	endOfAllocatedSpace = ((char*)endOfAllocatedSpace) + size;
+	endOfAllocatedSpace = ((char *)endOfAllocatedSpace) + size;
 
 
 	return true;

@@ -158,14 +158,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\gitSubmodule\gl2d\opengl2DLib\opengl2Dlib.cpp" />
+    <ClCompile Include="..\gitSubmodule\gl2d\opengl2DLib\gl2d.cpp" />
     <ClCompile Include="..\windowsPlatformLayer\utility.cpp" />
     <ClCompile Include="freeListAllocator.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Phisics.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\gitSubmodule\gl2d\opengl2DLib\opengl2Dlib.h" />
     <ClInclude Include="..\windowsPlatformLayer\buildConfig.h" />
     <ClInclude Include="freeListAllocator.h" />
     <ClInclude Include="gameStructs.h" />

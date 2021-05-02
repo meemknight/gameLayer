@@ -30,8 +30,8 @@
     <ClCompile Include="Phisics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\gitSubmodule\gl2d\opengl2DLib\opengl2Dlib.cpp">
-      <Filter>Source Files\shared</Filter>
+    <ClCompile Include="..\gitSubmodule\gl2d\opengl2DLib\gl2d.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -48,9 +48,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Phisics.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\gitSubmodule\gl2d\opengl2DLib\opengl2Dlib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
