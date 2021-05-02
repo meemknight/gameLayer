@@ -86,7 +86,7 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	mem->dot.loadFromFile("resources//dot.png");
 	mem->characterTexture.loadFromFile("resources//character.png");
 
-	mem->ps.initParticleSystem(5000);
+	mem->ps.initParticleSystem(4000);
 
 	const char* mapShape = 
 	"      X  X"

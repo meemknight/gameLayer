@@ -249,6 +249,8 @@ void setupFullscreen()
 	}
 
 	
+	//to get the zoom use this: actualScreenW / 1920.f;
+	//todo implement
 
 }
 
@@ -316,7 +318,7 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 		EndPaint(wind, &Paint);
 
 	} break;
-	case WM_ACTIVATEAPP:
+	case WM_ACTIVATE:
 	{
 		if (wp)
 		{
@@ -465,7 +467,7 @@ LRESULT windProc(HWND wind, UINT msg, WPARAM wp, LPARAM lp)
 			replayBufferData.fileMappingCursor = 0;
 		}
 #endif
-
+		//so altf4 works
 		rez = DefWindowProc(wind, msg, wp, lp);
 
 	}break;
@@ -737,20 +739,17 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	enableOpenGL(wind, &hrc);
 	globalWind = wind;
 	globalHGLRC = hrc;
-	//glewExperimental = true;
-	//if (glewInit() != GLEW_OK)
-	//{
-	//	MessageBoxA(0, "glewInit", "Error from glew", MB_ICONERROR);
-	//}
+	
 #pragma endregion
 
 #pragma region call game init
 	onCreate_ptr(gameMemory, heapMemory, &windowSettings, &platformFunctions);
 	setWindowSize(wind, windowSettings.w, windowSettings.h);
 	resetWindowBuffer(&gameWindowBuffer, &bitmapInfo, wind, &windowSettings);
-#pragma endregion
 
 	ShowWindow(wind, SW_NORMAL);
+#pragma endregion
+
 
 #pragma region time
 
@@ -774,6 +773,9 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #pragma region time
 
+		//todo lock to sthing like 300 fps anyway
+		//todo switch gl vendod and load the vsync function
+		//check if it synk function works and if not lock manually
 		if (windowSettings.lockTo60fps)
 		{
 			if (timeBeginPeriod(1) == TIMERR_NOERROR)

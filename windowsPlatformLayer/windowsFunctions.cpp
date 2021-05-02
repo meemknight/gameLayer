@@ -302,6 +302,7 @@ void enableOpenGL(HWND hwnd, HGLRC* hRC)
 	pfd.cColorBits = 32;
 	pfd.cDepthBits = 16;
 	pfd.cStencilBits = 8;
+	pfd.cAlphaBits = 8;
 	pfd.iLayerType = PFD_MAIN_PLANE;
 
 	if (
@@ -322,6 +323,7 @@ void enableOpenGL(HWND hwnd, HGLRC* hRC)
 			WGL_COLOR_BITS_ARB, 32,
 			WGL_DEPTH_BITS_ARB, 24,
 			WGL_STENCIL_BITS_ARB, 8,
+			WGL_ALPHA_BITS_ARB, 8,
 			WGL_SAMPLE_BUFFERS_ARB, GL_TRUE,
 			WGL_SAMPLES_ARB, 4,
 			0 // End of attributes list
@@ -350,7 +352,6 @@ void enableOpenGL(HWND hwnd, HGLRC* hRC)
 	}
 	else
 	{
-
 
 		int iFormat;
 
