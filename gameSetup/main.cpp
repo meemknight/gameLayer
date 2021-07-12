@@ -182,6 +182,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 		platformFunctions->keepPlayingMusic("resources/jungle.wav", 0.08);
 	}
 
+
 	mem->ps.pixelateFactor = 2;
 
 	//do game logic
@@ -255,7 +256,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 
 #pragma endregion
 
-	mem->firePart.onCreateCount = 50;
+	mem->firePart.onCreateCount = 10;
 	mem->firePart.subemitParticleTime = {};		
 	mem->firePart.particleLifeTime = {0.9, 1.5};
 	mem->firePart.directionX = { -8,8 };
@@ -266,8 +267,8 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 	mem->firePart.rotation = { 0, 360 };
 	mem->firePart.rotationSpeed = { 0, 10 };
 	mem->firePart.rotationDrag = { 0, 100 };
-	mem->firePart.createApearence.color1 = { 0.1, 0.3, 0.8, 0.6 };
-	mem->firePart.createApearence.color2 = { 0.2, 0.4, 0.9, 0.8 };
+	mem->firePart.createApearence.color1 = { 0.1, 0.3, 0.8, 0.3 };
+	mem->firePart.createApearence.color2 = { 0.2, 0.4, 0.9, 0.4 };
 	mem->firePart.createEndApearence.color1 = { 0.6,0.4,0.7,0.1 };
 	mem->firePart.createEndApearence.size = { 10,15 };
 	mem->firePart.tranzitionType = gl2d::TRANZITION_TYPES::wave;
@@ -317,6 +318,8 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 
 	char color1 = 255-input->controllers[0].LT * 254;
 	char color2 = 255-input->controllers[0].RT * 254;
+
+
 
 	renderer.renderRectangle({ 0,0, 1500, 800 }, {}, 0, mem->background);
 	

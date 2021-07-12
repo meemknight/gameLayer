@@ -771,6 +771,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	while (running)
 	{
 
+
 #pragma region time
 
 		//todo lock to sthing like 300 fps anyway
