@@ -1,7 +1,5 @@
 #pragma once
-#include "../windowsPlatformLayer/buildConfig.h"
-
-
+#include "../windowsPlatformLayer/asserts.h"
 
 
 #define KB(x) ((x)*1024LL)

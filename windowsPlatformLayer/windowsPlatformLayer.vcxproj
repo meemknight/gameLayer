@@ -172,6 +172,7 @@
     <ClInclude Include="Console.h" />
     <ClInclude Include="font8x8_basic.h" />
     <ClInclude Include="windowsFunctions.h" />
+    <ClInclude Include="asserts.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -28,9 +28,6 @@ FreeListAllocator allocator(memBlock, sizeof(memBlock));
 #endif
 
 
-//todo (vlod): Add c++17 overloads
-//todo add own assert
-
 void *operator new  (std::size_t count)
 {
 	auto a = allocator.allocate(count);
@@ -226,7 +223,7 @@ void *FreeListAllocator::allocate(size_t size)
 
 				}
 				else // this is not the first free block and not the last 
-				{	//todo fix here
+				{	// fix here ?
 
 					void *toReturn = (char *)current + sizeof(AllocatedBlock);
 					size_t currentSize = ((FreeBlock *)current)->size;

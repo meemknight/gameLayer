@@ -7,7 +7,7 @@
 #pragma once
 #include <Windows.h>
 #include <mutex>
-#include "../windowsPlatformLayer/buildConfig.h"
+#include "../windowsPlatformLayer/asserts.h"
 
 #undef min
 #undef max
@@ -92,41 +92,3 @@ private:
 
 };
 
-
-//todo (vlod): implement
-#if 0
-
-///set this to 0 if you want to compile on other platforms
-#define WINDOWS_DYNAMIC_IMPLEMENTATION 1
-
-struct FreeListAllocatorWinSpecific
-{
-
-	FreeListAllocatorWinSpecific() = default;
-	FreeListAllocatorWinSpecific(size_t memorySize)
-	{
-		init(memorySize);
-	}
-
-	void init(size_t memorySize);
-
-	void* allocate(size_t size);
-
-	void free(void* mem);
-
-	void* threadSafeAllocate(size_t size);
-
-	void threadSafeFree(void* mem);
-
-	///returns 0 if fails
-	bool extendAllocatedMemory(size_t size);
-
-private:
-	FreeListAllocator allocator;
-	void* endOfReservedSpace;
-	void* endOfAllocatedSpace;
-	void* beginOfAllocatedSpace;
-
-};
-
-#endif

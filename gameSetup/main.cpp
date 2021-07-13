@@ -2,6 +2,7 @@
 #include "gameStructs.h"
 #include <GL/glew.h>
 
+
 BOOL WINAPI DllMain(
 	HINSTANCE hinstDLL,
 	DWORD     fdwReason,
@@ -334,25 +335,26 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 
 		if(input->keyBoard[Button::W].held || input->anyController.Up.held)
 		{
-			dir.y -= speed;
+			dir.y -= 1;
 		}
 		if (input->keyBoard[Button::S].held || input->anyController.Down.held)
 		{
-			dir.y += speed;
+			dir.y += 1;
 		}
 		if (input->keyBoard[Button::A].held || input->anyController.Left.held)
 		{
-			dir.x -= speed;
+			dir.x -= 1;
 		}
 		if (input->keyBoard[Button::D].held || input->anyController.Right.held)
 		{
-			dir.x += speed;
+			dir.x += 1;
 		}
 
-		dir.x += speed * input->anyController.LThumb.x;
-		dir.y -= speed * input->anyController.LThumb.y;
+		dir.x += input->anyController.LThumb.x;
+		dir.y -= input->anyController.LThumb.y;
 
-		//todo normalize dir;
+		if(dir.x || dir.y)
+		dir = glm::normalize(dir) * speed;
 		
 
 		if (input->keyBoard[Button::Q].held )

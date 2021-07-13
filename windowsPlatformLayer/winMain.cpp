@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "windowsFunctions.h"
 #include "buildConfig.h"
+#include "asserts.h"
 #include <Xinput.h>
 #include "Console.h"
 #include <algorithm>
@@ -23,7 +24,7 @@ static GameWindowBuffer fpsCounterBuffer = {};
 static GameMemory* gameMemory = nullptr;
 static HeapMemory* heapMemory = nullptr;
 PlatformFunctions platformFunctions;
-static char dllName[260];	//todo refactor
+static char dllName[260];
 static GameInput gameInput = {};
 static LARGE_INTEGER performanceFrequency;
 static WindowSettings windowSettings;
@@ -253,7 +254,6 @@ void setupFullscreen()
 
 	
 	//to get the zoom use this: actualScreenW / 1920.f;
-	//todo implement
 
 }
 
