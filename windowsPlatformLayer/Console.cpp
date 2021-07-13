@@ -235,8 +235,8 @@ void processCommand(std::string msg)
 {
 	std::transform(msg.begin(), msg.end(), msg.begin(),
 		[](char c) { return std::tolower(c); });
-
-	//todo trim
+	
+	//trim next or sthing
 
 	
 	

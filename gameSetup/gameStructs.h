@@ -206,9 +206,15 @@ struct WindowSettings
 	int w = 400;
 	int h = 400;
 	bool drawWithOpenGl = true;
-	bool lockTo60fps = true;
 
-	//not implemented
+	//0 of deactivated, set the num of fps to lock to
+	//note there is a maximum fps anywai set around 300 fps
+	int lockFpsIfNotVsync = 0;
+	
+	//probably not good for when you don't use opengl
+	bool vsyncWithOpengl = false;
+
+	//not fully implemented
 	bool fullScreen = false;
 	float fullScreenZoon = 1;
 

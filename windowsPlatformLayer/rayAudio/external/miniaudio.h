@@ -5987,7 +5987,6 @@ static MA_INLINE ma_bool32 ma_has_neon(void)
         #if (defined(__ARM_NEON) || defined(__aarch64__) || defined(_M_ARM64))
             return MA_TRUE;    /* If the compiler is allowed to freely generate NEON code we can assume support. */
         #else
-            /* TODO: Runtime check. */
             return MA_FALSE;
         #endif
     #else
@@ -6348,31 +6347,26 @@ Standard Library Stuff
 
 static MA_INLINE double ma_sin(double x)
 {
-    /* TODO: Implement custom sin(x). */
     return sin(x);
 }
 
 static MA_INLINE double ma_exp(double x)
 {
-    /* TODO: Implement custom exp(x). */
     return exp(x);
 }
 
 static MA_INLINE double ma_log(double x)
 {
-    /* TODO: Implement custom log(x). */
     return log(x);
 }
 
 static MA_INLINE double ma_pow(double x, double y)
 {
-    /* TODO: Implement custom pow(x, y). */
     return pow(x, y);
 }
 
 static MA_INLINE double ma_sqrt(double x)
 {
-    /* TODO: Implement custom sqrt(x). */
     return sqrt(x);
 }
 
@@ -9558,7 +9552,7 @@ int ma_vscprintf(const char* format, va_list args)
     }
 
 	for (;;) {
-        char* pNewTempBuffer = (char*)ma_realloc(pTempBuffer, tempBufferCap, NULL);    /* TODO: Add support for custom memory allocators? */
+        char* pNewTempBuffer = (char*)ma_realloc(pTempBuffer, tempBufferCap, NULL);
         if (pNewTempBuffer == NULL) {
             ma_free(pTempBuffer, NULL);
             errno = ENOMEM;
@@ -12721,7 +12715,6 @@ static ma_result ma_device_init_internal__wasapi(ma_context* pContext, ma_device
         exclusive mode. The alternative is to enumerate over different formats and check IsFormatSupported()
         until you find one that works.
         
-        TODO: Add support for exclusive mode to UWP.
         */
         hr = S_FALSE;
     #endif
@@ -22557,7 +22550,6 @@ static ma_result ma_format_from_AudioStreamBasicDescription(const AudioStreamBas
                     return MA_SUCCESS;
                 } else {
                     if (pDescription->mBytesPerFrame/pDescription->mChannelsPerFrame == sizeof(ma_int32)) {
-                        /* TODO: Implement ma_format_s24_32. */
                         /**pFormatOut = ma_format_s24_32;*/
                         /*return MA_SUCCESS;*/
                         return MA_FORMAT_NOT_SUPPORTED;
@@ -22740,7 +22732,6 @@ static ma_result ma_get_channel_map_from_AudioChannelLayout(AudioChannelLayout* 
                 pChannelMap[0] = MA_CHANNEL_LEFT;
             } break;
             
-            /* TODO: Add support for more tags here. */
         
             default:
             {
@@ -22924,7 +22915,7 @@ static ma_result ma_get_AudioObject_stream_descriptions(ma_context* pContext, Au
     MA_ASSERT(ppDescriptions != NULL);
     
     /*
-    TODO: Experiment with kAudioStreamPropertyAvailablePhysicalFormats instead of (or in addition to) kAudioStreamPropertyAvailableVirtualFormats. My
+		Experiment with kAudioStreamPropertyAvailablePhysicalFormats instead of (or in addition to) kAudioStreamPropertyAvailableVirtualFormats. My
           MacBook Pro uses s24/32 format, however, which miniaudio does not currently support.
     */
     propAddress.mSelector = kAudioStreamPropertyAvailableVirtualFormats; /*kAudioStreamPropertyAvailablePhysicalFormats;*/
@@ -24075,7 +24066,6 @@ static void on_start_stop__coreaudio(void* pUserData, AudioUnit audioUnit, Audio
                 will try switching to the new default device seamlessly. We need to somehow find a way to determine whether or not Core Audio will most
                 likely be successful in switching to the new device.
                 
-                TODO: Try to predict if Core Audio will switch devices. If not, the onStop callback needs to be posted.
                 */
                 return;
             }
@@ -24669,7 +24659,6 @@ static ma_result ma_device_init_internal__coreaudio(ma_context* pContext, ma_dev
     #endif
     }
 #else
-    /* TODO: Figure out how to get the channel map using AVAudioSession. */
     ma_get_standard_channel_map(ma_standard_channel_map_default, pData->channelsOut, pData->channelMapOut);
 #endif
     
@@ -28948,7 +28937,6 @@ static ma_result ma_context_enumerate_devices__opensl(ma_context* pContext, ma_e
     }
 
     /*
-    TODO: Test Me.
     
     This is currently untested, so for now we are just returning default devices.
     */
@@ -29059,7 +29047,6 @@ static ma_result ma_context_get_device_info__opensl(ma_context* pContext, ma_dev
     }
 
     /*
-    TODO: Test Me.
     
     This is currently untested, so for now we are just returning default devices.
     */
@@ -31740,7 +31727,6 @@ MA_API void ma_clip_samples_f32(float* p, ma_uint64 sampleCount)
 {
     ma_uint32 iSample;
 
-    /* TODO: Research a branchless SSE implementation. */
     for (iSample = 0; iSample < sampleCount; iSample += 1) {
         p[iSample] = ma_clip_f32(p[iSample]);
     }
@@ -35719,7 +35705,6 @@ static ma_result ma_bpf_reinit__internal(const ma_bpf_config* pConfig, ma_bpf* p
         ma_bpf2_config bpf2Config;
         double q;
 
-        /* TODO: Calculate Q to make this a proper Butterworth filter. */
         q = 0.707107;
 
         bpf2Config = ma_bpf2_config_init(pConfig->format, pConfig->channels, pConfig->sampleRate, pConfig->cutoffFrequency, q);
@@ -43767,7 +43752,6 @@ static ma_result ma_vorbis_decoder_seek_to_pcm_frame(ma_vorbis_decoder* pVorbis,
     a full decode right from the start of the stream. Later on I'll need to write a layer that goes through all of the Ogg pages until we
     find the one containing the sample we need. Then we know exactly where to seek for stb_vorbis.
 
-    TODO: Use seeking logic documented for stb_vorbis_flush_pushdata().
     */
     if (!ma_decoder_seek_bytes(pDecoder, 0, ma_seek_origin_start)) {
         return MA_ERROR;

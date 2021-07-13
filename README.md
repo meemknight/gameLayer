@@ -113,6 +113,10 @@ Used for changing the screen size and more.
 
 * windowSettings->drawWithOpenGl = true; // enables opengl or pixel by pixel mode described earlier
 * windowSettings->w = 600; // if you do this every frame wou can lock the window width to 600 pixels for example
+* windowSettings->vsyncWithOpengl = true; //set vsync (when drawing with opengl)
+* windowSettings->lockFpsIfNotVsync = 60; //set to 0 to turn off, set the framerate when vsync is off or not working (note there is a maximum limit at around 300 fps that will always stay on)
+ 
+
 
 # Opengl
 

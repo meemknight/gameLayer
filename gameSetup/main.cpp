@@ -76,8 +76,9 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	windowSettings->w = 640;
 	windowSettings->h = 360;
 	windowSettings->drawWithOpenGl = true;
-	windowSettings->lockTo60fps = false;
-	gl2d::setVsync(1);
+	windowSettings->lockFpsIfNotVsync = 60;
+	windowSettings->vsyncWithOpengl = true;
+	//gl2d::setVsync(1);
 
 
 	mem->renderer.create();
@@ -132,7 +133,6 @@ extern "C" __declspec(dllexport) void onReload(GameMemory * mem, HeapMemory * he
 #pragma endregion
 
 	platformFunctions->console.log("reloaded...");
-	gl2d::setVsync(1);
 
 
 }
@@ -169,6 +169,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 
 	auto& renderer = mem->renderer;
 #pragma endregion
+
 
 	//platformFunctions->keepPlayingMusic("resources//jungle.wav", 0.1);
 

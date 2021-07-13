@@ -10,6 +10,7 @@
 #include "Console.h"
 #include <algorithm>
 #include "Audio.h"
+#include <GL/wglew.h>
 
 #pragma region globals
 
@@ -38,6 +39,8 @@ extern HGLRC globalHGLRC;
 const char* windowName = "Geam";
 
 Audio audio = {};
+
+PFNWGLSWAPINTERVALEXTPROC wglSwapInterval = 0;
 
 #pragma endregion
 
@@ -742,6 +745,13 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	
 #pragma endregion
 
+#pragma region load wgl extensions
+
+	wglSwapInterval = (PFNWGLSWAPINTERVALEXTPROC)wglGetProcAddress("wglSwapIntervalEXT");
+
+#pragma endregion
+
+
 #pragma region call game init
 	onCreate_ptr(gameMemory, heapMemory, &windowSettings, &platformFunctions);
 	setWindowSize(wind, windowSettings.w, windowSettings.h);
@@ -773,37 +783,68 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 
 #pragma region time
+		//the game will run at most at this fps regardless if vsynk is on or off
+		constexpr double maxFps = 300.0;
+		static bool wglSwapIntervalFunctionWorking = true;
 
-		//todo lock to sthing like 300 fps anyway
-		//todo switch gl vendod and load the vsync function
-		//check if it synk function works and if not lock manually
-		if (windowSettings.lockTo60fps)
+		bool swapIntervalActivated = 0;
+		
+		//fist try to do the vsync
+		if (windowSettings.vsyncWithOpengl && wglSwapInterval && wglSwapIntervalFunctionWorking)
 		{
+
+			swapIntervalActivated = wglSwapInterval(1);
+
+		}else if (wglSwapInterval)
+		{
+			wglSwapInterval(0);
+		}
+		
+		//then of vsync is not active lock at least at maxFps or 60 is specified
+		if(!swapIntervalActivated)
+		{
+			
+			double lockFps = maxFps;
+
+			if (windowSettings.lockFpsIfNotVsync > 0)
+			{ lockFps = windowSettings.lockFpsIfNotVsync; }
+
+			double perfFrequency = (double)performanceFrequency.QuadPart;
+
 			if (timeBeginPeriod(1) == TIMERR_NOERROR)
 			{
 				QueryPerformanceCounter(&time2);
 				LARGE_INTEGER deltaTimeInteger;
 				deltaTimeInteger.QuadPart = time2.QuadPart - time1.QuadPart;
-				double dDeltaTime2 = (double)deltaTimeInteger.QuadPart / (double)performanceFrequency.QuadPart;
+				
 
-				int sleep = (1000.0 / 60.0) - (dDeltaTime2 * 1000.0);
+				//double dDeltaTime2 = (double)deltaTimeInteger.QuadPart / (double)performanceFrequency.QuadPart;
+				//int sleep = (1000.0 / lockFps) - (dDeltaTime2 * 1000.0);
+				//if (sleep > 0) { Sleep(sleep); }
+				
+
+				double dDeltaTime2 = ((double)deltaTimeInteger.QuadPart * 1000.0 )/ perfFrequency;
+				int sleep = (1000.0 / lockFps) - dDeltaTime2;
 				if (sleep > 0) { Sleep(sleep); }
+				
 				timeEndPeriod(1);
 				QueryPerformanceCounter(&time1);
 			}
 			else
 			{
-				int sleep = 0;
+				double sleep = 0;
 				do
 				{
 					QueryPerformanceCounter(&time2);
-					int deltaTime2 = time2.QuadPart - time1.QuadPart;
-					double dDeltaTime2 = (double)deltaTime2 / (double)performanceFrequency.QuadPart;
+					LARGE_INTEGER deltaTimeInteger;
+					deltaTimeInteger.QuadPart = time2.QuadPart - time1.QuadPart;
+					double dDeltaTime2 = ((double)deltaTimeInteger.QuadPart * 1000.0) / perfFrequency;
 
-					sleep = (1000.0 / 60.0) - (dDeltaTime2 * 1000.0);
+					sleep = (1000.0 / lockFps) - (dDeltaTime2);
 				} while (sleep > 0);
 				QueryPerformanceCounter(&time1);
 			}
+
 		}
 
 		QueryPerformanceCounter(&time4);
@@ -826,6 +867,26 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			SetWindowText(wind, (std::string(windowName) + " - " + std::to_string(currentFrameCount)
 				+ "fps"
 				).c_str());
+
+		}
+
+		if (windowSettings.vsyncWithOpengl && wglSwapInterval && wglSwapIntervalFunctionWorking)
+		{
+			//we also want to check if the vsync is actually working
+			constexpr int MAX_SAMPLES_COUNT = 10;
+			static int currentBadSampleCount = 0;
+
+			if (1.f / deltaTime > 250)
+			{
+				currentBadSampleCount++;
+				if(currentBadSampleCount >= MAX_SAMPLES_COUNT)
+				{
+					wglSwapIntervalFunctionWorking = false;
+				}
+			}else
+			{
+				currentBadSampleCount = 0;
+			}
 
 		}
 
@@ -1075,10 +1136,11 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 #pragma region clamp Delta time
 
 			float clampedDeltaTime = deltaTime;
+			constexpr float minFps = 8; //the game will pretend to run at least at this framerate
 
-			if(clampedDeltaTime < 1/10)
+			if(clampedDeltaTime > 1.f / minFps)
 			{
-				clampedDeltaTime = 1/10.f;
+				clampedDeltaTime = 1.f / minFps;
 			}
 			
 			gameInput.deltaTime = clampedDeltaTime;

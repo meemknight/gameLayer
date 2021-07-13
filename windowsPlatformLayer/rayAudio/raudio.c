@@ -192,7 +192,6 @@ typedef struct tagBITMAPINFOHEADER {
 #endif
 
 #if defined(SUPPORT_FILEFORMAT_OGG)
-    // TODO: Remap malloc()/free() calls to RL_MALLOC/RL_FREE
 
     #define STB_VORBIS_IMPLEMENTATION
     #include "external/stb_vorbis.h"    // OGG loading functions
@@ -325,7 +324,7 @@ struct rAudioBuffer {
     rAudioBuffer *prev;             // Previous audio buffer on the list
 };
 
-#define AudioBuffer rAudioBuffer    // HACK: To avoid CoreAudio (macOS) symbol collision
+#define AudioBuffer rAudioBuffer    //  To avoid CoreAudio (macOS) symbol collision
 
 // Audio data context
 typedef struct AudioData {
@@ -413,8 +412,6 @@ void UntrackAudioBuffer(AudioBuffer *buffer);
 // Initialize audio device
 void InitAudioDevice(void)
 {
-    // TODO: Load AUDIO context memory dynamically?
-
     // Init audio context
     ma_context_config ctxConfig = ma_context_config_init();
     ctxConfig.logCallback = OnLog;
@@ -783,7 +780,6 @@ void UpdateSound(Sound sound, const void *data, int samplesCount)
     {
         StopAudioBuffer(sound.stream.buffer);
 
-        // TODO: May want to lock/unlock this since this data buffer is read at mixing time
         memcpy(sound.stream.buffer->data, data, samplesCount*ma_get_bytes_per_frame(sound.stream.buffer->converter.config.formatIn, sound.stream.buffer->converter.config.channelsIn));
     }
 }
@@ -1336,7 +1332,6 @@ void UpdateMusicStream(Music music)
 
     int samplesCount = 0;    // Total size of data streamed in L+R samples for xm floats, individual L or R for ogg shorts
 
-    // TODO: Get the sampleLeft using totalFramesProcessed... but first, get total frames processed correctly...
     //ma_uint32 frameSizeInBytes = ma_get_bytes_per_sample(music.stream.buffer->dsp.formatConverterIn.config.formatIn)*music.stream.buffer->dsp.formatConverterIn.config.channels;
     int sampleLeft = music.sampleCount - (music.stream.buffer->totalFramesProcessed*music.stream.channels);
 
@@ -1537,7 +1532,6 @@ void UpdateAudioStream(AudioStream stream, const void *data, int samplesCount)
             ma_uint32 subBufferSizeInFrames = stream.buffer->sizeInFrames/2;
             unsigned char *subBuffer = stream.buffer->data + ((subBufferSizeInFrames*stream.channels*(stream.sampleSize/8))*subBufferToUpdate);
 
-            // TODO: Get total frames processed on this buffer... DOES NOT WORK.
             stream.buffer->totalFramesProcessed += subBufferSizeInFrames;
 
             // Does this API expect a whole buffer to be updated in one go?
@@ -1874,7 +1868,6 @@ static void InitAudioBufferPool(void)
         AUDIO.MultiChannel.pool[i] = LoadAudioBuffer(AUDIO_DEVICE_FORMAT, AUDIO_DEVICE_CHANNELS, AUDIO_DEVICE_SAMPLE_RATE, 0, AUDIO_BUFFER_USAGE_STATIC);
     }
     
-    // TODO: Verification required for log
     TRACELOG(LOG_INFO, "AUDIO: Multichannel pool size: %i", MAX_AUDIO_BUFFER_POOL_CHANNELS);
 }
 
