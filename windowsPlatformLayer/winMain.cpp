@@ -896,6 +896,16 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		
 		gameInput.windowActive = active;
 		
+		if ((GetKeyState(VK_CAPITAL) & 0x0001) != 0)
+		{
+			gameInput.capsLook = 1;
+		}
+		else 
+		{
+			gameInput.capsLook = 0;
+		}
+
+
 		POINT p;
 		GetCursorPos(&p);
 		ScreenToClient(wind, &p);
@@ -1191,8 +1201,13 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		}else // run the console
 		{
 #pragma region draw console
+			bool shiftWasPressed = gameInput.keyBoard[Button::Shift].held;
+			if (gameInput.capsLook)
+			{
+				shiftWasPressed = !shiftWasPressed;
+			}
 
-			drawConsole(&gameWindowBuffer, &platformFunctions.console);
+			drawConsole(&gameWindowBuffer, &platformFunctions.console, shiftWasPressed);
 
 #pragma endregion
 		}

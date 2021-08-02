@@ -15,7 +15,9 @@ struct GameMemory
 #pragma endregion
 
 
-	SERIALIZE(int, test, 0, "test");
+	SERIALIZE(int, test, 0);
+	SERIALIZE(int, test2, 0);
+	SERIALIZE(int, myVariable, 0);
 
 	gl2d::Renderer2D renderer;
 
@@ -60,15 +62,16 @@ struct Button
 		Down,
 		Left,
 		Right,
+		Shift,
 		BUTTONS_COUNT, //
 	};
-
+	//todo add mouse buttons here todo also add alt was pressed function
 	static constexpr int buttonValues[BUTTONS_COUNT] =
 	{
 		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 
 		'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-		VK_SPACE, VK_RETURN, VK_ESCAPE, VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT
+		VK_SPACE, VK_RETURN, VK_ESCAPE, VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT, VK_SHIFT
 	};
 
 	void merge(const Button &b)
@@ -154,6 +157,7 @@ struct GameInput
 	int mouseX = 0;
 	int mouseY = 0;
 	bool windowActive = 0;
+	bool capsLook = 0;
 };
 
 
@@ -223,7 +227,7 @@ struct WindowSettings
 struct Console
 {
 	static constexpr int BUFFER_SIZE = 560;
-	static constexpr int WRITE_BUFFER_SIZE = 25;
+	static constexpr int WRITE_BUFFER_SIZE = 35;
 
 	struct Letter
 	{

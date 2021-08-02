@@ -423,14 +423,11 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 		mem->player.draw(renderer, deltaTime, mem->characterTexture);
 		
 
-		auto beginTime = __rdtsc();
+		//auto beginTime = __rdtsc();
 		mem->ps.applyMovement(deltaTime);
-		auto endTime = __rdtsc();
-
-
-		auto clocks = endTime - beginTime;
-
-		console->log(std::to_string(clocks).c_str());
+		//auto endTime = __rdtsc();
+		//auto clocks = endTime - beginTime;
+		//console->log(std::to_string(clocks).c_str());
 
 
 		mem->ps.draw(mem->renderer);

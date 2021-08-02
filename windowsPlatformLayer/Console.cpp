@@ -1,6 +1,7 @@
 #include "Console.h"
 #include "font8x8_basic.h"
 #include <algorithm>
+#include "iostream"
 
 constexpr int magW = 3;
 constexpr int magH = 3;
@@ -40,7 +41,7 @@ void resetConsole(GameWindowBuffer* window, Console* console)
 
 }
 
-void drawConsole(GameWindowBuffer* window, Console* console)
+void drawConsole(GameWindowBuffer* window, Console* console, bool shiftPressed)
 {
 	window->clear(15,15,18);
 
@@ -50,9 +51,10 @@ void drawConsole(GameWindowBuffer* window, Console* console)
 
 	int celPosX=0; // pixel pos
 	int celPosY=Ypadding * 8 * magH;
+	int maxDownPadding = 0;
 
-	int cellXsize = w / (8*magW);		//nr of cells
-	int cellYsize = h / (8*magH);
+	int cellXnumber = w / (8*magW);		//nr of cells
+	int cellYnumber = h / (8*magH);
 
 	auto drawChar = [&](char c, int x, int y, char color) 
 	{
@@ -65,74 +67,85 @@ void drawConsole(GameWindowBuffer* window, Console* console)
 		{
 			celPosX = 0;
 			celPosY += 8 * magH;
+			maxDownPadding--;
 			return;
 		}
 
 		if(c == '\t')
 		{
 			celPosX += 8 * magW * 3;
-			if (celPosX / (8 * magW) >= cellXsize)
+			if (celPosX / (8 * magW) >= cellXnumber)
 			{
 				celPosX = 0;
 				celPosY += 8 * magH;
+				maxDownPadding--;
 			}
 			
 		}
 
-		char letter[8][8] = {};
-		char *font = font8x8_basic[c];
-
-		for (int j = 0; j < 8; j++)
+		if(y>=0 && y <= h - (magH * 8 - 2))
 		{
-			char line = font[j];
-			for (int i = 0; i < 8; i++)
+			char letter[8][8] = {};
+			char* font = font8x8_basic[c];
+
+			for (int j = 0; j < 8; j++)
 			{
-				if(line & 0b1 == 1)
+				char line = font[j];
+				for (int i = 0; i < 8; i++)
 				{
-					letter[i][j] = 1;
+					if (line & 0b1 == 1)
+					{
+						letter[i][j] = 1;
+					}
+
+					line >>= 1;
 				}
 
-				line >>= 1;
 			}
 
-		}
-			
-		for (int yy = 0; yy < 8 * magH; yy++)
-			for (int xx = 0; xx < 8 * magH; xx++)
-			{
-				if(letter[xx / magW][yy / magH])
+			for (int yy = 0; yy < 8 * magH; yy++)
+				for (int xx = 0; xx < 8 * magH; xx++)
 				{
-					if(color == 1)
+					if (letter[xx / magW][yy / magH])
 					{
-						window->drawAt(x + xx, y + yy, 255, 150, 150);
-					}else if(color == 2)
-					{
-						window->drawAt(x + xx, y + yy, 250, 250, 100);
-					}else if(color == 3)
-					{
-						window->drawAt(x + xx, y + yy, 150, 255, 150);
-					}else if (color == 4)
-					{
-						window->drawAt(x + xx, y + yy, 150, 150, 255);
-					}
-					else if (color == 5)
-					{
-						window->drawAt(x + xx, y + yy, 15, 15, 18);
+						if (color == 1)
+						{
+							window->drawAt(x + xx, y + yy, 255, 150, 150);
+						}
+						else if (color == 2)
+						{
+							window->drawAt(x + xx, y + yy, 250, 250, 100);
+						}
+						else if (color == 3)
+						{
+							window->drawAt(x + xx, y + yy, 150, 255, 150);
+						}
+						else if (color == 4)
+						{
+							window->drawAt(x + xx, y + yy, 150, 150, 255);
+						}
+						else if (color == 5)
+						{
+							window->drawAt(x + xx, y + yy, 15, 15, 18);
+						}
+						else
+						{
+							window->drawAt(x + xx, y + yy, 200, 200, 200);
+						}
 					}
 					else
 					{
-						window->drawAt(x + xx, y + yy, 200, 200, 200);
+
 					}
-				}else
-				{
-				
 				}
-			}
+		}
+
 		celPosX += 8 * magW;
-		if (celPosX / (8 * magW) >= cellXsize)
+		if (celPosX / (8 * magW) >= cellXnumber)
 		{
-			celPosX = 0;
+			celPosX = 8 * magW;
 			celPosY += 8 * magH;
+			maxDownPadding--;
 		}
 
 	};
@@ -153,11 +166,11 @@ void drawConsole(GameWindowBuffer* window, Console* console)
 		if (console->buffer[i].c)
 		{
 			drawChar(console->buffer[i].c, celPosX, celPosY, console->buffer[i].color);
-			
 		}
 	}
 
 #pragma region handle input
+
 
 	for(int i=8; i<255; i++)
 	{
@@ -171,26 +184,34 @@ void drawConsole(GameWindowBuffer* window, Console* console)
 					console->writeBuffer[console->writeBufferPos] = 0;
 				}
 			}else
-			if((isalnum(i) 
+			if ((isalnum(i)
 				|| i == VK_SPACE
-				)&& console->writeBufferPos < console->WRITE_BUFFER_SIZE)
+				) && console->writeBufferPos < console->WRITE_BUFFER_SIZE)
 			{
-				console->writeBuffer[console->writeBufferPos] = i;
-				console->writeBufferPos++;
+				int letter = i;
+				if (!shiftPressed)
+					{letter = tolower(letter);}
+
+			console->writeBuffer[console->writeBufferPos] = letter;
+			console->writeBufferPos++;
 			}else if(i == VK_UP)
 			{
 				Ypadding++;
 			}else if(i == VK_DOWN)
 			{
 				Ypadding--;
+
 			}else if(i == VK_RETURN)
 			{
-				console->writeText(">");
+				console->writeText(">", 2);
 				console->writeText(console->writeBuffer);
 				console->writeText("\n");
 				processCommand(console->writeBuffer);
 				memset(console->writeBuffer, 0, sizeof(console->writeBuffer));
 				console->writeBufferPos = 0;
+
+				maxDownPadding--;
+				Ypadding = maxDownPadding + cellYnumber - 1;
 			}
 
 		}
@@ -198,11 +219,15 @@ void drawConsole(GameWindowBuffer* window, Console* console)
 
 	}
 
+	Ypadding = std::max(Ypadding, maxDownPadding+cellYnumber-1);
+	Ypadding = std::min(Ypadding, 0);
+
 #pragma endregion
 
 
 #pragma region draw input
 	{
+		//clear bottom part
 		for (int j = 0; j < magH * 8; j++)
 			for (int i = 0; i < w; i++)
 			{
@@ -216,6 +241,11 @@ void drawConsole(GameWindowBuffer* window, Console* console)
 		drawChar('>', 0, yPos, 5);
 		
 		char* c = console->writeBuffer;
+
+		if (console->writeBufferPos > cellXnumber)
+		{
+			c += console->writeBufferPos - cellXnumber;
+		}
 
 		while(*c)
 		{
@@ -231,13 +261,57 @@ void drawConsole(GameWindowBuffer* window, Console* console)
 }
 
 
+
+const char* commandNames[] =
+{
+	"var",
+	"vars",
+	"help",
+};
+
 void processCommand(std::string msg)
 {
-	std::transform(msg.begin(), msg.end(), msg.begin(),
-		[](char c) { return std::tolower(c); });
+	//std::transform(msg.begin(), msg.end(), msg.begin(),
+	//	[](char c) { return std::tolower(c); });
 	
 	//trim next or sthing
+	int index = 0;
 
+	auto isSpace = [&]()
+	{
+
+		return (msg[index] == ' ' || msg[index] == '\n' ||
+			msg[index] == '\t' || msg[index] == '\v');
+	};
+
+	auto skipSpaces = [&]()
+	{
+		for (; index < msg.size(); index++)
+		{
+			if (!isSpace())
+			{
+				break;
+			}
+
+		}
+	};
+
+	skipSpaces();
+
+	std::string firstToken;
+	firstToken.reserve(20);
+
+	for (; index < msg.size(); index++)
+	{
+
+		if (isSpace()) { break; }
+
+		firstToken += msg[index];
+	}
 	
+	std::cout << firstToken << "\n";
+
+	std::vector<std::string> params;
+
 	
 }

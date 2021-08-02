@@ -43,9 +43,9 @@ struct SerializedVariableInstance
 	};
 };
 
-#define SERIALIZE(t, x, val, name) t x = val; private:\
- SerializedVariableInstance x ## _serialize = {serializedVariables, \
-type:: ## t ## _type, (void*)& x, name}; public:
+#define SERIALIZE(t, x, val) t x = val; private:\
+ SerializedVariableInstance internal_ ## x ## _serialize = {serializedVariables, \
+type:: ## t ## _type, (void*)& x, #t }; public:
 
 
 #pragma endregion
