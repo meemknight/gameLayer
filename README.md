@@ -122,7 +122,12 @@ Used for changing the screen size and more.
 * windowSettings->vsyncWithOpengl = true; //set vsync (when drawing with opengl)
 * windowSettings->lockFpsIfNotVsync = 60; //set to 0 to turn off, set the framerate when vsync is off or not working (note there is a maximum limit at around 300 fps that will always stay on)
 * windowSettings->force_16_9_AspectRatioOnFullScreen = true; //when in full screen it will set the rezolution of the monutor to the highest rezolution that has a 16:9 aspect ratio
- 
+
+# music and sounds
+
+* platformFunctions->playSound("resources/weird.wav", 0.1); // will play a sound at 0.1 volume.
+* platformFunctions->keepPlayingMusic("resources/jungle.wav", 0.08); // will play music at 0.08 volume while this is called every frame. If you want to stop the music stop calling the function.
+* platformFunctions->setMasterVolume(1.f); // sets the master volume to max
 
 # Opengl
 
