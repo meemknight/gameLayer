@@ -64,7 +64,7 @@ void winSetMasterVolume(float volume)
 }
 
 
-void winPlaySound(const char* name, float volume) 
+void winPlaySound(const char* name, float volume)
 {
 	audio.playSound(name, volume);
 }
@@ -536,7 +536,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 #if ALLOW_ONLY_ONE_INSTANCE 
 //global mutex that lets only one instance of this app run
-	CreateMutex(NULL, TRUE, "Global\\gameLayerMutex");
+	CreateMutex(NULL, TRUE, "Global\\gameLayerMutex" UNIQUE_NAME);
 	if (GetLastError() == ERROR_ALREADY_EXISTS)
 	{
 		return 0;
@@ -558,6 +558,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	platformFunctions.console.glog("----- Luta Vlad (c) ------");
 	platformFunctions.console.glog("--press ALT + ` to exit---");
 	platformFunctions.console.writeText("\n");
+
 #pragma endregion
 
 #pragma region set platform functions pointers
@@ -896,9 +897,16 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			dtCounter = 0;
 			//std::cout << currentFrameCount << '\n';
 
-			SetWindowText(wind, (std::string(windowName) + " - " + std::to_string(currentFrameCount)
-				+ "fps"
-				).c_str());
+			if (windowSettings.windowTitle[0] != 0) 
+			{
+				SetWindowText(wind, windowSettings.windowTitle);
+			}
+			else
+			{
+				SetWindowText(wind, (std::string(windowName) + " - " + std::to_string(currentFrameCount)
+					+ "fps"
+					).c_str());
+			}
 
 		}
 

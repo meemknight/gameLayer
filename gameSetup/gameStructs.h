@@ -245,6 +245,9 @@ struct WindowSettings
 
 	bool fullScreen = false;
 	bool force_16_9_AspectRatioOnFullScreen = false;
+	
+	//the title of the window. If it is null then the window title will just display the fps.
+	char windowTitle[100] = {};
 
 };
 

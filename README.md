@@ -122,6 +122,7 @@ Used for changing the screen size and more.
 * windowSettings->vsyncWithOpengl = true; //set vsync (when drawing with opengl)
 * windowSettings->lockFpsIfNotVsync = 60; //set to 0 to turn off, set the framerate when vsync is off or not working (note there is a maximum limit at around 300 fps that will always stay on)
 * windowSettings->force_16_9_AspectRatioOnFullScreen = true; //when in full screen it will set the rezolution of the monutor to the highest rezolution that has a 16:9 aspect ratio
+* windowSettings->windowTitle ->a null terminated string with the title of the window. If left empty the window will have the fps in the title.
 
 # music and sounds
 
@@ -136,5 +137,5 @@ I have my own [2d library](https://github.com/meemknight/gl2d) that you can use 
 # Shipping
 
 In windowsPlatformLayer project there is a file buildConfig.h. You might want to change flags there when shipping your program. There are all explained there.
-Your game is the exe and the dll and the folder with resources if you choose to use one. Other visual studio files are not used.
+Your game is the exe and the dll and the folder with resources that you will have to manually copy in the release folder if you choose to use one. Other visual studio files are not used.
 

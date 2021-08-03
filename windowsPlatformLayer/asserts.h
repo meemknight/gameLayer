@@ -137,7 +137,6 @@ inline void assertFuncInternal(
 #define winAssertComment(expression, comment) (void)(								\
 			(!!(expression)) ||														\
 			(assertFuncProduction(#expression, __FILE__, (unsigned)(__LINE__), comment), 1)	\
-
-)
+		)
 
 #endif

@@ -105,10 +105,6 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	mem->player.pos = {};
 	mem->player.dimensions = {60,60};
 
-	//mem->musicPlayer.openFromFile("resources//rainForest.wav");
-	//mem->musicPlayer.setVolume(50);
-	//mem->musicPlayer.play();
-	//mem->musicPlayer.setLoop(1);
 
 }
 
@@ -180,6 +176,7 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 	{
 		platformFunctions->keepPlayingMusic("resources/jungle.wav", 0.08);
 	}
+
 
 
 	mem->ps.pixelateFactor = 2;

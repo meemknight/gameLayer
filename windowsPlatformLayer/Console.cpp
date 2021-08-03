@@ -220,17 +220,20 @@ void drawConsole(GameWindowBuffer* window, Console* console, GameInput* input, S
 			}
 			else if (i == VK_RETURN)
 			{
-				console->writeText(">", 2);
-				console->writeText(console->writeBuffer);
-				console->writeText("\n");
-				tokenizeCommand(console->writeBuffer, console, serializedVars);
-				memset(console->writeBuffer, 0, sizeof(console->writeBuffer));
-				console->writeBufferPos = 0;
+				if(console->writeBuffer[0])
+				{
+					console->writeText(">", 2);
+					console->writeText(console->writeBuffer);
+					console->writeText("\n");
+					tokenizeCommand(console->writeBuffer, console, serializedVars);
+					memset(console->writeBuffer, 0, sizeof(console->writeBuffer));
+					console->writeBufferPos = 0;
 
-				maxDownPadding--;
-				Ypadding = maxDownPadding + cellYnumber - 1;
+					maxDownPadding--;
+					Ypadding = maxDownPadding + cellYnumber - 1;
 
-				resetNetxTime = true;
+					resetNetxTime = true;
+				}
 
 			}
 
@@ -385,6 +388,7 @@ void tokenizeCommand(std::string msg, Console* console, SerializedVariabels* ser
 		firstToken += msg[index];
 	}
 	
+	if (firstToken.empty()) { return; }
 
 	std::vector<std::string> params;
 
@@ -420,14 +424,7 @@ void tokenizeCommand(std::string msg, Console* console, SerializedVariabels* ser
 			currentToken = {};
 		}
 	}
-	
 
-	std::cout << firstToken << " -> ";
-	for (auto& i : params)
-	{
-		std::cout << i << ", ";
-	}
-	std::cout << "\n";
 
 	processCommand(firstToken, params, console, serializedVars);
 }
@@ -563,13 +560,13 @@ void processCommand(std::string& firstToken, std::vector<std::string>& params, C
 							}break;
 							case type::char_type:
 							{
-								char val = std::atoi(params[2].c_str()); //todo add own shit here probably
+								char val = std::atoi(params[2].c_str());
 								*(char*)var.ptr = val;
 
 							}break;
 							case type::bool_type:
 							{
-								bool val = std::atoi(params[2].c_str()); //todo add own shit here probably
+								bool val = std::atoi(params[2].c_str());
 								*(bool*)var.ptr = val;
 
 							}break;
