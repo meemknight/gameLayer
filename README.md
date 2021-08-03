@@ -5,7 +5,7 @@
 
 This project offers you all you need to make a game (or other graphical program) in c++.
 It comes preinstaled with some libraries that you can remove if you want to.
-You can draw to the screen with opengl or draw pixel by pixel
+You can draw to the screen with opengl or draw pixel by pixel and you can play music or sounds very easily.
 
 ---
  
@@ -23,22 +23,22 @@ You can draw to the screen with opengl or draw pixel by pixel
 
 # How to use it:
 
-All the work that you do should be in the gameSetup project. There you can modift main.cpp and gameStructs.h and add new files if needed.
+All the work that you do should be in the gameSetup project. There you can write your code in main.cpp. Don't remove gameStructs freeListAllocator and utility. You can and add new files if needed.
 In main.cpp there are 3 functions of interest: onCreate, onReload and gameLogic. On create is called when the game is created and you can initialize your variables there, 
 load textures and set the window dimensions. gameLogic is called per frame and there you write your game logic.
 
-In gameStructs.h there is a struct called GameMemory. There you declare your variables that you want to be persistent after the frame like player position.
+In gameStructs.h there is a struct called GameMemory. There you declare your variables that you want to be persistent after the frame has ended like player position.
 Also, in gameStructs.h there is a struct called HeapMemory. You can change the heap memory of the program there. It is not dynamic so you should set
 enough memory from the beginning.
 
 
-The that i have talked about recieve some pointers to some variables that are usefull for your program:
+The functions that I have talked about recieve some pointers to some variables that are usefull for your program:
 	* deltaTime: measured in seconds, the time passed since last frame
-	* allocator: the global allocator pointer (for internal usage)
+	* allocator: the global allocator pointer (for internal usage, it overwrited the global allocator)
 	* console: the internal console. (more on this later)
 	* input: the game input (more on this later)
 	* mem: the game memory, here you have things declared in GameMemory structure from the gameStructs.h file
-	* heapMemory: (for internal usage)
+	* heapMemory: (for internal usage, yes it is just your heap memory)
 	* volatileMemory: used for temporary allocations (more on this later)
 	* windowBuffer: used for drawing to the screen (more on this later)
 	* windowSettings: used to set the window width, height and other things (more on this later)
@@ -75,17 +75,23 @@ Press alt + ~ to bring up the console. You can write to it using:
 * console.glog() green logs
 * console.blog() blue logs
 
-In the future I'll add commands in the console
+In the console you can modify "serialized" variabels. 
+You can declare some basic types as serialized variabels: int float bool char.
+For example: in GameMemory you cand type SERIALIZE(int, test, 10); which is equal to int test = 10;
+In the console you can type var test = 12 to modify it or type vars to display all the variables.
 
 # input
 
 * input->keyBoard[Button::Space].held -> space is held
 * input->keyBoard[Button::D].released -> d letter is released
 * input->leftMouse.pressed -> left mouse button is pressed
-* input->mouseX -> mouse position on x axes
+* input->mouseX -> mouse position on the x axe
 * input->windowActive -> true if the window is active
 * input->anyController.X.pressed -> true if x is pressed on any controller
 * input->controllers[0].LThumb.x -> for controller 0, x axes of the left thumb, there are 4 controllers in total
+* input->keyBoard[Button::A].typed -> symulates typing letters. It will be true when pressed and then after a small pause few times a seccond like helding a key down when typing.
+* input->windowActive -> true if the window is active. 
+* input->typedCharacters -> a null terminated string with the typed characters. Good for input boxes. The 8 aschii value means back space. Will take into account if shift was pressed to convert letters to upper or numbers to symbols etc. 
 
 # volatileMemory
 
@@ -115,8 +121,8 @@ Used for changing the screen size and more.
 * windowSettings->w = 600; // if you do this every frame wou can lock the window width to 600 pixels for example
 * windowSettings->vsyncWithOpengl = true; //set vsync (when drawing with opengl)
 * windowSettings->lockFpsIfNotVsync = 60; //set to 0 to turn off, set the framerate when vsync is off or not working (note there is a maximum limit at around 300 fps that will always stay on)
+* windowSettings->force_16_9_AspectRatioOnFullScreen = true; //when in full screen it will set the rezolution of the monutor to the highest rezolution that has a 16:9 aspect ratio
  
-
 
 # Opengl
 
