@@ -15,9 +15,10 @@ struct GameMemory
 #pragma endregion
 
 
-	SERIALIZE(int, test, 0);
-	SERIALIZE(int, test2, 0);
-	SERIALIZE(int, myVariable, 0);
+	SERIALIZE(int, test, 10);
+	SERIALIZE(int, test2, 20);
+	SERIALIZE(int, test3, 0);
+	SERIALIZE(float, myVariable, 2.213);
 
 	gl2d::Renderer2D renderer;
 
@@ -71,11 +72,11 @@ struct Button
 		Period_RightArrow,
 		Minus_Underscore,
 		Comma_LeftArrow,
+		SemiColon,
 		Question_BackSlash,
 		Tilde, //next line
 		Quotes,
 		Slash,
-		SemiColon,
 		SquareBracketsOpen,
 		SquareBracketsClose,
 		BUTTONS_COUNT, //
@@ -87,8 +88,8 @@ struct Button
 		'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 		VK_SPACE, VK_RETURN, VK_ESCAPE, VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT, VK_SHIFT,
-		VK_BACK, VK_OEM_PLUS, VK_OEM_PERIOD, VK_OEM_MINUS, VK_OEM_COMMA, VK_OEM_2, VK_OEM_3,
-		VK_OEM_7, VK_OEM_5, VK_OEM_1, VK_OEM_4, VK_OEM_6,
+		VK_BACK, VK_OEM_PLUS, VK_OEM_PERIOD, VK_OEM_MINUS, VK_OEM_COMMA, VK_OEM_1, VK_OEM_2, VK_OEM_3,
+		VK_OEM_7, VK_OEM_5, VK_OEM_4, VK_OEM_6,
 
 	};
 
@@ -276,6 +277,14 @@ struct Console
 		if (bufferBeginPos >= BUFFER_SIZE)
 		{
 			bufferBeginPos = 0;
+		}
+	}
+
+	void writeText(std::string c, char color = 0)
+	{
+		for(auto &i :c)
+		{
+			writeLetter({ i, color });
 		}
 	}
 

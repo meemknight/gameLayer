@@ -1331,7 +1331,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		{
 #pragma region draw console
 
-			drawConsole(&gameWindowBuffer, &platformFunctions.console, &gameInput);
+			drawConsole(&gameWindowBuffer, &platformFunctions.console, &gameInput, &gameMemory->serializedVariables);
 
 #pragma endregion
 		}

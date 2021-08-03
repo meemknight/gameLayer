@@ -15,8 +15,9 @@ void clearMemory(void* p, size_t size);
 enum type
 {
 	int_type = 0,
-	float_type = 0,
-
+	float_type,
+	char_type,
+	bool_type,
 };
 
 struct SerializedVariable
@@ -45,7 +46,7 @@ struct SerializedVariableInstance
 
 #define SERIALIZE(t, x, val) t x = val; private:\
  SerializedVariableInstance internal_ ## x ## _serialize = {serializedVariables, \
-type:: ## t ## _type, (void*)& x, #t }; public:
+type:: ## t ## _type, (void*)& x, #x }; public:
 
 
 #pragma endregion

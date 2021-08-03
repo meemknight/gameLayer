@@ -3,46 +3,63 @@
 #include <algorithm>
 #include "iostream"
 
-constexpr int magW = 3;
-constexpr int magH = 3;
-int Ypadding = 0;
+constexpr int magW = 2;
+constexpr int magH = 2;
+int Ypadding = 0; //todo move ypadding in console
+int resetNetxTime = 0;
+
 
 void resetConsole(GameWindowBuffer* window, Console* console)
 {
-	int lineCount = 1;
+	int celPosX = 0; // pixel pos
+	int maxDownPadding = 0;
+
+	int cellXnumber = window->w / (8 * magW);		//nr of cells
+	int cellYnumber = window->h / (8 * magH);
+
 	int i = 0; 
 
 	while(console->buffer[i].c)
 	{
 		
+		celPosX += 8 * magW;
+		if (console->buffer[i].c == '\t')
+		{
+			celPosX += 8 * magW * 2;
+		}
+
+		if (celPosX / (8 * magW) >= cellXnumber)
+		{
+			celPosX = 0;
+			maxDownPadding--;
+		}
+
 		if(console->buffer[i].c == '\n' 
 			||
 			console->buffer[i].c == '\v'
 			)
 		{
-			lineCount++;
+			celPosX = 0;
+			maxDownPadding--;
 		}
 	
 		i++;
 	}
 
-	int ySize = window->h;
-	int yCellCount = ySize / (8 * magH) - 3;
-
-	int diff = lineCount - yCellCount;
-
-	if(diff > 0)
-	{
-		Ypadding = -diff;
-	}else
-	{
-		Ypadding = 0;
-	}
+	Ypadding = maxDownPadding + cellYnumber - 1;
+	Ypadding = std::min(Ypadding, 0);
 
 }
 
-void drawConsole(GameWindowBuffer* window, Console* console, GameInput* input)
+void drawConsole(GameWindowBuffer* window, Console* console, GameInput* input, SerializedVariabels* serializedVars)
 {
+
+	if (resetNetxTime)
+	{
+		resetConsole(window, console);
+	}
+	resetNetxTime = false;
+
 	window->clear(15,15,18);
 
 	auto w = window->w;
@@ -143,7 +160,7 @@ void drawConsole(GameWindowBuffer* window, Console* console, GameInput* input)
 		celPosX += 8 * magW;
 		if (celPosX / (8 * magW) >= cellXnumber)
 		{
-			celPosX = 8 * magW;
+			celPosX = 0;
 			celPosY += 8 * magH;
 			maxDownPadding--;
 		}
@@ -206,12 +223,15 @@ void drawConsole(GameWindowBuffer* window, Console* console, GameInput* input)
 				console->writeText(">", 2);
 				console->writeText(console->writeBuffer);
 				console->writeText("\n");
-				processCommand(console->writeBuffer);
+				tokenizeCommand(console->writeBuffer, console, serializedVars);
 				memset(console->writeBuffer, 0, sizeof(console->writeBuffer));
 				console->writeBufferPos = 0;
 
 				maxDownPadding--;
 				Ypadding = maxDownPadding + cellYnumber - 1;
+
+				resetNetxTime = true;
+
 			}
 
 		}
@@ -261,15 +281,33 @@ void drawConsole(GameWindowBuffer* window, Console* console, GameInput* input)
 }
 
 
+enum Commands
+{
+	VAR = 0,
+	VARS,
+	HELP,
+	CLS,
+	CommandsCount,
+};
 
-const char* commandNames[] =
+const char* commandNames[CommandsCount] =
 {
 	"var",
 	"vars",
 	"help",
+	"cls",
 };
 
-void processCommand(std::string msg)
+const char* commandDescription[CommandsCount] =
+{
+	"Set a variable or display its content\nexample:\nvar a //displays content\nvar b = 5//sets variable",
+	"Displays variabels.",
+	"Gives info about all functions",
+	"Clears the console screen",
+
+};
+
+void tokenizeCommand(std::string msg, Console* console, SerializedVariabels* serializedVars)
 {
 	//std::transform(msg.begin(), msg.end(), msg.begin(),
 	//	[](char c) { return std::tolower(c); });
@@ -315,7 +353,7 @@ void processCommand(std::string msg)
 			|| msg[index] == '<'
 			|| msg[index] == ','
 			|| msg[index] == '>'
-			|| msg[index] == '.'
+			//|| msg[index] == '.'
 			|| msg[index] == '?'
 			|| msg[index] == ';'
 			|| msg[index] == ':'
@@ -390,4 +428,196 @@ void processCommand(std::string msg)
 		std::cout << i << ", ";
 	}
 	std::cout << "\n";
+
+	processCommand(firstToken, params, console, serializedVars);
+}
+
+
+void processCommand(std::string& firstToken, std::vector<std::string>& params, Console* console, SerializedVariabels* serializedVars)
+{
+	auto printVariable = [&](int i)
+	{
+		auto& var = serializedVars->var[i];
+		std::string text;
+
+		switch (var.type)
+		{
+		case type::int_type:
+		{
+			text += "int ";
+			text += var.name;
+			text += " = ";
+
+			text += std::to_string(*(int*)var.ptr);
+
+			break;
+		};
+		case type::float_type:
+		{
+			text += "float ";
+			text += var.name;
+			text += " = ";
+
+			text += std::to_string(*(float*)var.ptr);
+
+			break;
+		};
+		case type::bool_type:
+		{
+			text += "bool ";
+			text += var.name;
+			text += " = ";
+
+			text += std::to_string(*(bool*)var.ptr);
+
+			break;
+		};
+		case type::char_type:
+		{
+			text += "char ";
+			text += var.name;
+			text += " = ";
+
+			text += std::to_string(*(char*)var.ptr);
+
+			break;
+		};
+		default:;
+		}
+
+		text += ";\n";
+		console->writeText(text);
+	};
+
+
+	int command = -1;
+	for (int i = 0; i < CommandsCount; i++)
+	{
+		if (firstToken == commandNames[i])
+		{
+			command = i;
+			break;
+		}
+	}
+
+	if (command == -1)
+	{
+		console->writeText(std::string("Invalid command: ") + firstToken + "\nTry help.\n");
+	}
+	else
+	{
+		switch (command)
+		{
+			case Commands::VAR:
+			{
+				if (params.empty()) 
+				{ 
+					console->writeText("Invalid sintax\n");
+					break; 
+				}
+
+				int index = -1;
+				for (int i = 0; i < serializedVars->pos; i++)
+				{
+					auto& var = serializedVars->var[i];
+
+					if (var.name == params[0])
+					{
+						index = i;
+						break;
+					}
+					
+				}
+
+				if (index == -1)
+				{
+					console->writeText("No such variable:");
+					console->writeText(params[0]);
+					console->writeText("\n");
+					break;
+				}
+				else
+				{
+					auto& var = serializedVars->var[index];
+
+					if (params.size() == 1) //var a
+					{
+						printVariable(index);
+					}
+					else if(params.size() == 3 && params[1] == "=")// var a = 1
+					{ 
+						switch (var.type)
+						{
+							case type::int_type:
+							{
+								int val =std::atoi(params[2].c_str()); //todo add own shit here probably
+								*(int*)var.ptr = val;
+
+							}break;
+							case type::float_type:
+							{
+								float val = std::atof(params[2].c_str());
+								*(float*)var.ptr = val;
+
+
+							}break;
+							case type::char_type:
+							{
+								char val = std::atoi(params[2].c_str()); //todo add own shit here probably
+								*(char*)var.ptr = val;
+
+							}break;
+							case type::bool_type:
+							{
+								bool val = std::atoi(params[2].c_str()); //todo add own shit here probably
+								*(bool*)var.ptr = val;
+
+							}break;
+						}
+
+						printVariable(index);
+
+					}
+					else
+					{
+						console->writeText("Invalid sintax\n");
+						break;
+					}
+				}
+
+				break;
+			}
+			case Commands::VARS:
+			{
+				for (int i = 0; i < serializedVars->pos; i++)
+				{
+					printVariable(i);
+				}
+
+				break;
+			}
+			case Commands::HELP:
+			{
+				for (int i = 0; i < Commands::CommandsCount; i++)
+				{
+					std::string text;
+					text += commandNames[i];
+					text += ": ";
+					text += commandDescription[i];
+					text += "\n\n";
+					console->writeText(text);
+				}
+				break;
+			}
+			case Commands::CLS:
+			{
+				*console = Console{};
+
+			};
+
+			default:;
+		}
+	}
+
+
 }
