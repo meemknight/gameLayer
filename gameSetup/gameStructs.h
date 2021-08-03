@@ -63,6 +63,11 @@ struct Button
 		Left,
 		Right,
 		Shift,
+		BackSpace, //next line 
+		Plus_Equal,
+		Period_RightArrow,
+		Minus_Underscore,
+		Comma_LeftArrow,
 		BUTTONS_COUNT, //
 	};
 	//todo add mouse buttons here todo also add alt was pressed function
@@ -71,7 +76,8 @@ struct Button
 		'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 
 		'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-		VK_SPACE, VK_RETURN, VK_ESCAPE, VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT, VK_SHIFT
+		VK_SPACE, VK_RETURN, VK_ESCAPE, VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT, VK_SHIFT,
+		VK_BACK, VK_OEM_PLUS, VK_OEM_PERIOD, VK_OEM_MINUS, VK_OEM_COMMA
 	};
 
 	void merge(const Button &b)
@@ -153,6 +159,11 @@ struct GameInput
 
 	ControllerButtons controllers[4] = {};
 	ControllerButtons anyController = {};
+
+	constexpr static int typedCharactersSize = 30;
+	constexpr static char BACK_SPACE = 0x08;
+
+	char typedCharacters[typedCharactersSize + 1] = {};
 
 	int mouseX = 0;
 	int mouseY = 0;

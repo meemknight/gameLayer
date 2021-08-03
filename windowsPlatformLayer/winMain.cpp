@@ -954,6 +954,91 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	
 		}
 
+		bool shiftWasPressed = gameInput.keyBoard[Button::Shift].held;
+		//typed input
+		{
+			ZeroMemory(gameInput.typedCharacters, gameInput.typedCharactersSize + 1);
+			int typePos = 0;
+
+			for (int i = 0; i < 'Z' - 'A' + 1; i++)
+			{
+				if (gameInput.keyBoard[i].pressed)
+				{
+					int letter = i + 'A';
+					bool shouldLower = !shiftWasPressed;
+					if (gameInput.capsLook) { shouldLower = !shouldLower; }
+
+					if (shouldLower)
+					{
+						letter = tolower(letter);
+					}
+
+					gameInput.typedCharacters[typePos++] = letter;
+				}
+			}
+
+			{
+				const char* numbers = "0123456789";
+				const char* symbols = ")!@#$%^&*(";
+
+				for (int i = 0; i < 10; i++)
+				{
+					if (gameInput.keyBoard[Button::NR0 + i].pressed)
+					{
+						if (shiftWasPressed)
+						{
+							gameInput.typedCharacters[typePos++] = symbols[i];
+						}
+						else
+						{
+							gameInput.typedCharacters[typePos++] = numbers[i];
+						}
+					}
+
+				}
+			}
+
+			if (gameInput.keyBoard[Button::BackSpace].pressed)
+			{
+				gameInput.typedCharacters[typePos++] = 0x08;
+			}
+
+			if (gameInput.keyBoard[Button::Space].pressed)
+			{
+				gameInput.typedCharacters[typePos++] = ' ';
+			}
+			
+			{
+				constexpr int characterCount = 4;
+				const char noShift[characterCount+1] = "=.-,";
+				const char withShift[characterCount+1] = "+>_<";
+				int charMapping[characterCount] = {
+					Button::Plus_Equal,
+					Button::Period_RightArrow,
+					Button::Minus_Underscore,
+					Button::Comma_LeftArrow, };
+
+				for (int i = 0; i < characterCount; i++)
+				{
+					if (gameInput.keyBoard[charMapping[i]].pressed)
+					{
+						if (shiftWasPressed)
+						{
+							gameInput.typedCharacters[typePos++] = withShift[i];
+						}
+						else
+						{
+							gameInput.typedCharacters[typePos++] = noShift[i];
+						}
+					}
+				}
+
+			}
+		
+
+		}
+
+
 
 #pragma endregion
 
@@ -1201,13 +1286,8 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		}else // run the console
 		{
 #pragma region draw console
-			bool shiftWasPressed = gameInput.keyBoard[Button::Shift].held;
-			if (gameInput.capsLook)
-			{
-				shiftWasPressed = !shiftWasPressed;
-			}
 
-			drawConsole(&gameWindowBuffer, &platformFunctions.console, shiftWasPressed);
+			drawConsole(&gameWindowBuffer, &platformFunctions.console, &gameInput);
 
 #pragma endregion
 		}

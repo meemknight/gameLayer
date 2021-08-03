@@ -41,7 +41,7 @@ void resetConsole(GameWindowBuffer* window, Console* console)
 
 }
 
-void drawConsole(GameWindowBuffer* window, Console* console, bool shiftPressed)
+void drawConsole(GameWindowBuffer* window, Console* console, GameInput* input)
 {
 	window->clear(15,15,18);
 
@@ -93,7 +93,7 @@ void drawConsole(GameWindowBuffer* window, Console* console, bool shiftPressed)
 				char line = font[j];
 				for (int i = 0; i < 8; i++)
 				{
-					if (line & 0b1 == 1)
+					if ((line & 0b1) == 1)
 					{
 						letter[i][j] = 1;
 					}
@@ -171,37 +171,37 @@ void drawConsole(GameWindowBuffer* window, Console* console, bool shiftPressed)
 
 #pragma region handle input
 
+	for (int i = 0; input->typedCharacters[i] != 0; i++)
+	{
+		if (input->typedCharacters[i] == input->BACK_SPACE)
+		{
+			if (console->writeBufferPos != 0)
+			{
+				console->writeBufferPos--;
+				console->writeBuffer[console->writeBufferPos] = 0;
+			}
+		}
+		else if (console->writeBufferPos < console->WRITE_BUFFER_SIZE)
+		{
+			console->writeBuffer[console->writeBufferPos++] = input->typedCharacters[i];
+		}
+	}
 
 	for(int i=8; i<255; i++)
 	{
 		if (GetAsyncKeyState(i) == -32767)
 		{
-			if(i == VK_BACK)
-			{
-				if(console->writeBufferPos)
-				{
-					console->writeBufferPos--;
-					console->writeBuffer[console->writeBufferPos] = 0;
-				}
-			}else
-			if ((isalnum(i)
-				|| i == VK_SPACE
-				) && console->writeBufferPos < console->WRITE_BUFFER_SIZE)
-			{
-				int letter = i;
-				if (!shiftPressed)
-					{letter = tolower(letter);}
-
-			console->writeBuffer[console->writeBufferPos] = letter;
-			console->writeBufferPos++;
-			}else if(i == VK_UP)
+		
+			if (i == VK_UP)
 			{
 				Ypadding++;
-			}else if(i == VK_DOWN)
+			}
+			else if (i == VK_DOWN)
 			{
 				Ypadding--;
 
-			}else if(i == VK_RETURN)
+			}
+			else if (i == VK_RETURN)
 			{
 				console->writeText(">", 2);
 				console->writeText(console->writeBuffer);
@@ -284,6 +284,44 @@ void processCommand(std::string msg)
 			msg[index] == '\t' || msg[index] == '\v');
 	};
 
+	auto isDelimiterChar = [&]()
+	{
+		return (
+				msg[index] == '='
+			|| msg[index] == '+'
+			|| msg[index] == '('
+			|| msg[index] == ')'
+			|| msg[index] == '-'
+			|| msg[index] == '/'
+			|| msg[index] == '\\'
+			|| msg[index] == '{'
+			|| msg[index] == '}'
+			|| msg[index] == '['
+			|| msg[index] == ']'
+			|| msg[index] == '~'
+			|| msg[index] == '`'
+			|| msg[index] == '*'
+			|| msg[index] == '^'
+			|| msg[index] == '!'
+			|| msg[index] == '@'
+			|| msg[index] == '#'
+			|| msg[index] == '$'
+			|| msg[index] == '%'
+			|| msg[index] == '&'
+			|| msg[index] == '_'
+			|| msg[index] == '\''
+			|| msg[index] == '\"'
+			|| msg[index] == '|'
+			|| msg[index] == '<'
+			|| msg[index] == ','
+			|| msg[index] == '>'
+			|| msg[index] == '.'
+			|| msg[index] == '?'
+			|| msg[index] == ';'
+			|| msg[index] == ':'
+			);
+	};
+
 	auto skipSpaces = [&]()
 	{
 		for (; index < msg.size(); index++)
@@ -304,14 +342,52 @@ void processCommand(std::string msg)
 	for (; index < msg.size(); index++)
 	{
 
-		if (isSpace()) { break; }
+		if (isSpace() || isDelimiterChar()) { break; }
 
 		firstToken += msg[index];
 	}
 	
-	std::cout << firstToken << "\n";
 
 	std::vector<std::string> params;
 
+	{
+		std::string currentToken;
+		for (; index < msg.size(); index++)
+		{
+
+			if (isSpace() || isDelimiterChar()) 
+			{
+				if (!currentToken.empty())
+				{
+					params.push_back(currentToken);
+					currentToken = {};
+				}
+
+				if (isDelimiterChar())
+				{
+					std::string c = std::string(msg.begin() + index, msg.begin() + index + 1);
+					params.push_back(c);
+				}
+
+				continue;
+
+			}
+
+			currentToken += msg[index];
+		}
+
+		if (!currentToken.empty())
+		{
+			params.push_back(currentToken);
+			currentToken = {};
+		}
+	}
 	
+
+	std::cout << firstToken << " -> ";
+	for (auto& i : params)
+	{
+		std::cout << i << ", ";
+	}
+	std::cout << "\n";
 }

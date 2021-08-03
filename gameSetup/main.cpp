@@ -366,8 +366,6 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 			mem->renderer.currentCamera.rotation += speed;
 		}
 
-		
-
 
 		if (input->keyBoard[Button::Enter].released)
 		{
