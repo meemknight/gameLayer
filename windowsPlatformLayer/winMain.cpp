@@ -34,6 +34,8 @@ static Win32XinputData xinputData;
 
 static bool consoleRunning = false;
 
+static float globalDeltaTime = 0;
+
 extern HWND globalWind;
 extern HGLRC globalHGLRC;
 
@@ -81,6 +83,10 @@ extern "C"
 //	_declspec(dllexport) DWORD NvOptimusEnablement = 1;
 }
 
+
+constexpr float typeTime = 0.04;
+constexpr float initialTypeTime = 0.5;
+
 void processAsynkButton(Button &b, bool newState)
 {
 	if (newState)
@@ -90,6 +96,9 @@ void processAsynkButton(Button &b, bool newState)
 			b.held = true;
 			b.pressed = true;
 			b.released = false;
+
+			b.typed = true;
+			b._timeTyped = initialTypeTime;
 
 		}
 		else
@@ -117,19 +126,25 @@ void processAsynkButton(Button &b, bool newState)
 
 		}
 
+		b.typed = false;
+		b._timeTyped = 0;
+
 	}
 }
+
 void processEventButton(Button &b, bool newState)
 {
-	
 	if (newState) 
 	{
 		if(b.held)
 		{
 			b.pressed = false;
+
 		}else
 		{
 			b.pressed = true;
+			b.typed = true;
+			b._timeTyped = initialTypeTime;
 		}
 
 		b.held = true;
@@ -140,14 +155,33 @@ void processEventButton(Button &b, bool newState)
 		b.held = false;
 		b.pressed = false;
 		b.released = true;
+		b.typed = false;
+		b._timeTyped = 0;
 	}
 
 
 }
+
 void asynkButtonClear(Button &b)
 {
 	b.released = 0;
 	b.pressed = 0;
+	b.typed = 0;
+
+	if (b.held)
+	{
+		b._timeTyped -= globalDeltaTime;
+		if (b._timeTyped < 0)
+		{
+			b._timeTyped += typeTime;
+			b.typed = true;
+		}
+	}
+	else
+	{
+		b._timeTyped = 0;
+	}
+	
 }
 
 #pragma region fullScreen
@@ -524,7 +558,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 	platformFunctions.console.glog("- Platform layer console -");
 	platformFunctions.console.glog("----- Luta Vlad (c) ------");
-	platformFunctions.console.glog("press ALT + ~ or ` to exit");
+	platformFunctions.console.glog("--press ALT + ` to exit---");
 	platformFunctions.console.writeText("\n");
 #pragma endregion
 
@@ -954,6 +988,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 	
 		}
 
+	#pragma region typed input
 		bool shiftWasPressed = gameInput.keyBoard[Button::Shift].held;
 		//typed input
 		{
@@ -962,7 +997,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 			for (int i = 0; i < 'Z' - 'A' + 1; i++)
 			{
-				if (gameInput.keyBoard[i].pressed)
+				if (gameInput.keyBoard[i].typed)
 				{
 					int letter = i + 'A';
 					bool shouldLower = !shiftWasPressed;
@@ -983,7 +1018,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 
 				for (int i = 0; i < 10; i++)
 				{
-					if (gameInput.keyBoard[Button::NR0 + i].pressed)
+					if (gameInput.keyBoard[Button::NR0 + i].typed)
 					{
 						if (shiftWasPressed)
 						{
@@ -998,29 +1033,38 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 				}
 			}
 
-			if (gameInput.keyBoard[Button::BackSpace].pressed)
+			if (gameInput.keyBoard[Button::BackSpace].typed)
 			{
 				gameInput.typedCharacters[typePos++] = 0x08;
 			}
 
-			if (gameInput.keyBoard[Button::Space].pressed)
+			if (gameInput.keyBoard[Button::Space].typed)
 			{
 				gameInput.typedCharacters[typePos++] = ' ';
 			}
 			
 			{
-				constexpr int characterCount = 4;
-				const char noShift[characterCount+1] = "=.-,";
-				const char withShift[characterCount+1] = "+>_<";
+				constexpr int characterCount = 11;
+				const char noShift[characterCount+1] = "=.-,/`\'\\;[]";
+				const char withShift[characterCount+1] = "+>_<?~\"|:{}";
 				int charMapping[characterCount] = {
 					Button::Plus_Equal,
 					Button::Period_RightArrow,
 					Button::Minus_Underscore,
-					Button::Comma_LeftArrow, };
+					Button::Comma_LeftArrow,
+					Button::Question_BackSlash,
+					Button::Tilde,
+					Button::Quotes,
+					Button::Slash,
+					Button::SemiColon,
+					Button::SquareBracketsOpen,
+					Button::SquareBracketsClose,
+				
+				};
 
 				for (int i = 0; i < characterCount; i++)
 				{
-					if (gameInput.keyBoard[charMapping[i]].pressed)
+					if (gameInput.keyBoard[charMapping[i]].typed)
 					{
 						if (shiftWasPressed)
 						{
@@ -1034,10 +1078,9 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 				}
 
 			}
-		
 
 		}
-
+	#pragma endregion
 
 
 #pragma endregion
@@ -1239,6 +1282,7 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			}
 			
 			gameInput.deltaTime = clampedDeltaTime;
+			globalDeltaTime = clampedDeltaTime;
 
 #pragma endregion
 

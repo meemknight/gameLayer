@@ -46,9 +46,12 @@ struct GameMemory
 
 struct Button
 {
-	char pressed = 0;
-	char held = 0;
-	char released = 0;
+	char pressed = 0;	//one in the first frame it is pressed
+	char held = 0;		//one while is pressed
+	char released = 0;	//one while is released
+	char typed = 0;		//one in the first frame and then every so often so it simulates typing characters
+
+	float _timeTyped = 0;
 
 	enum
 	{
@@ -68,6 +71,13 @@ struct Button
 		Period_RightArrow,
 		Minus_Underscore,
 		Comma_LeftArrow,
+		Question_BackSlash,
+		Tilde, //next line
+		Quotes,
+		Slash,
+		SemiColon,
+		SquareBracketsOpen,
+		SquareBracketsClose,
 		BUTTONS_COUNT, //
 	};
 	//todo add mouse buttons here todo also add alt was pressed function
@@ -77,7 +87,9 @@ struct Button
 		'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
 		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
 		VK_SPACE, VK_RETURN, VK_ESCAPE, VK_UP, VK_DOWN, VK_LEFT, VK_RIGHT, VK_SHIFT,
-		VK_BACK, VK_OEM_PLUS, VK_OEM_PERIOD, VK_OEM_MINUS, VK_OEM_COMMA
+		VK_BACK, VK_OEM_PLUS, VK_OEM_PERIOD, VK_OEM_MINUS, VK_OEM_COMMA, VK_OEM_2, VK_OEM_3,
+		VK_OEM_7, VK_OEM_5, VK_OEM_1, VK_OEM_4, VK_OEM_6,
+
 	};
 
 	void merge(const Button &b)
@@ -85,6 +97,7 @@ struct Button
 		this->pressed |= b.pressed;
 		this->released |= b.released;
 		this->held |= b.held;
+		this->typed |= b.typed;
 	}
 };
 
