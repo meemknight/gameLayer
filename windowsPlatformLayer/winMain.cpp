@@ -188,7 +188,7 @@ void asynkButtonClear(Button &b)
 
 WINDOWPLACEMENT windowPlacementPrev = { sizeof(windowPlacementPrev) };
 static bool fullscreen = false;
-static float fullScreenZoom = 1;
+static bool fullScreenForcedAspecRatio = false;
 
 void setupFullscreen()
 {
@@ -270,7 +270,6 @@ void setupFullscreen()
 		
 		}
 
-
 	}
 
 	std::sort(validMonitorSettings.begin(), validMonitorSettings.end(), 
@@ -283,7 +282,6 @@ void setupFullscreen()
 		//	" " << validMonitorSettings[i].first.dmPelsHeight << "  zoom: " << validMonitorSettings[i].second << "\n";
 
 		ChangeDisplaySettings(&validMonitorSettings[i].first, CDS_FULLSCREEN);
-		fullScreenZoom = validMonitorSettings[i].second;
 	}
 
 	
@@ -1247,7 +1245,8 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 			
 			if(windowSettings.fullScreen)
 			{
-				
+				windowSettings.h = gameWindowBuffer.h;
+				windowSettings.w = gameWindowBuffer.w;
 			}else
 			{
 				if (((windowSettings.h != gameWindowBuffer.h)
@@ -1419,7 +1418,12 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 				), &mi)
 				)
 			{
-				setupFullscreen();
+
+				if (windowSettings.force_16_9_AspectRatioOnFullScreen)
+				{
+					setupFullscreen();
+					fullScreenForcedAspecRatio = true;
+				}
 
 				SetWindowLong(wind, GWL_STYLE,
 					dwStyle & ~WS_OVERLAPPEDWINDOW);
@@ -1438,8 +1442,9 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		}
 		else
 		{
+			//return from full screen
 			ChangeDisplaySettings(nullptr, 0);
-
+			fullScreenForcedAspecRatio = false;
 
 			SetWindowLong(wind, GWL_STYLE,
 				dwStyle | (WS_OVERLAPPEDWINDOW));
@@ -1457,17 +1462,15 @@ int WINAPI WinMain(HINSTANCE h, HINSTANCE, LPSTR cmd, int show)
 		}
 	}
 
-	
-	if (windowSettings.fullScreen) 
+	if (windowSettings.fullScreen
+		&& windowSettings.force_16_9_AspectRatioOnFullScreen
+		&& !fullScreenForcedAspecRatio)
 	{
-		windowSettings.h = gameWindowBuffer.h;
-		windowSettings.w = gameWindowBuffer.w;
-		windowSettings.fullScreenZoon = fullScreenZoom;
-	}else
-	{
-		windowSettings.fullScreenZoon = 1;
-		fullScreenZoom = 1;
+		setupFullscreen();
+		fullScreenForcedAspecRatio = true;
 	}
+
+
 
 
 #pragma endregion

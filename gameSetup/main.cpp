@@ -35,7 +35,6 @@ void* operator new[](std::size_t count)
 {
 	auto a = allocator->threadSafeAllocate(count);
 
-
 	return a;
 }
 
@@ -61,7 +60,6 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	new(mem) GameMemory; // *mem = GameMemory();
 	console = &platformFunctions->console;
 
-	platformFunctions->makeContext();
 	glewExperimental = true;
 	if (glewInit() != GLEW_OK)
 	{
@@ -76,9 +74,9 @@ extern "C" __declspec(dllexport) void onCreate(GameMemory* mem, HeapMemory * hea
 	//set the size of the window
 	windowSettings->w = 640;
 	windowSettings->h = 360;
-	windowSettings->drawWithOpenGl = true;
-	windowSettings->lockFpsIfNotVsync = 60;
-	windowSettings->vsyncWithOpengl = true;
+	//windowSettings->drawWithOpenGl = true;
+	//windowSettings->lockFpsIfNotVsync = 60;
+	//windowSettings->vsyncWithOpengl = true;
 	//gl2d::setVsync(1);
 
 
@@ -122,7 +120,6 @@ extern "C" __declspec(dllexport) void onReload(GameMemory * mem, HeapMemory * he
 	allocator = &heapMemory->allocator;
 	console = &platformFunctions->console;
 
-	platformFunctions->makeContext();
 	glewExperimental = true;
 	if (glewInit() != GLEW_OK)
 	{
@@ -155,12 +152,12 @@ extern "C" __declspec(dllexport) void gameLogic(GameInput * input, GameMemory * 
 
 	if(windowSettings->fullScreen)
 	{
-		mem->renderer.currentCamera.zoom = windowSettings->fullScreenZoon;
+		mem->renderer.currentCamera.zoom = windowSettings->w / 1920.f;
 	}else
 	{
 		windowSettings->w = 640;
 		windowSettings->h = 360;
-		mem->renderer.currentCamera.zoom = 640.f / 1920.f;
+		mem->renderer.currentCamera.zoom = windowSettings->w / 1920.f;
 	}
 	//mem->renderer.currentCamera.zoom = 0.5;
 	//mem->renderer.currentCamera.target = { mem->posX, mem->posY };

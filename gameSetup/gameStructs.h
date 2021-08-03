@@ -243,9 +243,8 @@ struct WindowSettings
 	//probably not good for when you don't use opengl
 	bool vsyncWithOpengl = false;
 
-	//not fully implemented
 	bool fullScreen = false;
-	float fullScreenZoon = 1;
+	bool force_16_9_AspectRatioOnFullScreen = false;
 
 };
 
