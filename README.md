@@ -132,3 +132,9 @@ Used for changing the screen size and more.
 # Opengl
 
 I have my own [2d library](https://github.com/meemknight/gl2d) that you can use to draw to the screen if you want. glew is also installed and initialized properly.
+
+# Shipping
+
+In windowsPlatformLayer project there is a file buildConfig.h. You might want to change flags there when shipping your program. There are all explained there.
+Your game is the exe and the dll and the folder with resources if you choose to use one. Other visual studio files are not used.
+
