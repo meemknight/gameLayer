@@ -125,7 +125,7 @@
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
-      <AdditionalIncludeDirectories>$(SolutionDir)dependences\include;$(SolutionDir)gitSubmodule\gl2d\opengl2DLib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)dependences\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>NotSet</SubSystem>
@@ -149,7 +149,7 @@
       <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
       <ProgramDataBaseFileName>$(IntDir)vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
       <FloatingPointModel>Fast</FloatingPointModel>
-      <AdditionalIncludeDirectories>$(SolutionDir)dependences\include;$(SolutionDir)gitSubmodule\gl2d\opengl2DLib</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)dependences\include;</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>StreamingSIMDExtensions2</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
@@ -162,9 +162,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\gitSubmodule\gl2d\opengl2DLib\gl2d.cpp" />
     <ClCompile Include="..\windowsPlatformLayer\utility.cpp" />
     <ClCompile Include="freeListAllocator.cpp" />
+    <ClCompile Include="gl2d.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Phisics.cpp" />
   </ItemGroup>
@@ -172,6 +172,7 @@
     <ClInclude Include="..\windowsPlatformLayer\buildConfig.h" />
     <ClInclude Include="freeListAllocator.h" />
     <ClInclude Include="gameStructs.h" />
+    <ClInclude Include="gl2d.h" />
     <ClInclude Include="Phisics.h" />
     <ClInclude Include="utility.h" />
   </ItemGroup>
